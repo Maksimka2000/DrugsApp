@@ -1,0 +1,34 @@
+name: Update Stack Submodule
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-stack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout stack repo
+        uses: actions/checkout@v4
+        with:
+          repository: Maksimka2000/DrugasApp-stack
+          token: ${{ secrets.STACK_REPO_TOKEN }}
+          submodules: true
+          fetch-depth: 0
+
+      - name: Update DrugsApp submodule
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git submodule update --init --remote DrugsApp
+          git add DrugsApp
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "bump DrugsApp submodule to ${{ github.sha }}"
+            git push
+          fi
