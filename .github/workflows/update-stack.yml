@@ -12,7 +12,7 @@ jobs:
       - name: Checkout stack repo
         uses: actions/checkout@v4
         with:
-          repository: Maksimka2000/DrugasApp-stack
+          repository: Maksimka2000/DrugsApp-stack
           token: ${{ secrets.STACK_REPO_TOKEN }}
           submodules: true
           fetch-depth: 0
