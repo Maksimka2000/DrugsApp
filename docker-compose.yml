@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  drugsapp-host:
+    image: ${DOCKER_REGISTRY-}drugsapphost
+    container_name: drugsapp-host
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_HTTP_PORTS=5000
+#      - ASPNETCORE_URLS=http://+:5000
+#      - ASPNETCORE_HTTPS_PORTS=5001
+    build:
+      context: .
+      dockerfile: DrugsApp.Host/Dockerfile
+    ports:
+      - "5283:5000"
+#      - "7252:5001"
+    depends_on:
+      - drugsapp-database
+      - drugsapp-cache
+      - drugsapp-seq
+  
+  
+  # PostgreSQL Database Service
+  drugsapp-database:
+    image: postgres:latest
+    container_name: drugsapp-database
+    environment:
+      POSTGRES_DB: drugsapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"  # postgress:internalContainer port mapping default for postgress. 
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    
+  drugsapp-cache:
+    image: redis:latest
+    container_name: drugsapp-cache
+    restart: always
+    ports:
+      - "6379:6379"
+  
+  drugsapp-seq:
+    image: datalust/seq:latest
+    container_name: drugsapp-seq
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORD=admin123!
+    ports:
+      - "5341:5431" 
+      - "8081:80"
+
+  # pgAdmin - PostgreSQL Web Admin
+  drugsapp-pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: drugsapp-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - drugsapp-database
+
+
+volumes:
+  postgres_data:
+    # Docker automatically manages location:
+    # Windows: C:\ProgramData\Docker\volumes\<project_name>_postgres_data
+    # Linux/Mac: /var/lib/docker/volumes/<project_name>_postgres_data
+
+
+  
