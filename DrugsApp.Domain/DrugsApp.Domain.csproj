@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="ErrorOr" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Shared\DomainServices\" />
+    <Folder Include="Shared\ValueObjects\" />
+  </ItemGroup>
+</Project>
