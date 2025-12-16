@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using DrugsApp.Features;
 using DrugsApp.Infrastructure;
+using DrugsApp.Host.Exceptions;
 using Serilog;
 using DrugsApp.Infrastructure.Extensions;
 using DrugsApp.Infrastructure.Extensions.Middleware;
+using Microsoft.AspNetCore.Mvc;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,10 @@ builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Confi
 // Register Features (MediatR, FluentValidation, Behaviors)
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFeatures();
+
+// Exception Handling
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Add Controllers
 builder.Services.AddControllers();
@@ -33,11 +39,12 @@ if (!app.Environment.IsProduction())
     app.ApplyMigrations();
 }
 
-// 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+// Exception Handling
+app.UseExceptionHandler();
+// Logging
 app.UseMiddleware<RequestLogContextMiddleware>();
 app.UseSerilogRequestLogging();
-
+// Routing
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
