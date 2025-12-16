@@ -1,13 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using DrugsApp.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 
 namespace DrugsApp.Infrastructure.Extensions.Middleware;
 
+/// <summary>
+/// Converts unhandled exceptions into the shared error envelope.
+/// </summary>
 public sealed class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
@@ -18,13 +21,16 @@ public sealed class ExceptionHandlingMiddleware
         _next = next;
     }
 
+    /// <summary>
+    /// Executes the next middleware and catches unhandled exceptions.
+    /// </summary>
     public async Task InvokeAsync(HttpContext httpContext)
     {
         try
         {
             await _next(httpContext);
         }
-        catch (Exception exception)
+        catch (Exception)
         {
             await WriteInternalServerErrorAsync(httpContext);
         }
@@ -37,18 +43,7 @@ public sealed class ExceptionHandlingMiddleware
             throw new InvalidOperationException("The response has already started.");
         }
 
-        var result = new ObjectResult(new
-            {
-                success = false,
-                errorType = "INTERNAL_SERVER_ERROR",
-                message = "An unexpected error occurred.",
-                timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                path = httpContext.Request.Path.ToString(),
-                traceId = httpContext.TraceIdentifier
-            })
-        {
-            StatusCode = StatusCodes.Status500InternalServerError
-        };
+        ObjectResult result = ErrorOrExtensions.MapToProblemMiddleware(httpContext);
 
         var actionContext = new ActionContext(
             httpContext,

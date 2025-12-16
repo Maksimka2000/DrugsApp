@@ -8,6 +8,9 @@ using MediatR;
 
 namespace DrugsApp.Features.Common.Behaviors;
 
+/// <summary>
+/// Wraps MediatR commands in a unit-of-work transaction, skipping queries.
+/// </summary>
 public class TransactionBehavior<TRequest, TResponse> 
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
@@ -20,6 +23,13 @@ public class TransactionBehavior<TRequest, TResponse>
         _unitOfWork = unitOfWork;
     }
 
+    /// <summary>
+    /// Begins a transaction for commands, commits on success, rolls back on errors.
+    /// </summary>
+    /// <param name="request">Incoming MediatR request.</param>
+    /// <param name="next">Delegate for the rest of the pipeline.</param>
+    /// <param name="cancellationToken">Cancellation token propagated from ASP.NET Core.</param>
+    /// <returns>Handler response.</returns>
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,

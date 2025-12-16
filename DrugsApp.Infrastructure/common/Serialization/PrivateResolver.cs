@@ -4,6 +4,9 @@ using Newtonsoft.Json.Serialization;
 
 namespace DrugsApp.Infrastructure.Common.Serialization;
 
+/// <summary>
+/// Allows Newtonsoft.Json to set private setters when deserializing cached aggregates.
+/// </summary>
 internal sealed class PrivateResolver : DefaultContractResolver
 {
     protected override JsonProperty CreateProperty(

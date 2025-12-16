@@ -5,6 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace DrugsApp.Features.Common.Behaviors;
 
+/// <summary>
+/// Logs every MediatR request and inspects ErrorOr responses for warnings.
+/// </summary>
 internal sealed class RequestLoggingPipelineBehavior<TRequest, TResponse>
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
@@ -16,6 +19,13 @@ internal sealed class RequestLoggingPipelineBehavior<TRequest, TResponse>
         _logger = logger;
     }
 
+    /// <summary>
+    /// Logs start/end of the request and warns when ErrorOr returns errors.
+    /// </summary>
+    /// <param name="request">Current MediatR request.</param>
+    /// <param name="next">Next handler in the pipeline.</param>
+    /// <param name="cancellationToken">Cancellation token from ASP.NET Core.</param>
+    /// <returns>Handler response.</returns>
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
