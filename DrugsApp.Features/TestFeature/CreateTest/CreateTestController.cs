@@ -26,8 +26,6 @@ public sealed class CreateTestController : ControllerBase
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(CreatedTestResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreatedTestResponse>> Create(
         [FromBody] CreateTestRequest request,
         CancellationToken cancellationToken)
@@ -35,21 +33,21 @@ public sealed class CreateTestController : ControllerBase
         ValidationResult? validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return validationResult.ToValidationProblem(HttpContext);
+            return validationResult.MapToProblem(HttpContext);
         }
 
         CreateTestCommand command = request.MapToCommand();
         ErrorOr<CreatedTestResponse> response = await _mediator.Send(command, cancellationToken);
 
-        if (response.IsError)
-        {
-            return response.Errors.MapToProblem(HttpContext);
-        }
 
-        return CreatedAtRoute(
-            routeName: RetrieveTestController.RouteName,
-            routeValues: new { testId = response.Value.Id },
-            value: response.Value);
+        return response.Match(
+               respnonse => CreatedAtRoute(
+                    routeName: RetrieveTestController.RouteName,
+                    routeValues: new { testId = response.Value.Id },
+                    value: response.Value),
+               errors => errors.MapToProblem(HttpContext));
+            
+            
     }
 }
 

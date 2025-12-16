@@ -26,7 +26,6 @@ internal sealed class GetTestByIdHandler
         if (test is null)
         {
             return Error.NotFound(
-                code: "Test.NotFound",
                 description: "Test not found.",
                 metadata: new Dictionary<string, object>
                 {

@@ -1,144 +1,145 @@
-﻿using ErrorOr;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ErrorOr;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
 namespace DrugsApp.Features;
 
+/// <summary>
+/// Maps ErrorOr results to the standardized HTTP problem envelope.
+/// </summary>
 public static class ErrorOrExtensions
 {
-    public static ActionResult MapToProblem(this List<Error> errors, HttpContext httpContext)
+    
+    /// <summary>
+    /// Converts ErrorOr responses to a problem result with trace metadata.
+    /// </summary>
+    public static ActionResult MapToProblem(
+        this List<Error> errors,
+        HttpContext httpContext)
     {
+
         if (errors.Count == 0)
         {
-            return new ObjectResult(new
-            {
-                success = false,
-                errorType = "INTERNAL_SERVER_ERROR",
-                message = "An unexpected error occurred with ErrorOrExtensions.",
-                timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                path = httpContext.Request.Path.ToString(),
-                traceId = httpContext.TraceIdentifier
-            })
-            {
-                StatusCode = StatusCodes.Status500InternalServerError
-            };
+            return BuildProblemResult(
+                httpContext,
+                StatusCodes.Status500InternalServerError,
+                "UnexpectedError",
+                "An unknown error occurred while processing the request.");
         }
 
         Error firstError = errors[0];
 
         return firstError.Type switch
         {
-            ErrorType.Validation => MapValidationError(firstError, httpContext),
-            ErrorType.NotFound => MapNotFoundError(firstError, httpContext),
-            ErrorType.Conflict => MapConflictError(firstError, httpContext),
-            _ => MapInternalError(firstError, httpContext)
+            ErrorType.Validation => BuildProblemResult(
+                httpContext,
+                StatusCodes.Status400BadRequest,
+                "ValidationError",
+                firstError.Description,
+                firstError.Metadata),
+            ErrorType.NotFound => BuildProblemResult(
+                httpContext,
+                StatusCodes.Status404NotFound,
+                "NotFoundError",
+                firstError.Description,
+                firstError.Metadata),
+            ErrorType.Conflict => BuildProblemResult(
+                httpContext,
+                StatusCodes.Status409Conflict,
+                "ConflinctError",
+                firstError.Description,
+                firstError.Metadata),
+            _ => BuildProblemResult(
+                httpContext,
+                StatusCodes.Status500InternalServerError,
+                "UnexpectedError",
+                "An unknown error occurred while processing the request."),
         };
     }
 
-    private static ActionResult MapValidationError(Error error, HttpContext httpContext)
+
+    /// <summary>
+    /// Builds a validation problem response from a FluentValidation result.
+    /// </summary>
+    public static ActionResult MapToProblem(
+        this ValidationResult validationResult,
+        HttpContext httpContext)
     {
-        var response = new Dictionary<string, object>
+       
+        Dictionary<string, object?>[] errors = validationResult.Errors
+        .Select(f => new Dictionary<string, object?>
         {
-            ["success"] = false,
-            ["errorType"] = "REQUEST_VALIDATION_ERROR",
-            ["message"] = error.Description,
-            ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            ["path"] = httpContext.Request.Path.ToString(),
-            ["traceId"] = httpContext.TraceIdentifier
+            ["pointer"] = f.PropertyName,
+            ["detail"] = f.ErrorMessage
+        })
+        .ToArray();
+
+        var metadata = new Dictionary<string, object?>
+        {
+            ["errors"] = errors
         };
 
-        // Add metadata fields to response
-        if (error.Metadata != null)
-        {
-            foreach (var (key, value) in error.Metadata)
-            {
-                response[key] = value;
-            }
-        }
-
-        return new ObjectResult(response)
-        {
-            StatusCode = StatusCodes.Status400BadRequest
-        };
+        return BuildProblemResult(
+            httpContext,
+            StatusCodes.Status400BadRequest,
+            "ValidationError",
+            "Request payload contains validation errors.",
+            metadata);
     }
 
-    private static ActionResult MapNotFoundError(Error error, HttpContext httpContext)
+
+    public static ObjectResult MapToProblemMiddleware(HttpContext httpContext)
     {
-        var response = new Dictionary<string, object>
-        {
-            ["success"] = false,
-            ["errorType"] = "NOT_FOUND",
-            ["message"] = error.Description,
-            ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            ["path"] = httpContext.Request.Path.ToString(),
-            ["traceId"] = httpContext.TraceIdentifier
-        };
-
-        // Add metadata fields to response
-        if (error.Metadata != null)
-        {
-            foreach (var (key, value) in error.Metadata)
-            {
-                response[key] = value;
-            }
-        }
-
-        return new ObjectResult(response)
-        {
-            StatusCode = StatusCodes.Status404NotFound
-        };
+        return BuildProblemResult(
+                httpContext,
+                StatusCodes.Status500InternalServerError,
+                "UnexpectedError",
+                "An unknown error occurred while processing the request.");
     }
 
-    private static ActionResult MapConflictError(Error error, HttpContext httpContext)
+
+
+    /// <summary>
+    /// Builds a problem response for any caller that needs the shared envelope.
+    /// </summary>
+    private static ObjectResult BuildProblemResult(
+        HttpContext httpContext,
+        int status,
+        string title,
+        string detail,
+        IReadOnlyDictionary<string, object?>? extensionMembers = null)
     {
-        var response = new Dictionary<string, object>
+        var envelope = new ProblemDetails
         {
-            ["success"] = false,
-            ["errorType"] = "CONFLICT",
-            ["message"] = error.Description,
-            ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            ["path"] = httpContext.Request.Path.ToString(),
-            ["traceId"] = httpContext.TraceIdentifier
+            Status = status,
+            Title = title,
+            Detail = detail,
+            Instance = $"{httpContext.Request.Method} {httpContext.Request.Path}"
         };
 
-        // Add metadata fields to response
-        if (error.Metadata != null)
+
+        var extensionPayload = new Dictionary<string, object?>
         {
-            foreach (var (key, value) in error.Metadata)
+            ["Timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            ["TraceId"] = httpContext.TraceIdentifier
+        };
+
+        if (extensionMembers is not null)
+        {
+            foreach ((string? key, object? value) in extensionMembers)
             {
-                response[key] = value;
+                extensionPayload[key] = value;
             }
         }
 
-        return new ObjectResult(response)
-        {
-            StatusCode = StatusCodes.Status409Conflict
-        };
-    }
+        envelope.Extensions["Extensions"] = extensionPayload;
 
-    private static ActionResult MapInternalError(Error error, HttpContext httpContext)
-    {
-        var response = new Dictionary<string, object>
+        return new ObjectResult(envelope)
         {
-            ["success"] = false,
-            ["errorType"] = "INTERNAL_SERVER_ERROR",
-            ["message"] = error.Description,
-            ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            ["path"] = httpContext.Request.Path.ToString(),
-            ["traceId"] = httpContext.TraceIdentifier
-        };
-
-        // Add metadata fields to response
-        if (error.Metadata != null)
-        {
-            foreach (var (key, value) in error.Metadata)
-            {
-                response[key] = value;
-            }
-        }
-
-        return new ObjectResult(response)
-        {
-            StatusCode = StatusCodes.Status500InternalServerError
+            StatusCode = status
         };
     }
 }

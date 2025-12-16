@@ -2,21 +2,38 @@
 using System;
 namespace DrugsApp.Domain.Common;
 
+/// <summary>
+/// Provides identity and audit timestamps for every aggregate or entity.
+/// </summary>
 public abstract class BaseEntity
 {
-    // Generated automatically when entity is created. Unique identifier for the entity.
+    /// <summary>
+    /// Unique identifier generated at construction time.
+    /// </summary>
     public Guid Id { get; protected set; }
-    // Set automatically in the constructor.  UTC timestamp when the entity was created.
+
+    /// <summary>
+    /// UTC timestamp recorded when the entity was created.
+    /// </summary>
     public DateTime CreatedAt { get; protected set; }
-    // Updated automatically when entity changes. UTC timestamp when the entity was last modified.
+
+    /// <summary>
+    /// UTC timestamp recorded when the entity last changed.
+    /// </summary>
     public DateTime? UpdatedAt { get; protected set; }
-    // Forces use of factory methods in derived classes. Protected constructor to prevent direct instantiation.
+
+    /// <summary>
+    /// Initializes identity and CreatedAt fields for derived entities.
+    /// </summary>
     protected BaseEntity()
     {
         Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
     }
-    // Call this method in all entity mutation methods. Marks the entity as modified by updating the UpdatedAt timestamp.
+
+    /// <summary>
+    /// Updates the audit timestamp. Call inside every mutation method.
+    /// </summary>
     protected void MarkAsModified()
     {
         UpdatedAt = DateTime.UtcNow;
