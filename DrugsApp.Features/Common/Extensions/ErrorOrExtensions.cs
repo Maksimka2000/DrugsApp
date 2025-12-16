@@ -91,7 +91,7 @@ public static class ErrorOrExtensions
     }
 
 
-    public static ObjectResult MapToProblemMiddleware(HttpContext httpContext)
+    public static ObjectResult MapToGlobalProblem(HttpContext httpContext)
     {
         return BuildProblemResult(
                 httpContext,
