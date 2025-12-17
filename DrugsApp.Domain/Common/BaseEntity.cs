@@ -15,12 +15,12 @@ public abstract class BaseEntity
     /// <summary>
     /// UTC timestamp recorded when the entity was created.
     /// </summary>
-    public DateTime CreatedAt { get; protected set; }
+    public DateTime CreatedAtUtc { get; protected set; }
 
     /// <summary>
     /// UTC timestamp recorded when the entity last changed.
     /// </summary>
-    public DateTime? UpdatedAt { get; protected set; }
+    public DateTime? UpdatedAtUtc { get; protected set; }
 
     /// <summary>
     /// Initializes identity and CreatedAt fields for derived entities.
@@ -28,14 +28,6 @@ public abstract class BaseEntity
     protected BaseEntity()
     {
         Id = Guid.NewGuid();
-        CreatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Updates the audit timestamp. Call inside every mutation method.
-    /// </summary>
-    protected void MarkAsModified()
-    {
-        UpdatedAt = DateTime.UtcNow;
-    }
+        CreatedAtUtc = DateTime.UtcNow;
+    }    
 }

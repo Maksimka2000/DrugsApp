@@ -34,7 +34,6 @@ public sealed class RetrieveTestController : ControllerBase
         GetTestByIdQuery query = RetrieveTestMapping.MapToQuery(testId);
         ErrorOr<TestDto> response = await _mediator.Send(query, cancellationToken);
 
-        throw new Exception("helo");
 
         if (response.IsError)
         {

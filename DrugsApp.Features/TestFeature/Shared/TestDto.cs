@@ -7,7 +7,5 @@ public sealed record TestDto(
     string Attribute1,
     int? Attribute2,
     decimal? Attribute3,
-    bool Attribute4,
-    DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    bool Attribute4);
 

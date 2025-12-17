@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using DrugsApp.Domain.Common;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore;
 
 namespace DrugsApp.Infrastructure.Persistence;
 
@@ -18,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        UpdateAuditTimestamps();
         return await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -58,6 +60,29 @@ public class UnitOfWork : IUnitOfWork
         {
             _transaction?.Dispose();
             _transaction = null;
+        }
+    }
+
+
+    private void UpdateAuditTimestamps()
+    {
+        var utcNow = DateTime.UtcNow;
+        foreach (var entry in _context.ChangeTracker.Entries<BaseEntity>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                if (entry.Property(e => e.CreatedAtUtc).CurrentValue == default)
+                {
+                    entry.Property(e => e.CreatedAtUtc).CurrentValue = utcNow;
+                }
+                continue;
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Property(e => e.UpdatedAtUtc).CurrentValue = utcNow;
+                entry.Property(e => e.CreatedAtUtc).IsModified = false;
+            }
         }
     }
 }

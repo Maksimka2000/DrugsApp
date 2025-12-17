@@ -11,9 +11,7 @@ public static class TestMappings
             test.Attribute1,
             test.Attribute2,
             test.Attribute3,
-            test.Attribute4,
-            test.CreatedAt,
-            test.UpdatedAt);
+            test.Attribute4);
     }
 }
 
