@@ -64,9 +64,7 @@ public sealed record CreatedTestResponse(
     string Attribute1,
     int? Attribute2,
     decimal? Attribute3,
-    bool Attribute4,
-    DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    bool Attribute4);
 
 public sealed record CreateTestCommand(
     string Attribute1,

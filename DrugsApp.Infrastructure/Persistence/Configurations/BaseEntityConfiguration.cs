@@ -20,10 +20,12 @@ public abstract class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguratio
             .IsRequired()
             .ValueGeneratedNever(); // We generate Guid in domain
 
-        builder.Property(e => e.CreatedAt)
+        builder.Property(e => e.CreatedAtUtc)
+            .HasColumnName("CreatedAtUtc")
             .IsRequired();
 
-        builder.Property(e => e.UpdatedAt)
+        builder.Property(e => e.UpdatedAtUtc)
+            .HasColumnName("UpdatedAtUtc")
             .IsRequired(false);
     }
 }

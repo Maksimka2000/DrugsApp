@@ -33,9 +33,7 @@ internal static class CreateTestMapping
             dto.Attribute1,
             dto.Attribute2,
             dto.Attribute3,
-            dto.Attribute4,
-            dto.CreatedAt,
-            dto.UpdatedAt);
+            dto.Attribute4);
     }
 }
 
