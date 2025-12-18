@@ -44,15 +44,50 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
 
                     b.HasKey("Id");
 
                     b.ToTable("Tests", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.VetDrugFeature.Entities.VetDrug", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CommercialName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<int>("ProductIdentifier")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TypeOfProduct")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommercialName");
+
+                    b.ToTable("VetDrugs", (string)null);
                 });
 #pragma warning restore 612, 618
         }
