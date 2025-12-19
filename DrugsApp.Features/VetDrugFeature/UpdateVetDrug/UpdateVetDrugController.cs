@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using DrugsApp.Features.Common;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
@@ -17,7 +16,7 @@ namespace DrugsApp.Features.VetDrugFeature.UpdateVetDrug;
 /// </summary>
 public sealed record UpdateVetDrugRequest
 {
-    public Optional<string> CommercialName { get; init; }
+    public string? CommercialName { get; init; }
 }
 
 /// <summary>
