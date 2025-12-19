@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.VetDrugFeature.Repositories;
-using DrugsApp.Features.Common;
 using ErrorOr;
 using MediatR;
 using DrugsApp.Domain.VetDrugFeature.Entities;
@@ -50,12 +49,10 @@ internal sealed class UpdateVetDrugHandler
                 });
         }
 
-
-        Optional<string> commercialName = command.Request.CommercialName;
-
-        if (commercialName.HasValue && commercialName.Value != vetDrug.CommercialName)
+        
+        if (command.Request.CommercialName is not null && command.Request.CommercialName != vetDrug.CommercialName)
         {
-            vetDrug.UpdateCommercialName(commercialName.Value);
+            vetDrug.UpdateCommercialName(command.Request.CommercialName);
         }
 
         return vetDrug.MapToUpdatedResponse();
