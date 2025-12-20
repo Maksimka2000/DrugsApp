@@ -9,15 +9,9 @@ public sealed class UpdateVetDrugRequestValidator : AbstractValidator<UpdateVetD
 {
     public UpdateVetDrugRequestValidator()
     {
-        RuleFor(x => x.CommercialName)
-            .NotNull()
-            .WithMessage("CommercialName is required.");
-
-        RuleFor(x => x.CommercialName!)
-            .NotEmpty()
-            .WithMessage("CommercialName cannot be empty.")
-            .MaximumLength(100)
-            .WithMessage("CommercialName must not exceed 100 characters.");
+        When(x => !string.IsNullOrWhiteSpace(x.CommercialName), () => RuleFor(x => x.CommercialName)
+            .MaximumLength(200)
+            .WithMessage("CommercialName must not exceed 200 characters."));
     }
 }
 

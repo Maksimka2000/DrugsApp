@@ -123,8 +123,8 @@ public static class ErrorOrExtensions
 
         var extensionPayload = new Dictionary<string, object?>
         {
-            ["Timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            ["TraceId"] = httpContext.TraceIdentifier
+            ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            ["traceId"] = httpContext.TraceIdentifier
         };
 
         if (extensionMembers is not null)
@@ -135,7 +135,7 @@ public static class ErrorOrExtensions
             }
         }
 
-        envelope.Extensions["Extensions"] = extensionPayload;
+        envelope.Extensions["extensions"] = extensionPayload;
 
         return new ObjectResult(envelope)
         {
