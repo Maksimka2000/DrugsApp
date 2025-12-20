@@ -44,13 +44,13 @@ internal sealed class UpdateVetDrugHandler
                 description: "The requested veterinary drug was not found.",
                 metadata: new Dictionary<string, object>
                 {
-                    ["ResourceType"] = "VetDrug",
-                    ["ResourceId"] = command.VetDrugId.ToString()
+                    ["resourceType"] = "VetDrug",
+                    ["resourceId"] = command.VetDrugId.ToString()
                 });
         }
 
         
-        if (command.Request.CommercialName is not null && command.Request.CommercialName != vetDrug.CommercialName)
+        if (!string.IsNullOrWhiteSpace(command.Request.CommercialName) && command.Request.CommercialName != vetDrug.CommercialName)
         {
             vetDrug.UpdateCommercialName(command.Request.CommercialName);
         }

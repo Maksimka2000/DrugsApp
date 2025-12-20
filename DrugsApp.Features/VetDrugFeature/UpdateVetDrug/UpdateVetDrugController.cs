@@ -14,10 +14,8 @@ namespace DrugsApp.Features.VetDrugFeature.UpdateVetDrug;
 /// <summary>
 /// Request model for updating veterinary drug fields.
 /// </summary>
-public sealed record UpdateVetDrugRequest
-{
-    public string? CommercialName { get; init; }
-}
+public sealed record UpdateVetDrugRequest(
+    string? CommercialName);
 
 /// <summary>
 /// Response containing updated veterinary drug fields.
