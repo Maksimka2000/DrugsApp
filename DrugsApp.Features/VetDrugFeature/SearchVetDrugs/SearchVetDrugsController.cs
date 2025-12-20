@@ -66,10 +66,11 @@ public sealed class SearchVetDrugsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<VetDrugDto>>> Search(
         [FromQuery] string? name,
+        CancellationToken cancellationToken,
         [FromQuery] string order = "ascending",
         [FromQuery] int skip = 0,
-        [FromQuery] int take = 10,
-        CancellationToken cancellationToken)
+        [FromQuery] int take = 10
+        )
     {
         SearchVetDrugsRequest request = new(name, order, skip, take);
 
