@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrugsApp.Features.TestFeature.RetrieveTest;
 
 [ApiController]
+[Tags("Test")]
 [Route("api/tests")]
 public sealed class RetrieveTestController : ControllerBase
 {

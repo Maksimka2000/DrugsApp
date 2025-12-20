@@ -38,6 +38,7 @@ public sealed record UpdateVetDrugCommand(
 /// Controller for updating veterinary drug information.
 /// </summary>
 [ApiController]
+[Tags("Vet Drugs")]
 [Route("api/vet-drugs")]
 public sealed class UpdateVetDrugController : ControllerBase
 {
