@@ -8,6 +8,9 @@ public sealed class Test : BaseEntity
     {
     }
 
+    /// <summary>
+    /// The first attribute of the test.
+    /// </summary>
     public string Attribute1 { get; private set; } = string.Empty;
     public int? Attribute2 { get; private set; }
     public decimal? Attribute3 { get; private set; }
