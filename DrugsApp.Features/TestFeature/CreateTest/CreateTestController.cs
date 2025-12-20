@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrugsApp.Features.TestFeature.CreateTest;
 
 [ApiController]
+[Tags("Test")]
 [Route("api/tests")]
 public sealed class CreateTestController : ControllerBase
 {

@@ -35,6 +35,7 @@ public sealed record SearchVetDrugsQuery(
 /// Controller for searching veterinary drugs with filtering and pagination.
 /// </summary>
 [ApiController]
+[Tags("Vet Drugs")]
 [Route("api/vet-drugs")]
 public sealed class SearchVetDrugsController : ControllerBase
 {

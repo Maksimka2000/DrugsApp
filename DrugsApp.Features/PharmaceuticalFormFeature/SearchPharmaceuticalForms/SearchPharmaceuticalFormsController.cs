@@ -1,0 +1,87 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using DrugsApp.Features.PharmaceuticalFormFeature.Shared;
+using ErrorOr;
+using FluentValidation;
+using FluentValidation.Results;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DrugsApp.Features.PharmaceuticalFormFeature.SearchPharmaceuticalForms;
+
+/// <summary>
+/// Request model for search query parameters.
+/// </summary>
+public sealed record SearchPharmaceuticalFormsRequest(
+    string? Name,
+    int Skip,
+    int Take);
+
+/// <summary>
+/// Query for searching pharmaceutical forms with filtering and pagination.
+/// </summary>
+public sealed record SearchPharmaceuticalFormsQuery(
+    string? Name,
+    int Skip,
+    int Take) : IRequest<ErrorOr<List<PharmaceuticalFormDto>>>;
+
+/// <summary>
+/// Controller for searching pharmaceutical forms with filtering and pagination.
+/// </summary>
+[ApiController]
+[Tags("Pharmaceutical Forms")]
+[Route("api/pharmaceutical-forms")]
+public sealed class SearchPharmaceuticalFormsController : ControllerBase
+{
+    public const string RouteName = "SearchPharmaceuticalForms";
+
+    private readonly IMediator _mediator;
+    private readonly IValidator<SearchPharmaceuticalFormsRequest> _validator;
+
+    public SearchPharmaceuticalFormsController(
+        IMediator mediator,
+        IValidator<SearchPharmaceuticalFormsRequest> validator)
+    {
+        _mediator = mediator;
+        _validator = validator;
+    }
+
+    /// <summary>
+    /// Searches pharmaceutical forms by formulation name with pagination.
+    /// </summary>
+    /// <param name="name">Optional partial match filter for formulation name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="skip">Number of results to skip for pagination, defaults to 0.</param>
+    /// <param name="take">Number of results to return, defaults to 20.</param>
+    /// <response code="200">Returns a list of matching pharmaceutical forms.</response>
+    /// <response code="400">Invalid query parameters.</response>
+    [HttpGet(Name = RouteName)]
+    [ProducesResponseType(typeof(List<PharmaceuticalFormDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<PharmaceuticalFormDto>>> Search(
+        [FromQuery] string? name,
+        CancellationToken cancellationToken,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 20)
+    {
+        SearchPharmaceuticalFormsRequest request = new(name, skip, take);
+
+        ValidationResult validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return validationResult.MapToProblem(HttpContext);
+        }
+
+        SearchPharmaceuticalFormsQuery query = request.MapToQuery();
+        ErrorOr<List<PharmaceuticalFormDto>> result = await _mediator.Send(query, cancellationToken);
+
+        return result.Match(
+            response => Ok(response),
+            errors => errors.MapToProblem(HttpContext)
+        );
+    }
+}
+
+
