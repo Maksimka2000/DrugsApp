@@ -10,25 +10,15 @@ public static class UpdateVetDrugMapping
     /// <summary>
     /// Maps update request and route parameter to UpdateVetDrugCommand.
     /// </summary>
-    public static UpdateVetDrugCommand MapToCommand(
-        this UpdateVetDrugRequest request,
-        Guid vetDrugId)
-    {
-        return new UpdateVetDrugCommand(
-            vetDrugId, 
-            request);
-    }
+    public static UpdateVetDrugCommand MapToCommand(this UpdateVetDrugRequest request, Guid vetDrugId) => new(
+            VetDrugId: vetDrugId, 
+            Request: request);
 
     /// <summary>
     /// Maps VetDrug entity to UpdatedVetDrugResponse.
     /// </summary>
-    public static UpdatedVetDrugResponse MapToUpdatedResponse(
-        this VetDrug vetDrug)
-    {
-        return new UpdatedVetDrugResponse(
-            vetDrug.Id, 
-            vetDrug.CommercialName
-        );
-    }
+    public static UpdatedVetDrugResponse MapToUpdatedResponse(this VetDrug vetDrug) => new(
+            Id: vetDrug.Id, 
+            CommercialName: vetDrug.CommercialName);
 }
 

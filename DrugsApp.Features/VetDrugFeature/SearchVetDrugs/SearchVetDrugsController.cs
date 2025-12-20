@@ -12,6 +12,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrugsApp.Features.VetDrugFeature.SearchVetDrugs;
 
 
+
+/// <summary>
+/// Request model for search query parameters.
+/// </summary>
+public sealed record SearchVetDrugsRequest(
+    string? Name,
+    string Order,
+    int Skip,
+    int Take);
+
 /// <summary>
 /// Query for searching veterinary drugs with filtering and pagination.
 /// </summary>
@@ -47,7 +57,7 @@ public sealed class SearchVetDrugsController : ControllerBase
     /// <param name="name">Optional partial match filter for commercial name.</param>
     /// <param name="order">Sort direction (ascending or descending), defaults to ascending.</param>
     /// <param name="skip">Number of results to skip for pagination, defaults to 0.</param>
-    /// <param name="take">Number of results to return, defaults to 20.</param>
+    /// <param name="take">Number of results to return, defaults to 10.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <response code="200">Returns a list of matching veterinary drugs.</response>
     /// <response code="400">Invalid query parameters.</response>
@@ -56,9 +66,9 @@ public sealed class SearchVetDrugsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<VetDrugDto>>> Search(
         [FromQuery] string? name,
-        [FromQuery] string? order,
-        [FromQuery] int? skip,
-        [FromQuery] int? take,
+        [FromQuery] string order = "ascending",
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 10,
         CancellationToken cancellationToken)
     {
         SearchVetDrugsRequest request = new(name, order, skip, take);
@@ -69,11 +79,7 @@ public sealed class SearchVetDrugsController : ControllerBase
             return validationResult.MapToProblem(HttpContext);
         }
 
-        SearchVetDrugsQuery query = SearchVetDrugsMapping.MapToQuery(
-            name,
-            order ?? "ascending",
-            skip ?? 0,
-            take ?? 20);
+        SearchVetDrugsQuery query = request.MapToQuery();
 
         ErrorOr<List<VetDrugDto>> result = await _mediator.Send(query, cancellationToken);
 
