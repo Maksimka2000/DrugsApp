@@ -16,7 +16,8 @@ public sealed class RouteOfAdministrationConfiguration : BaseEntityConfiguration
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.HasIndex(ra => ra.RouteOfAdministrationName)
+
+       builder.HasIndex(ra => ra.RouteOfAdministrationName)
             .IsUnique();
     }
 }

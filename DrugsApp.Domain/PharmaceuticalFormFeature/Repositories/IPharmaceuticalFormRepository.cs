@@ -14,6 +14,10 @@ public interface IPharmaceuticalFormRepository
         int take,
         CancellationToken cancellationToken);
 
+    Task<int> CountAsync(
+        string? nameFilter,
+        CancellationToken cancellationToken);
+
     Task<PharmaceuticalForm?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<PharmaceuticalForm?> GetByNameAsync(string name, CancellationToken cancellationToken);

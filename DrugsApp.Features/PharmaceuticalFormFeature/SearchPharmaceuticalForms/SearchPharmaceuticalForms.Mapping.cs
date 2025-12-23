@@ -1,3 +1,5 @@
+using DrugsApp.Features.PharmaceuticalFormFeature.Shared;
+
 namespace DrugsApp.Features.PharmaceuticalFormFeature.SearchPharmaceuticalForms;
 
 /// <summary>
@@ -13,6 +15,17 @@ public static class SearchPharmaceuticalFormsMapping
         Name: request.Name,
         Skip: request.Skip,
         Take: request.Take);
+
+    /// <summary>
+    /// Maps the response
+    /// </summary>
+    public static SearchPharmaceuticalFormsResponse MapToResponse(
+        this List<PharmaceuticalFormDto> items,
+        int? totalCount,
+        bool hasMore) => new(
+        Items: items,
+        TotalCount: totalCount,
+        HasMore: hasMore);
 }
 
 
