@@ -9,6 +9,10 @@ public class RequestLogContextMiddleware
 {
     private readonly RequestDelegate _next;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RequestLogContextMiddleware"/> class.
+    /// </summary>
+    /// <param name="next">The next middleware delegate in the pipeline.</param>
     public RequestLogContextMiddleware(RequestDelegate next) => _next = next;
 
     /// <summary>

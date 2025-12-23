@@ -36,15 +36,12 @@ public sealed class VetDrug : BaseEntity
     public static VetDrug Create(
         int productIdentifier,
         string commercialName,
-        string typeOfProduct)
-    {
-        return new VetDrug
+        string typeOfProduct) => new()
         {
             ProductIdentifier = productIdentifier,
             CommercialName = commercialName.Trim(),
             TypeOfProduct = typeOfProduct.Trim()
         };
-    }
 
     /// <summary>
     /// Updates the commercial name of the drug.

@@ -2,6 +2,9 @@ using DrugsApp.Domain.Common;
 
 namespace DrugsApp.Domain.TestFeature.Entities;
 
+/// <summary>
+/// Test aggregate used for development and reference endpoints.
+/// </summary>
 public sealed class Test : BaseEntity
 {
     private Test()
@@ -12,10 +15,30 @@ public sealed class Test : BaseEntity
     /// The first attribute of the test.
     /// </summary>
     public string Attribute1 { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// The second attribute of the test.
+    /// </summary>
     public int? Attribute2 { get; private set; }
+
+    /// <summary>
+    /// The third attribute of the test.
+    /// </summary>
     public decimal? Attribute3 { get; private set; }
+
+    /// <summary>
+    /// The fourth attribute of the test.
+    /// </summary>
     public bool Attribute4 { get; private set; }
 
+    /// <summary>
+    /// Creates a new <see cref="Test"/> aggregate.
+    /// </summary>
+    /// <param name="attribute1">First attribute.</param>
+    /// <param name="attribute2">Optional second attribute.</param>
+    /// <param name="attribute3">Optional third attribute.</param>
+    /// <param name="attribute4">Optional fourth attribute.</param>
+    /// <returns>A new <see cref="Test"/> aggregate.</returns>
     public static Test Create(
         string attribute1,
         int? attribute2,

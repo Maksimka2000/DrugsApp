@@ -21,6 +21,7 @@ public static class DependencyInjection
             configuration.AddOpenBehavior(typeof(TransactionBehavior<,>));
         });
 
+
         // Register FluentValidation
         services.AddValidatorsFromAssembly(assembly);
 

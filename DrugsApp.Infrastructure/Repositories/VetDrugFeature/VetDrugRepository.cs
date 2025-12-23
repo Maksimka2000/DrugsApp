@@ -7,18 +7,12 @@ using DrugsApp.Domain.VetDrugFeature.Entities;
 using DrugsApp.Domain.VetDrugFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using DrugsApp.Domain.VetDrugFeature.Entities;
 
 namespace DrugsApp.Infrastructure.Repositories.VetDrugFeature;
 
-public sealed class VetDrugRepository : IVetDrugRepository
+public sealed class VetDrugRepository(DrugsAppDbContext context) : IVetDrugRepository
 {
-    private readonly DrugsAppDbContext _context;
-
-    public VetDrugRepository(DrugsAppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly DrugsAppDbContext _context = context;
 
     public async Task<List<VetDrug>> SearchAsync(
         string? nameFilter,
@@ -44,10 +38,8 @@ public sealed class VetDrugRepository : IVetDrugRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<VetDrug?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-    {
-        return await _context.VetDrugs
-            .FirstOrDefaultAsync(vd => vd.Id == id, cancellationToken);
-    }
+    public async Task<VetDrug?> GetByIdAsync(Guid id, CancellationToken cancellationToken) {
+        return await _context.VetDrugs.FirstOrDefaultAsync(vd => vd.Id == id, cancellationToken);
+    } 
 }
 

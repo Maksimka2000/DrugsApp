@@ -288,3 +288,45 @@ dotnet_diagnostic.CA2327.severity = none
 
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = none
+
+# IDE0021: Use expression body for constructors
+[DrugsApp.Features/**/*.Validation.cs]
+dotnet_diagnostic.IDE0021.severity = none
+
+
+
+# CS1591: Missing XML comment for publicly visible type or member
+# Intentionally don't document Infrastructure plumbing (DI, DbContext, EF configurations, repositories).
+
+[DrugsApp.Infrastructure/DependencyInjection.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+[DrugsApp.Features/DependencyInjection.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+[DrugsApp.Infrastructure/Persistence/**/*.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+[DrugsApp.Infrastructure/Repositories/**/*.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+[DrugsApp.Domain/**/Repositories/**/*.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+# Explicit file-level suppressions (fallback in case globbing behaves differently per tooling)
+[DrugsApp.Infrastructure/Persistence/DrugsAppDbContext.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+[DrugsApp.Domain/**/Repositories/*.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+
+# Feature layer: suppress CS1591 for HTTP surface + validation files (constructors/constants are intentionally not documented).
+[DrugsApp.Features/**/*Controller.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+[DrugsApp.Features/**/*.Validation.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+[DrugsApp.Features/**/*.Validator.cs]
+dotnet_diagnostic.CS1591.severity = none

@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Features;
+using DrugsApp.Features.Common.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +14,9 @@ namespace DrugsApp.Host.Exceptions;
 /// <summary>
 /// Handles unexpected exceptions and emits the shared problem response.
 /// </summary>
-internal sealed class GlobalExceptionHandler : IExceptionHandler
+internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
-    private readonly ILogger<GlobalExceptionHandler> _logger;
-
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<GlobalExceptionHandler> _logger = logger;
 
     /// <summary>
     /// Logs the exception and writes the standard problem details payload.

@@ -7,6 +7,9 @@ namespace DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 /// </summary>
 public sealed class PharmaceuticalForm : BaseEntity
 {
+    /// <summary>
+    /// 
+    /// </summary>
     private PharmaceuticalForm() : base()
     {
     }
@@ -14,20 +17,17 @@ public sealed class PharmaceuticalForm : BaseEntity
     /// <summary>
     /// The formulation name of the pharmaceutical form.
     /// </summary>
-    public string FormulationName { get; private set; }
+    public string FormulationName { get; private set; } = string.Empty;
 
     /// <summary>
     /// Creates a new pharmaceutical form aggregate.
     /// </summary>
     /// <param name="formulationName">Pharmaceutical form name.</param>
     /// <returns>A new <see cref="PharmaceuticalForm"/> instance.</returns>
-    public static PharmaceuticalForm Create(string formulationName)
+    public static PharmaceuticalForm Create(string formulationName) => new()
     {
-        return new PharmaceuticalForm
-        {
-            FormulationName = formulationName.Trim()
-        };
-    }
+        FormulationName = formulationName.Trim()
+    };
 
     /// <summary>
     /// Updates the formulation name of the pharmaceutical form.

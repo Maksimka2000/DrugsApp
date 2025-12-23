@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using DrugsApp.Features.Common.Extensions;
 using DrugsApp.Features.PharmaceuticalFormFeature.UpdatePharmaceuticalForm;
 using ErrorOr;
 using FluentValidation;
@@ -35,20 +36,14 @@ public sealed record AddPharmaceuticalFormCommand(
 [ApiController]
 [Tags("Pharmaceutical Forms")]
 [Route("api/pharmaceutical-forms")]
-public sealed class AddPharmaceuticalFormController : ControllerBase
+public sealed class AddPharmaceuticalFormController(
+    IMediator mediator,
+    IValidator<AddPharmaceuticalFormRequest> validator) : ControllerBase
 {
     public const string RouteName = "AddPharmaceuticalForm";
 
-    private readonly IMediator _mediator;
-    private readonly IValidator<AddPharmaceuticalFormRequest> _validator;
-
-    public AddPharmaceuticalFormController(
-        IMediator mediator,
-        IValidator<AddPharmaceuticalFormRequest> validator)
-    {
-        _mediator = mediator;
-        _validator = validator;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IValidator<AddPharmaceuticalFormRequest> _validator = validator;
 
     /// <summary>
     /// Creates a new pharmaceutical form.

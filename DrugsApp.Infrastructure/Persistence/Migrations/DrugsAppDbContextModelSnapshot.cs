@@ -48,6 +48,32 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("PharmaceuticalForms", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.RouteOfAdministrationFeature.Entities.RouteOfAdministration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("RouteOfAdministrationName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RouteOfAdministrationName")
+                        .IsUnique();
+
+                    b.ToTable("RoutesOfAdministration", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.TestFeature.Entities.Test", b =>
                 {
                     b.Property<Guid>("Id")
