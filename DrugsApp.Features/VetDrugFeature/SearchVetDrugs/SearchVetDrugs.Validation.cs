@@ -9,6 +9,9 @@ namespace DrugsApp.Features.VetDrugFeature.SearchVetDrugs;
 /// </summary>
 public sealed class SearchVetDrugsRequestValidator : AbstractValidator<SearchVetDrugsRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SearchVetDrugsRequestValidator"/> class.
+    /// </summary>
     public SearchVetDrugsRequestValidator()
     {
         When(x => !string.IsNullOrWhiteSpace(x.Name), () => RuleFor(x => x.Name)

@@ -18,6 +18,10 @@ public class TransactionBehavior<TRequest, TResponse>
     private readonly IUnitOfWork _unitOfWork;
     // Logger add if needed: Add logger with type (ILogger<TransactionBehavior<TRequest, TResponse>>)
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TransactionBehavior{TRequest, TResponse}"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">Unit of work managing transaction boundaries.</param>
     public TransactionBehavior(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;

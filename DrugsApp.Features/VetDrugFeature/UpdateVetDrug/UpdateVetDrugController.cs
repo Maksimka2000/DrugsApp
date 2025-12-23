@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DrugsApp.Features.Common.Extensions;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
@@ -37,23 +38,25 @@ public sealed record UpdateVetDrugCommand(
 /// <summary>
 /// Controller for updating veterinary drug information.
 /// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="UpdateVetDrugController"/> class.
+/// </remarks>
+/// <param name="mediator">MediatR mediator.</param>
+/// <param name="validator">Validator for the request.</param>
 [ApiController]
 [Tags("Vet Drugs")]
 [Route("api/vet-drugs")]
-public sealed class UpdateVetDrugController : ControllerBase
+public sealed class UpdateVetDrugController(
+    IMediator mediator,
+    IValidator<UpdateVetDrugRequest> validator) : ControllerBase
 {
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "UpdateVetDrug";
 
-    private readonly IMediator _mediator;
-    private readonly IValidator<UpdateVetDrugRequest> _validator;
-
-    public UpdateVetDrugController(
-        IMediator mediator,
-        IValidator<UpdateVetDrugRequest> validator)
-    {
-        _mediator = mediator;
-        _validator = validator;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IValidator<UpdateVetDrugRequest> _validator = validator;
 
     /// <summary>
     /// Updates the commercial name of a veterinary drug.

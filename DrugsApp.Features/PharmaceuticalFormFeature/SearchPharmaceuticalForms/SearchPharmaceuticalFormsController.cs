@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using DrugsApp.Features.Common.Extensions;
 using DrugsApp.Features.PharmaceuticalFormFeature.Shared;
 using ErrorOr;
 using FluentValidation;
@@ -33,20 +34,14 @@ public sealed record SearchPharmaceuticalFormsQuery(
 [ApiController]
 [Tags("Pharmaceutical Forms")]
 [Route("api/pharmaceutical-forms")]
-public sealed class SearchPharmaceuticalFormsController : ControllerBase
+public sealed class SearchPharmaceuticalFormsController(
+    IMediator mediator,
+    IValidator<SearchPharmaceuticalFormsRequest> validator) : ControllerBase
 {
     public const string RouteName = "SearchPharmaceuticalForms";
 
-    private readonly IMediator _mediator;
-    private readonly IValidator<SearchPharmaceuticalFormsRequest> _validator;
-
-    public SearchPharmaceuticalFormsController(
-        IMediator mediator,
-        IValidator<SearchPharmaceuticalFormsRequest> validator)
-    {
-        _mediator = mediator;
-        _validator = validator;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IValidator<SearchPharmaceuticalFormsRequest> _validator = validator;
 
     /// <summary>
     /// Searches pharmaceutical forms by formulation name with pagination.

@@ -2,8 +2,14 @@ using FluentValidation;
 
 namespace DrugsApp.Features.TestFeature.CreateTest;
 
+/// <summary>
+/// Validator for <see cref="CreateTestRequest"/>.
+/// </summary>
 public sealed class CreateTestRequestValidator : AbstractValidator<CreateTestRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateTestRequestValidator"/> class.
+    /// </summary>
     public CreateTestRequestValidator()
     {
         RuleFor(request => request.Attribute1)

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DrugsApp.Features.Common.Extensions;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
@@ -36,20 +37,14 @@ public sealed record UpdatePharmaceuticalFormCommand(
 [ApiController]
 [Tags("Pharmaceutical Forms")]
 [Route("api/pharmaceutical-forms")]
-public sealed class UpdatePharmaceuticalFormController : ControllerBase
+public sealed class UpdatePharmaceuticalFormController(
+    IMediator mediator,
+    IValidator<UpdatePharmaceuticalFormRequest> validator) : ControllerBase
 {
     public const string RouteName = "UpdatePharmaceuticalForm";
 
-    private readonly IMediator _mediator;
-    private readonly IValidator<UpdatePharmaceuticalFormRequest> _validator;
-
-    public UpdatePharmaceuticalFormController(
-        IMediator mediator,
-        IValidator<UpdatePharmaceuticalFormRequest> validator)
-    {
-        _mediator = mediator;
-        _validator = validator;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IValidator<UpdatePharmaceuticalFormRequest> _validator = validator;
 
     /// <summary>
     /// Updates the formulation name of a pharmaceutical form.

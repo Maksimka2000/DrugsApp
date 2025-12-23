@@ -5,7 +5,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DrugsApp.Features;
+namespace DrugsApp.Features.Common.Extensions;
 
 /// <summary>
 /// Maps ErrorOr results to the standardized HTTP problem envelope.
@@ -39,19 +39,19 @@ public static class ErrorOrExtensions
                 StatusCodes.Status400BadRequest,
                 "ValidationError",
                 firstError.Description,
-                firstError.Metadata),
+                NormalizeExtensionMembers(firstError.Metadata)),
             ErrorType.NotFound => BuildProblemResult(
                 httpContext,
                 StatusCodes.Status404NotFound,
                 "NotFoundError",
                 firstError.Description,
-                firstError.Metadata),
+                NormalizeExtensionMembers(firstError.Metadata)),
             ErrorType.Conflict => BuildProblemResult(
                 httpContext,
                 StatusCodes.Status409Conflict,
                 "ConflinctError",
                 firstError.Description,
-                firstError.Metadata),
+                NormalizeExtensionMembers(firstError.Metadata)),
             _ => BuildProblemResult(
                 httpContext,
                 StatusCodes.Status500InternalServerError,
@@ -91,14 +91,14 @@ public static class ErrorOrExtensions
     }
 
 
-    public static ObjectResult MapToGlobalProblem(HttpContext httpContext)
-    {
-        return BuildProblemResult(
+    /// <summary>
+    /// Builds a problme of unhandled excepiton
+    /// </summary>
+    public static ObjectResult MapToGlobalProblem(HttpContext httpContext) => BuildProblemResult(
                 httpContext,
                 StatusCodes.Status500InternalServerError,
                 "UnexpectedError",
                 "An unknown error occurred while processing the request.");
-    }
 
 
 
@@ -141,5 +141,16 @@ public static class ErrorOrExtensions
         {
             StatusCode = status
         };
+    }
+
+    private static IReadOnlyDictionary<string, object?>? NormalizeExtensionMembers(
+        IReadOnlyDictionary<string, object>? extensionMembers)
+    {
+        if (extensionMembers is null || extensionMembers.Count == 0)
+        {
+            return null;
+        }
+
+        return extensionMembers.ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value);
     }
 }

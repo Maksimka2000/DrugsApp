@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using DrugsApp.Features.Common.Extensions;
 using DrugsApp.Features.VetDrugFeature.Shared;
 using ErrorOr;
 using FluentValidation;
@@ -34,23 +35,25 @@ public sealed record SearchVetDrugsQuery(
 /// <summary>
 /// Controller for searching veterinary drugs with filtering and pagination.
 /// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="SearchVetDrugsController"/> class.
+/// </remarks>
+/// <param name="mediator">MediatR mediator.</param>
+/// <param name="validator">Validator for the request.</param>
 [ApiController]
 [Tags("Vet Drugs")]
 [Route("api/vet-drugs")]
-public sealed class SearchVetDrugsController : ControllerBase
+public sealed class SearchVetDrugsController(
+    IMediator mediator,
+    IValidator<SearchVetDrugsRequest> validator) : ControllerBase
 {
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "SearchVetDrugs";
 
-    private readonly IMediator _mediator;
-    private readonly IValidator<SearchVetDrugsRequest> _validator;
-
-    public SearchVetDrugsController(
-        IMediator mediator,
-        IValidator<SearchVetDrugsRequest> validator)
-    {
-        _mediator = mediator;
-        _validator = validator;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IValidator<SearchVetDrugsRequest> _validator = validator;
 
     /// <summary>
     /// Searches veterinary drugs by commercial name with sorting and pagination.

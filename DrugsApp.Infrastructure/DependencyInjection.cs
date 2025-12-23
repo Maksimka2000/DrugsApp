@@ -1,10 +1,12 @@
 ﻿using System;
 using DrugsApp.Domain.Common;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Repositories;
+using DrugsApp.Domain.RouteOfAdministrationFeature.Repositories;
 using DrugsApp.Domain.TestFeature.Repositories;
 using DrugsApp.Domain.VetDrugFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.Repositories.PharmaceuticalFormFeature;
+using DrugsApp.Infrastructure.Repositories.RouteOfAdministrationFeature;
 using DrugsApp.Infrastructure.Repositories.TestFeature;
 using DrugsApp.Infrastructure.Repositories.VetDrugFeature;
 using Microsoft.EntityFrameworkCore;
@@ -35,10 +37,9 @@ public static class DependencyInjection
         // Register Repositories here
         services.AddScoped<ITestRepository, TestRepository>();
         services.Decorate<ITestRepository, CachedTestRepository>();
-
         services.AddScoped<IVetDrugRepository, VetDrugRepository>();
-
         services.AddScoped<IPharmaceuticalFormRepository, PharmaceuticalFormRepository>();
+        services.AddScoped<IRouteOfAdministrationRepository, RouteOfAdministrationRepository>();
 
         // Register External services here
 
