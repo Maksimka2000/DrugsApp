@@ -21,12 +21,20 @@ public sealed record SearchPharmaceuticalFormsRequest(
     int Take);
 
 /// <summary>
+/// Response containing pharmaceutical form list and paging metadata.
+/// </summary>
+public sealed record SearchPharmaceuticalFormsResponse(
+    List<PharmaceuticalFormDto> Items,
+    int? TotalCount,
+    bool HasMore);
+
+/// <summary>
 /// Query for searching pharmaceutical forms with filtering and pagination.
 /// </summary>
 public sealed record SearchPharmaceuticalFormsQuery(
     string? Name,
     int Skip,
-    int Take) : IRequest<ErrorOr<List<PharmaceuticalFormDto>>>;
+    int Take) : IRequest<ErrorOr<SearchPharmaceuticalFormsResponse>>;
 
 /// <summary>
 /// Controller for searching pharmaceutical forms with filtering and pagination.
@@ -50,16 +58,16 @@ public sealed class SearchPharmaceuticalFormsController(
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="skip">Number of results to skip for pagination, defaults to 0.</param>
     /// <param name="take">Number of results to return, defaults to 20.</param>
-    /// <response code="200">Returns a list of matching pharmaceutical forms.</response>
+    /// <response code="200">Returns a page of matching pharmaceutical forms.</response>
     /// <response code="400">Invalid query parameters.</response>
     [HttpGet(Name = RouteName)]
-    [ProducesResponseType(typeof(List<PharmaceuticalFormDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SearchPharmaceuticalFormsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<PharmaceuticalFormDto>>> Search(
+    public async Task<ActionResult<SearchPharmaceuticalFormsResponse>> Search(
         [FromQuery] string? name,
-        CancellationToken cancellationToken,
         [FromQuery] int skip = 0,
-        [FromQuery] int take = 20)
+        [FromQuery] int take = 10,
+        CancellationToken cancellationToken = default)
     {
         SearchPharmaceuticalFormsRequest request = new(name, skip, take);
 
@@ -70,7 +78,7 @@ public sealed class SearchPharmaceuticalFormsController(
         }
 
         SearchPharmaceuticalFormsQuery query = request.MapToQuery();
-        ErrorOr<List<PharmaceuticalFormDto>> result = await _mediator.Send(query, cancellationToken);
+        ErrorOr<SearchPharmaceuticalFormsResponse> result = await _mediator.Send(query, cancellationToken);
 
         return result.Match(
             response => Ok(response),

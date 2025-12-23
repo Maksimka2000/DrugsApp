@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
@@ -13,7 +14,7 @@ namespace DrugsApp.Features.PharmaceuticalFormFeature.SearchPharmaceuticalForms;
 /// Handles searching pharmaceutical forms by formulation name with pagination.
 /// </summary>
 internal sealed class SearchPharmaceuticalFormsHandler
-    : IRequestHandler<SearchPharmaceuticalFormsQuery, ErrorOr<List<PharmaceuticalFormDto>>>
+    : IRequestHandler<SearchPharmaceuticalFormsQuery, ErrorOr<SearchPharmaceuticalFormsResponse>>
 {
     private readonly IPharmaceuticalFormRepository _pharmaceuticalFormRepository;
 
@@ -27,23 +28,36 @@ internal sealed class SearchPharmaceuticalFormsHandler
     /// </summary>
     /// <param name="query">Search parameters including name filter and pagination.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of matching pharmaceutical form DTOs.</returns>
-    public async Task<ErrorOr<List<PharmaceuticalFormDto>>> Handle(
+    /// <returns>Search response containing items and paging metadata.</returns>
+    public async Task<ErrorOr<SearchPharmaceuticalFormsResponse>> Handle(
         SearchPharmaceuticalFormsQuery query,
         CancellationToken cancellationToken)
     {
-        List<PharmaceuticalForm> pharmaceuticalForms = await _pharmaceuticalFormRepository.SearchAsync(
-            query.Name,
+        string? normalizedNameFilter = string.IsNullOrWhiteSpace(query.Name)
+            ? null
+            : query.Name.Trim();
+
+        List<PharmaceuticalForm> pagePlusOne = await _pharmaceuticalFormRepository.SearchAsync(
+            normalizedNameFilter,
             query.Skip,
-            query.Take,
+            query.Take + 1,
             cancellationToken);
 
-        if (pharmaceuticalForms.Count == 0)
+        bool hasMore = pagePlusOne.Count > query.Take;
+
+        List<PharmaceuticalFormDto> items = pagePlusOne
+            .Take(query.Take)
+            .MapToDtoList();
+
+        int? totalCount = null;
+        if (query.Skip == 0)
         {
-            return new List<PharmaceuticalFormDto>();
+            totalCount = await _pharmaceuticalFormRepository.CountAsync(
+                normalizedNameFilter,
+                cancellationToken);
         }
 
-        return pharmaceuticalForms.MapToDtoList();
+        return items.MapToResponse(totalCount, hasMore);
     }
 }
 

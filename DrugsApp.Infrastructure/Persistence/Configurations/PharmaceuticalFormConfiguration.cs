@@ -18,6 +18,8 @@ public sealed class PharmaceuticalFormConfiguration : BaseEntityConfiguration<Ph
 
         builder.HasIndex(pf => pf.FormulationName)
             .IsUnique();
+
+        
     }
 }
 

@@ -40,6 +40,20 @@ public sealed class PharmaceuticalFormRepository : IPharmaceuticalFormRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<int> CountAsync(
+        string? nameFilter,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<PharmaceuticalForm> query = _context.PharmaceuticalForms.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(nameFilter))
+        {
+            query = query.Where(pf => EF.Functions.ILike(pf.FormulationName, $"%{nameFilter}%"));
+        }
+
+        return await query.CountAsync(cancellationToken);
+    }
+
     public async Task<PharmaceuticalForm?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _context.PharmaceuticalForms

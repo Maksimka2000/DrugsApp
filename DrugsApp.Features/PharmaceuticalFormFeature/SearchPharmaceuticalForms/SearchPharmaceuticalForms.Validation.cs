@@ -18,7 +18,7 @@ public sealed class SearchPharmaceuticalFormsRequestValidator : AbstractValidato
             .WithMessage("Skip must be greater than or equal to 0.");
 
         RuleFor(x => x.Take)
-            .InclusiveBetween(1, 100)
+            .InclusiveBetween(1, 40)
             .WithMessage("Take must be between 1 and 100.");
     }
 }
