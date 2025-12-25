@@ -20,7 +20,99 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActiveSubstanceName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "ActiveSubstanceName" }, "Index_ActiveSubstances_ActiveSubstanceName")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "ActiveSubstanceName" }, "Index_ActiveSubstances_ActiveSubstanceName_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "ActiveSubstanceName" }, "Index_ActiveSubstances_ActiveSubstanceName_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "ActiveSubstanceName" }, "Index_ActiveSubstances_ActiveSubstanceName_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.ToTable("ActiveSubstances", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.OralMedicationIntakeGuidelines", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActiveSubstanceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AvoidFoodDrug")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("AvoidFoodTherapy")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("FoodIntakeType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool?>("LiquidInstructions")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LiquidNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("MealNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool?>("RecommendedEvening")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("RecommendedMorning")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<int?>("WaitAfterMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("WaitBeforeMinutes")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActiveSubstanceId")
+                        .IsUnique();
+
+                    b.ToTable("OralMedicationIntakeGuidelines", (string)null);
+                });
 
             modelBuilder.Entity("DrugsApp.Domain.PharmaceuticalFormFeature.Entities.PharmaceuticalForm", b =>
                 {
@@ -140,6 +232,22 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.HasIndex("CommercialName");
 
                     b.ToTable("VetDrugs", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.OralMedicationIntakeGuidelines", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", "ActiveSubstance")
+                        .WithOne("OralMedicationIntakeGuidelines")
+                        .HasForeignKey("DrugsApp.Domain.ActiveSubstanceFeature.Entities.OralMedicationIntakeGuidelines", "ActiveSubstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ActiveSubstance");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", b =>
+                {
+                    b.Navigation("OralMedicationIntakeGuidelines");
                 });
 #pragma warning restore 612, 618
         }

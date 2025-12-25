@@ -1,4 +1,5 @@
-﻿using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
+﻿using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
+using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 using DrugsApp.Domain.RouteOfAdministrationFeature.Entities;
 using DrugsApp.Domain.TestFeature.Entities;
 using DrugsApp.Domain.VetDrugFeature.Entities;
@@ -11,11 +12,14 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<VetDrug> VetDrugs { get; set; } = null!;
     public DbSet<PharmaceuticalForm> PharmaceuticalForms { get; set; } = null!;
     public DbSet<RouteOfAdministration> RoutesOfAdministration { get; set; } = null!;
+    public DbSet<ActiveSubstance> ActiveSubstances { get; set; } = null!;
+    public DbSet<OralMedicationIntakeGuidelines> OralMedicationIntakeGuidelines { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.HasPostgresExtension("pg_trgm");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DrugsAppDbContext).Assembly);
     }
 }
