@@ -14,7 +14,8 @@ public static class RouteOfAdministrationMappings
     /// </summary>
     public static RouteOfAdministrationDto MapToDto(this RouteOfAdministration routeOfAdministration) => new(
         Id: routeOfAdministration.Id,
-        RouteOfAdministrationName: routeOfAdministration.RouteOfAdministrationName);
+        RouteOfAdministrationName: routeOfAdministration.RouteOfAdministrationName,
+        IsOralIntake: routeOfAdministration.IsOralIntake);
 
     /// <summary>
     /// Maps a collection of RouteOfAdministration entities to a list of DTOs.

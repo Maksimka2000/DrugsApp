@@ -15,14 +15,16 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.UpdateRouteOfAdministra
 /// Request model for updating route of administration fields.
 /// </summary>
 public sealed record UpdateRouteOfAdministrationRequest(
-    string? RouteOfAdministrationName);
+    string? RouteOfAdministrationName,
+    bool? IsOralIntake);
 
 /// <summary>
 /// Response containing updated route of administration fields.
 /// </summary>
 public sealed record UpdatedRouteOfAdministrationResponse(
     Guid Id,
-    string RouteOfAdministrationName);
+    string RouteOfAdministrationName,
+    bool IsOralIntake);
 
 /// <summary>
 /// Command for updating a route of administration name.

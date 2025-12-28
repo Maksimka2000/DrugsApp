@@ -71,6 +71,11 @@ internal sealed class UpdateRouteOfAdministrationHandler
             }
         }
 
+        if (command.Request.IsOralIntake is bool isOralIntake)
+        {
+            routeOfAdministration.SetIsOralIntake(isOralIntake);
+        }
+
         return routeOfAdministration.MapToUpdatedResponse();
     }
 }

@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using DrugsApp.Domain.Common;
+using DrugsApp.Domain.DrugFeature.Entities;
 
 namespace DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 
@@ -7,19 +9,34 @@ namespace DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 /// </summary>
 public sealed class ActiveSubstance : BaseEntity
 {
+    
+
     private ActiveSubstance() : base()
     {
     }
 
-    /// <summary>
-    /// The display name of the active substance.
-    /// </summary>
-    public string ActiveSubstanceName { get; private set; } = string.Empty;
+    // Navigation properties
 
     /// <summary>
     /// Optional oral medication intake guidelines associated with this active substance.
     /// </summary>
     public OralMedicationIntakeGuidelines? OralMedicationIntakeGuidelines { get; private set; }
+
+    private readonly List<Drug> _drugs = new();
+    /// <summary>
+    /// Drug aggregates referencing this active substance.
+    /// </summary>
+    public IReadOnlyCollection<Drug> Drugs => _drugs;
+
+
+
+
+    // Properties
+
+    /// <summary>
+    /// The display name of the active substance.
+    /// </summary>
+    public string ActiveSubstanceName { get; private set; } = string.Empty;
 
     /// <summary>
     /// Creates a new active substance aggregate.

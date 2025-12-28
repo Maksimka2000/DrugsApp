@@ -23,6 +23,10 @@ public interface IPharmaceuticalFormRepository
     Task<PharmaceuticalForm?> GetByNameAsync(string name, CancellationToken cancellationToken);
 
     Task AddAsync(PharmaceuticalForm pharmaceuticalForm, CancellationToken cancellationToken);
+
+    Task<IReadOnlyCollection<PharmaceuticalForm>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken);
 }
 
 

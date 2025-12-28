@@ -7,6 +7,7 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.Shared;
 /// </summary>
 public sealed record RouteOfAdministrationDto(
     Guid Id,
-    string RouteOfAdministrationName);
+    string RouteOfAdministrationName,
+    bool IsOralIntake);
 
 

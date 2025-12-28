@@ -1,0 +1,209 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using DrugsApp.Domain.DrugFeature.Entities;
+using DrugsApp.Domain.DrugFeature.Repositories;
+using DrugsApp.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace DrugsApp.Infrastructure.Repositories.DrugFeature;
+
+public sealed class DrugRepository : IDrugRepository
+{
+    private const double SimilarityThreshold = 0.35;
+
+    private readonly DrugsAppDbContext _context;
+
+    public DrugRepository(DrugsAppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<Drug?> GetByIdAsync(Guid drugId, CancellationToken cancellationToken)
+    {
+        return await _context.Drugs
+            .Include(d => d.ActiveSubstances)
+            .FirstOrDefaultAsync(d => d.Id == drugId, cancellationToken);
+    }
+
+    public async Task<List<Drug>> SearchAsync(
+        string? searchQuery,
+        IReadOnlyCollection<DrugType>? typeOfDrugsFilter,
+        DrugSearchField searchField,
+        DrugSortField sortField,
+        bool ascending,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+
+        IQueryable<Drug> query = _context.Drugs.AsNoTracking();
+        query = ApplyTypeFilter(query, typeOfDrugsFilter);
+
+        if (!string.IsNullOrWhiteSpace(searchQuery) && searchField != DrugSearchField.None)
+        {
+            query = ApplySearchFilter(query, searchQuery!, searchField);
+        }
+
+        query = ApplyIncludes(query);
+        query = ApplySort(query, sortField, ascending);
+
+        return await query
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAsync(
+        string? searchQuery,
+        IReadOnlyCollection<DrugType>? typeOfDrugsFilter,
+        DrugSearchField searchField,
+        CancellationToken cancellationToken)
+    {
+
+        IQueryable<Drug> query = _context.Drugs.AsNoTracking();
+        query = ApplyTypeFilter(query, typeOfDrugsFilter);
+
+        if (!string.IsNullOrWhiteSpace(searchQuery) && searchField != DrugSearchField.None)
+        {
+            query = ApplySearchFilter(query, searchQuery!, searchField);
+        }
+
+        return await query.CountAsync(cancellationToken);
+    }
+
+
+
+
+
+
+
+
+
+    private static IQueryable<Drug> ApplyIncludes(IQueryable<Drug> query) =>
+        query
+            .Include(d => d.ActiveSubstances)
+            .Include(d => d.DrugForms)
+                .ThenInclude(df => df.RoutesOfAdministration)
+            .Include(d => d.DrugForms)
+                .ThenInclude(df => df.PharmaceuticalForms);
+
+
+
+
+
+
+    private static IQueryable<Drug> ApplyTypeFilter(
+        IQueryable<Drug> query,
+        IReadOnlyCollection<DrugType>? typeOfDrugsFilter)
+    {
+        if (typeOfDrugsFilter is null || typeOfDrugsFilter.Count == 0)
+        {
+            return query;
+        }
+
+        return query.Where(d => typeOfDrugsFilter.Contains(d.TypeOfDrug));
+    }
+
+
+
+
+
+    private static IQueryable<Drug> ApplySort(
+        IQueryable<Drug> query,
+        DrugSortField sortField,
+        bool ascending)
+    {
+        return (sortField, ascending) switch
+        {
+            (DrugSortField.CreatedAt, true) => query
+                .OrderBy(d => d.CreatedAtUtc)
+                .ThenBy(d => d.Id),
+            (DrugSortField.CreatedAt, false) => query
+                .OrderByDescending(d => d.CreatedAtUtc)
+                .ThenBy(d => d.Id),
+
+            (DrugSortField.UpdatedAt, true) => query
+                .OrderBy(d => d.UpdatedAtUtc)
+                .ThenBy(d => d.Id),
+            (DrugSortField.UpdatedAt, false) => query
+                .OrderByDescending(d => d.UpdatedAtUtc)
+                .ThenBy(d => d.Id),
+
+            (DrugSortField.CommercialName, true) => query
+                .OrderBy(d => d.CommercialName)
+                .ThenBy(d => d.Id),
+            (DrugSortField.CommercialName, false) => query
+                .OrderByDescending(d => d.CommercialName)
+                .ThenBy(d => d.Id),
+
+            _ => query.OrderBy(d => d.CommercialName).ThenBy(d => d.Id)
+        };
+    }
+
+    private static IQueryable<Drug> ApplySearchFilter(
+        IQueryable<Drug> query,
+        string searchQuery,
+        DrugSearchField searchField)
+    {
+        string prefixPattern = $"{searchQuery}%";
+        string containsPattern = $"%{searchQuery}%";
+        bool useTrigram = searchQuery.Length >= 3;
+
+        return searchField switch
+        {
+            DrugSearchField.CommercialName => query.Where(d =>
+                EF.Functions.ILike(d.CommercialName, prefixPattern) ||
+                EF.Functions.ILike(d.CommercialName, containsPattern) ||
+                useTrigram && EF.Functions.TrigramsSimilarity(d.CommercialName, searchQuery) >= SimilarityThreshold),
+
+            DrugSearchField.ActiveSubstance => query.Where(d =>
+                d.ActiveSubstances.Any(a =>
+                    a.ActiveSubstanceName != null &&
+                    (EF.Functions.ILike(a.ActiveSubstanceName, prefixPattern) ||
+                     EF.Functions.ILike(a.ActiveSubstanceName, containsPattern) ||
+                     useTrigram && EF.Functions.TrigramsSimilarity(a.ActiveSubstanceName, searchQuery) >= SimilarityThreshold))),
+
+            DrugSearchField.AtcCode => query.Where(d =>
+                d.DrugForms.Any(df =>
+                    df.AtcCode != null &&
+                    (EF.Functions.ILike(df.AtcCode, prefixPattern) ||
+                     EF.Functions.ILike(df.AtcCode, containsPattern) ||
+                     useTrigram && EF.Functions.TrigramsSimilarity(df.AtcCode, searchQuery) >= SimilarityThreshold))),
+
+            DrugSearchField.RouteOfAdministration => query.Where(d =>
+                d.DrugForms.Any(df =>
+                    df.RoutesOfAdministration.Any(roa =>
+                        EF.Functions.ILike(roa.RouteOfAdministrationName, prefixPattern) ||
+                        EF.Functions.ILike(roa.RouteOfAdministrationName, containsPattern) ||
+                        useTrigram && EF.Functions.TrigramsSimilarity(roa.RouteOfAdministrationName, searchQuery) >= SimilarityThreshold))),
+
+            DrugSearchField.PharmaceuticalForm => query.Where(d =>
+                d.DrugForms.Any(df =>
+                    df.PharmaceuticalForms.Any(pf =>
+                        EF.Functions.ILike(pf.FormulationName, prefixPattern) ||
+                        EF.Functions.ILike(pf.FormulationName, containsPattern) ||
+                        useTrigram && EF.Functions.TrigramsSimilarity(pf.FormulationName, searchQuery) >= SimilarityThreshold))),
+
+            DrugSearchField.ProductIdentifier => ApplyProductIdentifierFilter(query, searchQuery),
+
+            _ => query
+        };
+    }
+
+    private static IQueryable<Drug> ApplyProductIdentifierFilter(
+        IQueryable<Drug> query,
+        string searchQuery)
+    {
+        if (!int.TryParse(searchQuery, out int numericIdentifier))
+        {
+            return query.Where(_ => false);
+        }
+
+        return query.Where(d =>
+            d.DrugForms.Any(df => df.ProductIdentifier == numericIdentifier));
+    }
+
+}

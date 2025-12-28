@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using DrugsApp.Domain.Common;
+using DrugsApp.Domain.DrugFeature.Entities;
 
 namespace DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 
@@ -7,12 +9,27 @@ namespace DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 /// </summary>
 public sealed class PharmaceuticalForm : BaseEntity
 {
+    
+
     /// <summary>
     /// 
     /// </summary>
     private PharmaceuticalForm() : base()
     {
     }
+
+
+    // Navigation properties
+    
+    private readonly List<DrugForm> _drugForms = new();
+    /// <summary>
+    /// Drug forms referencing this pharmaceutical form tag.
+    /// </summary>
+    public IReadOnlyCollection<DrugForm> DrugForms => _drugForms;
+
+
+
+    // Properties
 
     /// <summary>
     /// The formulation name of the pharmaceutical form.

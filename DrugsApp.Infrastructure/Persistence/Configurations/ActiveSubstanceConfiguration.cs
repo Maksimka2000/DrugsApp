@@ -12,6 +12,10 @@ public sealed class ActiveSubstanceConfiguration : BaseEntityConfiguration<Activ
 
         builder.ToTable("ActiveSubstances");
 
+
+
+
+
         builder.Property(a => a.ActiveSubstanceName)
             .IsRequired()
             .HasMaxLength(200);

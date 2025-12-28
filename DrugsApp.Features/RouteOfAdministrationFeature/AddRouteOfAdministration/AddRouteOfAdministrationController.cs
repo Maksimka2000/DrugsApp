@@ -15,14 +15,16 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.AddRouteOfAdministratio
 /// Request model for adding a route of administration.
 /// </summary>
 public sealed record AddRouteOfAdministrationRequest(
-    string RouteOfAdministrationName);
+    string RouteOfAdministrationName,
+    bool? IsOralIntake);
 
 /// <summary>
 /// Response containing created route of administration details.
 /// </summary>
 public sealed record CreatedRouteOfAdministrationResponse(
     Guid Id,
-    string RouteOfAdministrationName);
+    string RouteOfAdministrationName,
+    bool IsOralIntake);
 
 /// <summary>
 /// Command for adding a new route of administration.

@@ -25,33 +25,25 @@ public sealed class RouteOfAdministrationRepository : IRouteOfAdministrationRepo
         int take,
         CancellationToken cancellationToken)
     {
-        IQueryable<RouteOfAdministration> query = _context.RoutesOfAdministration.AsNoTracking();
+        IQueryable<RouteOfAdministration> query = BuildSearchQueryable(nameFilter);
 
-        if (!string.IsNullOrWhiteSpace(nameFilter))
-        {
-            query = query.Where(ra => EF.Functions.ILike(ra.RouteOfAdministrationName, $"%{nameFilter}%"));
-        }
-
-        query = query.OrderBy(ra => ra.RouteOfAdministrationName);
-
-        return await query
+        List<RouteOfAdministration> result = await query
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
+
+        return result;
     }
 
     public async Task<int> CountAsync(
         string? nameFilter,
         CancellationToken cancellationToken)
     {
-        IQueryable<RouteOfAdministration> query = _context.RoutesOfAdministration.AsNoTracking();
+        IQueryable<RouteOfAdministration> query = BuildSearchQueryable(nameFilter);
 
-        if (!string.IsNullOrWhiteSpace(nameFilter))
-        {
-            query = query.Where(ra => EF.Functions.ILike(ra.RouteOfAdministrationName, $"%{nameFilter}%"));
-        }
+        int result = await query.CountAsync(cancellationToken);
 
-        return await query.CountAsync(cancellationToken);
+        return result;
     }
 
     public async Task<RouteOfAdministration?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -70,6 +62,49 @@ public sealed class RouteOfAdministrationRepository : IRouteOfAdministrationRepo
     public async Task AddAsync(RouteOfAdministration routeOfAdministration, CancellationToken cancellationToken)
     {
         await _context.RoutesOfAdministration.AddAsync(routeOfAdministration, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<RouteOfAdministration>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken)
+    {
+        if (ids.Count == 0)
+        {
+            return Array.Empty<RouteOfAdministration>();
+        }
+
+        return await _context.RoutesOfAdministration
+            .Where(routeOfAdministration => ids.Contains(routeOfAdministration.Id))
+            .ToListAsync(cancellationToken);
+    }
+    private IQueryable<RouteOfAdministration> BuildSearchQueryable(string? nameFilter)
+    {
+        string? trimmedFilter = nameFilter?.Trim();
+
+        if (string.IsNullOrWhiteSpace(trimmedFilter))
+        {
+            return _context.RoutesOfAdministration
+                .AsNoTracking()
+                .OrderBy(ra => ra.RouteOfAdministrationName);
+        }
+
+        if (trimmedFilter.Length < 3)
+        {
+            return _context.RoutesOfAdministration
+                .AsNoTracking()
+                .Where(ra => EF.Functions.ILike(ra.RouteOfAdministrationName, $"%{trimmedFilter}%"))
+                .OrderBy(ra => ra.RouteOfAdministrationName);
+        }
+
+        return _context.RoutesOfAdministration
+            .FromSqlInterpolated($"""
+                SELECT * FROM "RoutesOfAdministration" ra
+                WHERE ra."RouteOfAdministrationName" ILIKE '%' || {trimmedFilter} || '%'
+                   OR ra."RouteOfAdministrationName" % {trimmedFilter}
+                ORDER BY similarity(ra."RouteOfAdministrationName", {trimmedFilter}) DESC,
+                         ra."RouteOfAdministrationName"
+                """)
+            .AsNoTracking();
     }
 }
 
