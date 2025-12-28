@@ -23,6 +23,10 @@ public interface IRouteOfAdministrationRepository
     Task<RouteOfAdministration?> GetByNameAsync(string name, CancellationToken cancellationToken);
 
     Task AddAsync(RouteOfAdministration routeOfAdministration, CancellationToken cancellationToken);
+
+    Task<IReadOnlyCollection<RouteOfAdministration>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken);
 }
 
 

@@ -49,6 +49,11 @@ internal sealed class AddRouteOfAdministrationHandler
 
         RouteOfAdministration routeOfAdministration = command.MapToEntity();
 
+        if (command.Request.IsOralIntake is bool isOralIntake)
+        {
+            routeOfAdministration.SetIsOralIntake(isOralIntake);
+        }
+
         await _routeOfAdministrationRepository.AddAsync(routeOfAdministration, cancellationToken);
 
         CreatedRouteOfAdministrationResponse response = routeOfAdministration.MapToResponse();

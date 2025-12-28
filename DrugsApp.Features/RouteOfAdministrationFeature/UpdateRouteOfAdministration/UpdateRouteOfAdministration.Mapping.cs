@@ -22,7 +22,8 @@ public static class UpdateRouteOfAdministrationMapping
     /// </summary>
     public static UpdatedRouteOfAdministrationResponse MapToUpdatedResponse(this RouteOfAdministration routeOfAdministration) => new(
         Id: routeOfAdministration.Id,
-        RouteOfAdministrationName: routeOfAdministration.RouteOfAdministrationName);
+        RouteOfAdministrationName: routeOfAdministration.RouteOfAdministrationName,
+        IsOralIntake: routeOfAdministration.IsOralIntake);
 }
 
 

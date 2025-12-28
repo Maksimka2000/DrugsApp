@@ -23,6 +23,54 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("DrugActiveSubstances", b =>
+                {
+                    b.Property<Guid>("DrugId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActiveSubstanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("DrugId", "ActiveSubstanceId");
+
+                    b.HasIndex("ActiveSubstanceId")
+                        .HasDatabaseName("Index_DrugActiveSubstances_ActiveSubstanceId");
+
+                    b.ToTable("DrugActiveSubstances", (string)null);
+                });
+
+            modelBuilder.Entity("DrugFormPharmaceuticalForms", b =>
+                {
+                    b.Property<Guid>("DrugFormId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PharmaceuticalFormId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("DrugFormId", "PharmaceuticalFormId");
+
+                    b.HasIndex("PharmaceuticalFormId")
+                        .HasDatabaseName("Index_DrugFormPharmaceuticalForms_PharmaceuticalFormId");
+
+                    b.ToTable("DrugFormPharmaceuticalForms", (string)null);
+                });
+
+            modelBuilder.Entity("DrugFormRoutesOfAdministration", b =>
+                {
+                    b.Property<Guid>("DrugFormId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RouteOfAdministrationId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("DrugFormId", "RouteOfAdministrationId");
+
+                    b.HasIndex("RouteOfAdministrationId")
+                        .HasDatabaseName("Index_DrugFormRoutesOfAdministration_RouteOfAdministrationId");
+
+                    b.ToTable("DrugFormRoutesOfAdministration", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", b =>
                 {
                     b.Property<Guid>("Id")
@@ -114,6 +162,108 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("OralMedicationIntakeGuidelines", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.DrugFeature.Entities.Drug", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CommercialName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<int>("DrugFormCounter")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TypeOfDrug")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("TypeOfProduct")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CommercialName" }, "Index_Drugs_CommercialName");
+
+                    b.HasIndex(new[] { "CommercialName", "Id" }, "Index_Drugs_CommercialName_Id");
+
+                    b.HasIndex(new[] { "CommercialName" }, "Index_Drugs_CommercialName_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "CommercialName" }, "Index_Drugs_CommercialName_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "CommercialName" }, "Index_Drugs_CommercialName_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.ToTable("Drugs", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.DrugFeature.Entities.DrugForm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AtcCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("Dosage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("DrugId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EducationMaterials")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IsOral")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Leaflet")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("ProductIdentifier")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AtcCode")
+                        .HasDatabaseName("Index_DrugForms_AtcCode");
+
+                    b.HasIndex("DrugId")
+                        .HasDatabaseName("Index_DrugForms_DrugId");
+
+                    b.HasIndex("ProductIdentifier")
+                        .HasDatabaseName("Index_DrugForms_ProductIdentifier");
+
+                    b.HasIndex(new[] { "AtcCode" }, "Index_DrugForms_AtcCode_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "AtcCode" }, "Index_DrugForms_AtcCode_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "AtcCode" }, "Index_DrugForms_AtcCode_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.ToTable("DrugForms", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.PharmaceuticalFormFeature.Entities.PharmaceuticalForm", b =>
                 {
                     b.Property<Guid>("Id")
@@ -134,8 +284,13 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FormulationName")
+                    b.HasIndex(new[] { "FormulationName" }, "Index_PharmaceuticalForms_FormulationName")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "FormulationName" }, "Index_PharmaceuticalForms_FormulationName_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "FormulationName" }, "Index_PharmaceuticalForms_FormulationName_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "FormulationName" }, "Index_PharmaceuticalForms_FormulationName_trgm"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("PharmaceuticalForms", (string)null);
                 });
@@ -149,6 +304,11 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreatedAtUtc");
 
+                    b.Property<bool>("IsOralIntake")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("RouteOfAdministrationName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -160,8 +320,13 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RouteOfAdministrationName")
+                    b.HasIndex(new[] { "RouteOfAdministrationName" }, "Index_RoutesOfAdministration_RouteOfAdministrationName")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "RouteOfAdministrationName" }, "Index_RoutesOfAdministration_RouteOfAdministrationName_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "RouteOfAdministrationName" }, "Index_RoutesOfAdministration_RouteOfAdministrationName_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "RouteOfAdministrationName" }, "Index_RoutesOfAdministration_RouteOfAdministrationName_trgm"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("RoutesOfAdministration", (string)null);
                 });
@@ -234,6 +399,51 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("VetDrugs", (string)null);
                 });
 
+            modelBuilder.Entity("DrugActiveSubstances", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", null)
+                        .WithMany()
+                        .HasForeignKey("ActiveSubstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", null)
+                        .WithMany()
+                        .HasForeignKey("DrugId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DrugFormPharmaceuticalForms", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.DrugForm", null)
+                        .WithMany()
+                        .HasForeignKey("DrugFormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrugsApp.Domain.PharmaceuticalFormFeature.Entities.PharmaceuticalForm", null)
+                        .WithMany()
+                        .HasForeignKey("PharmaceuticalFormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DrugFormRoutesOfAdministration", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.DrugForm", null)
+                        .WithMany()
+                        .HasForeignKey("DrugFormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrugsApp.Domain.RouteOfAdministrationFeature.Entities.RouteOfAdministration", null)
+                        .WithMany()
+                        .HasForeignKey("RouteOfAdministrationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.OralMedicationIntakeGuidelines", b =>
                 {
                     b.HasOne("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", "ActiveSubstance")
@@ -245,9 +455,25 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("ActiveSubstance");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.DrugFeature.Entities.DrugForm", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", "Drug")
+                        .WithMany("DrugForms")
+                        .HasForeignKey("DrugId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Drug");
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", b =>
                 {
                     b.Navigation("OralMedicationIntakeGuidelines");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.DrugFeature.Entities.Drug", b =>
+                {
+                    b.Navigation("DrugForms");
                 });
 #pragma warning restore 612, 618
         }

@@ -11,6 +11,9 @@ public sealed class OralMedicationIntakeGuidelines : BaseEntity
     {
     }
 
+
+    // Navigation properties
+    
     /// <summary>
     /// Foreign key identifying the owning <see cref="ActiveSubstance"/>.
     /// </summary>
@@ -20,6 +23,12 @@ public sealed class OralMedicationIntakeGuidelines : BaseEntity
     /// Navigation to the owning active substance.
     /// </summary>
     public ActiveSubstance ActiveSubstance { get; private set; } = null!;
+
+
+
+
+
+
 
 
     /// <summary>

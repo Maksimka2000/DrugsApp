@@ -12,14 +12,20 @@ public sealed class PharmaceuticalFormConfiguration : BaseEntityConfiguration<Ph
 
         builder.ToTable("PharmaceuticalForms");
 
+
+
+
+
         builder.Property(pf => pf.FormulationName)
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.HasIndex(pf => pf.FormulationName)
+        builder.HasIndex(pf => pf.FormulationName, "Index_PharmaceuticalForms_FormulationName")
             .IsUnique();
 
-        
+        builder.HasIndex(pf => pf.FormulationName, "Index_PharmaceuticalForms_FormulationName_trgm")
+            .HasMethod("GIN")
+            .HasOperators("gin_trgm_ops");
     }
 }
 

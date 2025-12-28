@@ -12,13 +12,20 @@ public sealed class RouteOfAdministrationConfiguration : BaseEntityConfiguration
 
         builder.ToTable("RoutesOfAdministration");
 
+        builder.Property(ra => ra.IsOralIntake)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(ra => ra.RouteOfAdministrationName)
             .IsRequired()
             .HasMaxLength(200);
-
-
-       builder.HasIndex(ra => ra.RouteOfAdministrationName)
+      
+        builder.HasIndex(ra => ra.RouteOfAdministrationName, "Index_RoutesOfAdministration_RouteOfAdministrationName")
             .IsUnique();
+
+        builder.HasIndex(ra => ra.RouteOfAdministrationName, "Index_RoutesOfAdministration_RouteOfAdministrationName_trgm")
+            .HasMethod("GIN")
+            .HasOperators("gin_trgm_ops");
     }
 }
 

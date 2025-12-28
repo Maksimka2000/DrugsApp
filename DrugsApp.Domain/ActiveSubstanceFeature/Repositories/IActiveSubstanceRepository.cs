@@ -23,6 +23,10 @@ public interface IActiveSubstanceRepository
     Task<ActiveSubstance?> GetByNameAsync(string name, CancellationToken cancellationToken);
 
     Task AddAsync(ActiveSubstance activeSubstance, CancellationToken cancellationToken);
+
+    Task<IReadOnlyCollection<ActiveSubstance>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken);
 }
 
 
