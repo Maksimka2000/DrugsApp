@@ -8,14 +8,14 @@ public enum DrugType
     /// <summary>
     /// 
     /// </summary>
-    standard = 0,
+    Standard = 0,
     /// <summary>
     /// 
     /// </summary>
-    ophthalmic = 1,
+    Ophthalmic = 1,
     /// <summary>
     /// 
     /// </summary>
-    special = 2
+    Special = 2
 }
 

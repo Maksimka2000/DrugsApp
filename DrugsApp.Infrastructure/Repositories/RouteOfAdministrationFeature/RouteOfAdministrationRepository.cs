@@ -12,6 +12,8 @@ namespace DrugsApp.Infrastructure.Repositories.RouteOfAdministrationFeature;
 
 public sealed class RouteOfAdministrationRepository : IRouteOfAdministrationRepository
 {
+    private const double SimilarityThreshold = 0.35;
+    
     private readonly DrugsAppDbContext _context;
 
     public RouteOfAdministrationRepository(DrugsAppDbContext context)
@@ -19,32 +21,7 @@ public sealed class RouteOfAdministrationRepository : IRouteOfAdministrationRepo
         _context = context;
     }
 
-    public async Task<List<RouteOfAdministration>> SearchAsync(
-        string? nameFilter,
-        int skip,
-        int take,
-        CancellationToken cancellationToken)
-    {
-        IQueryable<RouteOfAdministration> query = BuildSearchQueryable(nameFilter);
-
-        List<RouteOfAdministration> result = await query
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync(cancellationToken);
-
-        return result;
-    }
-
-    public async Task<int> CountAsync(
-        string? nameFilter,
-        CancellationToken cancellationToken)
-    {
-        IQueryable<RouteOfAdministration> query = BuildSearchQueryable(nameFilter);
-
-        int result = await query.CountAsync(cancellationToken);
-
-        return result;
-    }
+    
 
     public async Task<RouteOfAdministration?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -77,35 +54,82 @@ public sealed class RouteOfAdministrationRepository : IRouteOfAdministrationRepo
             .Where(routeOfAdministration => ids.Contains(routeOfAdministration.Id))
             .ToListAsync(cancellationToken);
     }
-    private IQueryable<RouteOfAdministration> BuildSearchQueryable(string? nameFilter)
+
+
+
+
+
+
+
+
+
+    public async Task<List<RouteOfAdministration>> SearchAsync(
+        string? searchQuery,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
     {
-        string? trimmedFilter = nameFilter?.Trim();
+        // build query
+        IQueryable<RouteOfAdministration> query = _context.RoutesOfAdministration.AsNoTracking();
 
-        if (string.IsNullOrWhiteSpace(trimmedFilter))
-        {
-            return _context.RoutesOfAdministration
-                .AsNoTracking()
-                .OrderBy(ra => ra.RouteOfAdministrationName);
-        }
+        // apply filters
 
-        if (trimmedFilter.Length < 3)
-        {
-            return _context.RoutesOfAdministration
-                .AsNoTracking()
-                .Where(ra => EF.Functions.ILike(ra.RouteOfAdministrationName, $"%{trimmedFilter}%"))
-                .OrderBy(ra => ra.RouteOfAdministrationName);
-        }
+        // apply search filter
+        query = ApplySearchFilter(query, searchQuery);
 
-        return _context.RoutesOfAdministration
-            .FromSqlInterpolated($"""
-                SELECT * FROM "RoutesOfAdministration" ra
-                WHERE ra."RouteOfAdministrationName" ILIKE '%' || {trimmedFilter} || '%'
-                   OR ra."RouteOfAdministrationName" % {trimmedFilter}
-                ORDER BY similarity(ra."RouteOfAdministrationName", {trimmedFilter}) DESC,
-                         ra."RouteOfAdministrationName"
-                """)
-            .AsNoTracking();
+        // apply includes
+
+        // apply sort
+        query = ApplySort(query);
+
+        // apply paging
+        return await query
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
     }
+
+    public async Task<int> CountAsync(
+        string? searchQuery,
+        CancellationToken cancellationToken)
+    {
+        // build query
+        IQueryable<RouteOfAdministration> query = _context.RoutesOfAdministration.AsNoTracking();
+
+        // apply filters
+
+        // apply search filter
+        query = ApplySearchFilter(query, searchQuery);
+
+        // apply counting
+        return await query.CountAsync(cancellationToken);
+    }
+
+    private static IQueryable<RouteOfAdministration> ApplySearchFilter(
+        IQueryable<RouteOfAdministration> query,
+        string? searchQuery)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return query;
+        }
+
+        string trimmedQuery = searchQuery.Trim();
+        string prefixPattern = $"{trimmedQuery}%";
+        string containsPattern = $"%{trimmedQuery}%";
+        bool useTrigram = trimmedQuery.Length >= 3;
+
+        return query.Where(ra =>
+            EF.Functions.ILike(ra.RouteOfAdministrationName, prefixPattern) ||
+            EF.Functions.ILike(ra.RouteOfAdministrationName, containsPattern) ||
+            useTrigram &&
+            EF.Functions.TrigramsSimilarity(ra.RouteOfAdministrationName, trimmedQuery) >= SimilarityThreshold);
+    }
+
+    private static IQueryable<RouteOfAdministration> ApplySort(IQueryable<RouteOfAdministration> query) =>
+        query.OrderByDescending(ra => ra.RouteOfAdministrationName);
+
+
 }
 
 

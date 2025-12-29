@@ -12,38 +12,13 @@ namespace DrugsApp.Infrastructure.Repositories.ActiveSubstanceFeature;
 
 public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
 {
+    private const double SimilarityThreshold = 0.35;
+    
     private readonly DrugsAppDbContext _context;
 
     public ActiveSubstanceRepository(DrugsAppDbContext context)
     {
         _context = context;
-    }
-
-    public async Task<List<ActiveSubstance>> SearchAsync(
-        string? nameFilter,
-        int skip,
-        int take,
-        CancellationToken cancellationToken)
-    {
-        IQueryable<ActiveSubstance> query = BuildSearchQueryable(nameFilter, includeGuidelines: true);
-
-        List<ActiveSubstance> result = await query
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync(cancellationToken);
-
-        return result;
-    }
-
-    public async Task<int> CountAsync(
-        string? nameFilter,
-        CancellationToken cancellationToken)
-    {
-        IQueryable<ActiveSubstance> query = BuildSearchQueryable( nameFilter, includeGuidelines: false);
-
-        int result = await query.CountAsync(cancellationToken);
-
-        return result;
     }
 
     public async Task<ActiveSubstance?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -80,47 +55,84 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
             .Where(activeSubstance => ids.Contains(activeSubstance.Id))
             .ToListAsync(cancellationToken);
     }
-    private IQueryable<ActiveSubstance> BuildSearchQueryable(
-        string? nameFilter,
-        bool includeGuidelines)
+
+
+
+
+
+
+
+    public async Task<List<ActiveSubstance>> SearchAsync(
+        string? searchQuery,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
     {
-        string? trimmedFilter = nameFilter?.Trim();
+        // build query
+        IQueryable<ActiveSubstance> query = _context.ActiveSubstances.AsNoTracking();
 
-        IQueryable<ActiveSubstance> query;
+        // apply filters
 
-        if (string.IsNullOrWhiteSpace(trimmedFilter))
-        {
-            query = _context.ActiveSubstances
-                .AsNoTracking()
-                .OrderBy(a => a.ActiveSubstanceName);
-        }
-        else if (trimmedFilter.Length < 3)
-        {
-            query = _context.ActiveSubstances
-                .AsNoTracking()
-                .Where(a => EF.Functions.ILike(a.ActiveSubstanceName, $"%{trimmedFilter}%"))
-                .OrderBy(a => a.ActiveSubstanceName);
-        }
-        else
-        {
-            query = _context.ActiveSubstances
-                .FromSqlInterpolated($"""
-                    SELECT * FROM "ActiveSubstances" AS a
-                    WHERE a."ActiveSubstanceName" ILIKE '%' || {trimmedFilter} || '%'
-                       OR a."ActiveSubstanceName" % {trimmedFilter}
-                    ORDER BY similarity(a."ActiveSubstanceName", {trimmedFilter}) DESC,
-                             a."ActiveSubstanceName"
-                    """)
-                .AsNoTracking();
-        }
+        // apply search 
+        query = ApplySearchFilter(query, searchQuery);
 
-        if (includeGuidelines)
-        {
-            query = query.Include(a => a.OralMedicationIntakeGuidelines);
-        }
+        // apply includes
+        query = ApplyIncludes(query);
 
-        return query;
+        // apply sort
+        query = ApplySort(query);
+
+        // apply paging
+        return await query
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
     }
+
+    public async Task<int> CountAsync(
+        string? searchQuery,
+        CancellationToken cancellationToken)
+    {
+        // build query
+        IQueryable<ActiveSubstance> query = _context.ActiveSubstances.AsNoTracking();
+
+        // apply filters
+
+        // apply search filter
+        query = ApplySearchFilter(query, searchQuery);
+
+        // apply counting
+        return await query.CountAsync(cancellationToken);
+    }
+
+    private static IQueryable<ActiveSubstance> ApplySearchFilter(
+        IQueryable<ActiveSubstance> query,
+        string? searchQuery)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return query;
+        }
+
+        string trimmedQuery = searchQuery.Trim();
+        string prefixPattern = $"{trimmedQuery}%";
+        string containsPattern = $"%{trimmedQuery}%";
+        bool useTrigram = trimmedQuery.Length >= 3;
+
+        return query.Where(a =>
+            EF.Functions.ILike(a.ActiveSubstanceName, prefixPattern) ||
+            EF.Functions.ILike(a.ActiveSubstanceName, containsPattern) ||
+            useTrigram &&
+            EF.Functions.TrigramsSimilarity(a.ActiveSubstanceName, trimmedQuery) >= SimilarityThreshold);
+
+    }
+
+    private static IQueryable<ActiveSubstance> ApplyIncludes(IQueryable<ActiveSubstance> query) =>
+        query.Include(a => a.OralMedicationIntakeGuidelines);
+
+    private static IQueryable<ActiveSubstance> ApplySort(IQueryable<ActiveSubstance> query) =>
+        query.OrderByDescending(a => a.ActiveSubstanceName);
+
 }
 
 

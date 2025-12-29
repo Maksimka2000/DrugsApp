@@ -9,9 +9,9 @@ public sealed class SearchActiveSubstancesRequestValidator : AbstractValidator<S
 {
     public SearchActiveSubstancesRequestValidator()
     {
-        When(x => !string.IsNullOrWhiteSpace(x.Name), () => RuleFor(x => x.Name)
+        When(x => !string.IsNullOrWhiteSpace(x.ActiveSubstanceName), () => RuleFor(x => x.ActiveSubstanceName)
             .MaximumLength(200)
-            .WithMessage("Name filter must not exceed 200 characters."));
+            .WithMessage("ActiveSubstanceName filter must not exceed 200 characters."));
 
         RuleFor(x => x.Skip)
             .GreaterThanOrEqualTo(0)

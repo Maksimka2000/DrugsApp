@@ -9,9 +9,9 @@ public sealed class SearchRouteOfAdministrationsRequestValidator : AbstractValid
 {
     public SearchRouteOfAdministrationsRequestValidator()
     {
-        When(x => !string.IsNullOrWhiteSpace(x.Name), () => RuleFor(x => x.Name)
+        When(x => !string.IsNullOrWhiteSpace(x.RouteOfAdministrationName), () => RuleFor(x => x.RouteOfAdministrationName)
             .MaximumLength(200)
-            .WithMessage("Name filter must not exceed 200 characters."));
+            .WithMessage("RouteOfAdministrationName filter must not exceed 200 characters."));
 
         RuleFor(x => x.Skip)
             .GreaterThanOrEqualTo(0)
