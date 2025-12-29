@@ -16,7 +16,7 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.SearchRouteOfAdministra
 /// Request model for search query parameters.
 /// </summary>
 public sealed record SearchRouteOfAdministrationsRequest(
-    string? Name,
+    string? RouteOfAdministrationName,
     int Skip,
     int Take);
 
@@ -32,7 +32,7 @@ public sealed record SearchRouteOfAdministrationsResponse(
 /// Query for searching routes of administration with filtering and pagination.
 /// </summary>
 public sealed record SearchRouteOfAdministrationsQuery(
-    string? Name,
+    string? RouteOfAdministrationName,
     int Skip,
     int Take) : IRequest<ErrorOr<SearchRouteOfAdministrationsResponse>>;
 
@@ -54,7 +54,7 @@ public sealed class SearchRouteOfAdministrationsController(
     /// <summary>
     /// Searches routes of administration by name with pagination.
     /// </summary>
-    /// <param name="name">Optional partial match filter for route of administration name.</param>
+    /// <param name="routeOfAdministrationName">Optional partial match filter for route of administration name.</param>
     /// <param name="skip">Number of results to skip for pagination, defaults to 0.</param>
     /// <param name="take">Number of results to return, defaults to 10.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -64,12 +64,12 @@ public sealed class SearchRouteOfAdministrationsController(
     [ProducesResponseType(typeof(SearchRouteOfAdministrationsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchRouteOfAdministrationsResponse>> Search(
-        [FromQuery] string? name,
+        [FromQuery] string? routeOfAdministrationName,
         [FromQuery] int skip = 0,
         [FromQuery] int take = 10,
         CancellationToken cancellationToken = default)
     {
-        SearchRouteOfAdministrationsRequest request = new(name, skip, take);
+        SearchRouteOfAdministrationsRequest request = new(routeOfAdministrationName, skip, take);
 
         ValidationResult validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)

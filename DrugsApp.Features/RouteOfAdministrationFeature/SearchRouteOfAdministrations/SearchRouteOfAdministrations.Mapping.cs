@@ -12,7 +12,7 @@ public static class SearchRouteOfAdministrationsMapping
     /// </summary>
     public static SearchRouteOfAdministrationsQuery MapToQuery(
         this SearchRouteOfAdministrationsRequest request) => new(
-        Name: request.Name,
+        RouteOfAdministrationName: request.RouteOfAdministrationName,
         Skip: request.Skip,
         Take: request.Take);
 

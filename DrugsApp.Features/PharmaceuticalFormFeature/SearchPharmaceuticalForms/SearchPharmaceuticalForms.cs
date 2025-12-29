@@ -33,31 +33,53 @@ internal sealed class SearchPharmaceuticalFormsHandler
         SearchPharmaceuticalFormsQuery query,
         CancellationToken cancellationToken)
     {
-        string? normalizedNameFilter = string.IsNullOrWhiteSpace(query.Name)
-            ? null
-            : query.Name.Trim();
+        // initialize normalized name filter
+        string? normalizedFormulationName = NormalizeFormulationName(query.FormulationName);
+         // nomalize filter
+        // determine sort order
+        // get sort field
+        // initialize take plus one
+        int takePlusOne = query.Take + 1;
+        // initialize total count
+        int? totalCount = null;
 
-        List<PharmaceuticalForm> pagePlusOne = await _pharmaceuticalFormRepository.SearchAsync(
-            normalizedNameFilter,
+        // search pharmaceutical forms
+        List<PharmaceuticalForm> pharmaceuticalForms = await _pharmaceuticalFormRepository.SearchAsync(
+            normalizedFormulationName,
             query.Skip,
-            query.Take + 1,
+            takePlusOne,
             cancellationToken);
 
-        bool hasMore = pagePlusOne.Count > query.Take;
+        // determine if there are more items
+        bool hasMore = pharmaceuticalForms.Count > query.Take;
 
-        List<PharmaceuticalFormDto> items = pagePlusOne
-            .Take(query.Take)
-            .MapToDtoList();
+        // get page
+        List<PharmaceuticalForm> page = hasMore
+            ? pharmaceuticalForms.Take(query.Take).ToList()
+            : pharmaceuticalForms;
 
-        int? totalCount = null;
+        // map to DTOs
+        List<PharmaceuticalFormDto> items = page.MapToDtoList();
+
+        // count total items
         if (query.Skip == 0)
         {
             totalCount = await _pharmaceuticalFormRepository.CountAsync(
-                normalizedNameFilter,
+                normalizedFormulationName,
                 cancellationToken);
         }
 
         return items.MapToResponse(totalCount, hasMore);
+    }
+
+    private static string? NormalizeFormulationName(string? formulationName)
+    {
+        if (string.IsNullOrWhiteSpace(formulationName))
+        {
+            return null;
+        }
+
+        return formulationName.Trim();
     }
 }
 

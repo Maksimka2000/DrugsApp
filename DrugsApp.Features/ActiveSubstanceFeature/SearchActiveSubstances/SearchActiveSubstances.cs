@@ -33,32 +33,55 @@ internal sealed class SearchActiveSubstancesHandler
         SearchActiveSubstancesQuery query,
         CancellationToken cancellationToken)
     {
-        string? normalizedNameFilter = string.IsNullOrWhiteSpace(query.Name)
-            ? null
-            : query.Name.Trim();
+        // initialize normalized name filter
+        string? normalizedActiveSubstanceName = NormalizeActiveSubstanceName(query.ActiveSubstanceName);
+        // nomalize filter
+        // determine sort order
+        // get sort field
+        // initialize take plus one
+        int takePlusOne = query.Take + 1;
+        // initialize total count
+        int? totalCount = null;
 
-        List<ActiveSubstance> pagePlusOne = await _activeSubstanceRepository.SearchAsync(
-            normalizedNameFilter,
+        // search active substances
+        List<ActiveSubstance> activeSubstances = await _activeSubstanceRepository.SearchAsync(
+            normalizedActiveSubstanceName,
             query.Skip,
-            query.Take + 1,
+            takePlusOne,
             cancellationToken);
 
-        bool hasMore = pagePlusOne.Count > query.Take;
+        // determine if there are more items
+        bool hasMore = activeSubstances.Count > query.Take;
 
-        List<ActiveSubstanceDto> items = pagePlusOne
-            .Take(query.Take)
-            .MapToDtoList();
+        // get page
+        List<ActiveSubstance> page = hasMore
+            ? activeSubstances.Take(query.Take).ToList()
+            : activeSubstances;
 
-        int? totalCount = null;
+        // map to DTOs
+        List<ActiveSubstanceDto> items = page.MapToDtoList();
+
+        // count total items
         if (query.Skip == 0)
         {
             totalCount = await _activeSubstanceRepository.CountAsync(
-                normalizedNameFilter,
+                normalizedActiveSubstanceName,
                 cancellationToken);
         }
 
         return items.MapToResponse(totalCount, hasMore);
     }
+
+
+    private static string? NormalizeActiveSubstanceName(string? activeSubstanceName){
+        if (string.IsNullOrWhiteSpace(activeSubstanceName))
+        {
+            return null;
+        }
+
+        return activeSubstanceName.Trim();
+    }
 }
+
 
 

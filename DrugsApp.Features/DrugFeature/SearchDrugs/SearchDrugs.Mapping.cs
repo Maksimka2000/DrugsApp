@@ -15,7 +15,7 @@ internal static class SearchDrugsMapping
         Take: request.Take);
 
     public static SearchDrugsResponse MapToResponse(
-        List<DrugDto> items,
+        this List<DrugDto> items,
         int? totalCount,
         bool hasMore,
         SearchDrugsMetadata metadata) => new(

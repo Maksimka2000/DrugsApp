@@ -32,8 +32,9 @@ public sealed class DrugConfiguration : BaseEntityConfiguration<Drug>
 
         builder.Property(d => d.TypeOfDrug)
             .IsRequired()
+            .HasConversion<string>()
             .HasMaxLength(64)
-            .HasConversion<string>();
+            .HasDefaultValue(DrugType.Standard);
 
         builder.Property(d => d.DrugFormCounter)
             .IsRequired();

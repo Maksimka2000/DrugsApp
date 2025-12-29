@@ -11,7 +11,7 @@ public static class SearchActiveSubstancesMapping
     /// Maps query parameters to SearchActiveSubstancesQuery.
     /// </summary>
     public static SearchActiveSubstancesQuery MapToQuery(this SearchActiveSubstancesRequest request) => new(
-        Name: request.Name,
+        ActiveSubstanceName: request.ActiveSubstanceName,
         Skip: request.Skip,
         Take: request.Take);
 

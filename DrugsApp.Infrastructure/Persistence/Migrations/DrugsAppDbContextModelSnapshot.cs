@@ -124,8 +124,10 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("FoodIntakeType")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasDefaultValue("Sublingual");
 
                     b.Property<bool?>("LiquidInstructions")
                         .HasColumnType("boolean");
@@ -181,8 +183,10 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("TypeOfDrug")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasDefaultValue("Standard");
 
                     b.Property<string>("TypeOfProduct")
                         .IsRequired()
@@ -329,6 +333,102 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "RouteOfAdministrationName" }, "Index_RoutesOfAdministration_RouteOfAdministrationName_trgm"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("RoutesOfAdministration", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.TempDrugFeature.Entities.TempDrug", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ATCCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ActiveSubstance")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CommercialName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("Dosage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EducationalMaterials")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Leaflet")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<Guid?>("LinkedDrugFormId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("LinkedDrugVetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LinkedImportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PharmaceuticalFormulation")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("ProductIdentifier")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("RouteOfAdministration")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasDefaultValue("PendingReview");
+
+                    b.Property<string>("TypeOfProduct")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CommercialName" }, "Index_TempDrugs_CommercialName_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "CommercialName" }, "Index_TempDrugs_CommercialName_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "CommercialName" }, "Index_TempDrugs_CommercialName_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "LinkedDrugFormId" }, "Index_TempDrugs_LinkedDrugFormId");
+
+                    b.HasIndex(new[] { "LinkedDrugVetId" }, "Index_TempDrugs_LinkedDrugVetId");
+
+                    b.HasIndex(new[] { "LinkedImportId" }, "Index_TempDrugs_LinkedImportId");
+
+                    b.HasIndex(new[] { "ProductIdentifier" }, "Index_TempDrugs_ProductIdentifier")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Status" }, "Index_TempDrugs_Status");
+
+                    b.HasIndex(new[] { "TypeOfProduct" }, "Index_TempDrugs_TypeOfProduct");
+
+                    b.ToTable("TempDrugs", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_TempDrugs_LinkedDrugIds_Xor", "\"LinkedDrugFormId\" IS NULL OR \"LinkedDrugVetId\" IS NULL");
+                        });
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.TestFeature.Entities.Test", b =>

@@ -17,24 +17,28 @@ namespace DrugsApp.Features.DrugFeature.SearchDrugs;
 /// </summary>
 internal sealed class SearchDrugsHandler : IRequestHandler<SearchDrugsQuery, ErrorOr<SearchDrugsResponse>>
 {
-    private static readonly IReadOnlyList<(DrugSearchField Field, string Token)> SearchPriority = new List<(DrugSearchField, string)>
-    {
-        (DrugSearchField.CommercialName, "commercial_name"),
-        (DrugSearchField.ActiveSubstance, "active_substance"),
-        (DrugSearchField.AtcCode, "atc_code"),
-        (DrugSearchField.RouteOfAdministration, "route_of_administration"),
-        (DrugSearchField.PharmaceuticalForm, "pharmaceutical_form"),
-        (DrugSearchField.ProductIdentifier, "product_identifier")
-    };
-
-    private static readonly IReadOnlyList<string> SearchPriorityTokens = new ReadOnlyCollection<string>(
-        SearchPriority.Select(static entry => entry.Token).ToList());
+    private static readonly Dictionary<string, DrugSearchField> SearchPriority = new()
+        {
+            ["commercial_name"] = DrugSearchField.CommercialName,
+            ["active_substance"] = DrugSearchField.ActiveSubstance,
+            ["atc_code" ] = DrugSearchField.AtcCode,
+            ["route_of_administration"] = DrugSearchField.RouteOfAdministration,
+            ["pharmaceutical_form"] = DrugSearchField.PharmaceuticalForm,
+            ["product_identifier"] = DrugSearchField.ProductIdentifier
+        };
 
     private static readonly Dictionary<string, DrugSortField> SortFieldMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["commercial_name"] = DrugSortField.CommercialName,
         ["created_at"] = DrugSortField.CreatedAt,
         ["updated_at"] = DrugSortField.UpdatedAt
+    };
+
+    private static readonly Dictionary<string, DrugType> TypeOfDrugMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["standard"] = DrugType.Standard,
+        ["ophthalmic"] = DrugType.Ophthalmic,
+        ["special"] = DrugType.Special
     };
 
     private readonly IDrugRepository _drugRepository;
@@ -56,37 +60,44 @@ internal sealed class SearchDrugsHandler : IRequestHandler<SearchDrugsQuery, Err
     {
         // normalize search query
         string? normalizedSearchQuery = NormalizeSearchQuery(query.SearchQuery);
+        // normalize type of drugs filter
+        IReadOnlyCollection<DrugType>? selectedTypesFilter = NormalizeTypeOfDrugFilter(query.TypeOfDrugs);
         // determine sort order
         bool ascending = query.OrderBy.Equals("ascending", System.StringComparison.OrdinalIgnoreCase);
         // get sort field
-        DrugSortField sortField = SortFieldMap.GetValueOrDefault(query.SortBy, DrugSortField.CommercialName);
-        // build type filter
-        IReadOnlyCollection<DrugType>? selectedTypesFilter = BuildTypeFilter(query.TypeOfDrugs);
-        // initialize search result list
-        List<Drug> items;
-        // initialize matched field token
-        string? matchedFieldToken = null;
+        DrugSortField sortField = SortFieldMap.GetValueOrDefault(query.SortBy.Trim(), DrugSortField.CommercialName);
+        // initialize take plus one
+        int takePlusOne = query.Take + 1;
         // initialize counter
         int? totalCount = null;
+
         // initialize applied search field
         DrugSearchField appliedSearchField = DrugSearchField.None;
+        // initialize search result list
+        List<Drug> drugs;
+        // initialize matched field token
+        string? matchedFieldToken = null;
+        // initialize  matchedFiledtoken list
+        List<string> matchedFieldTokens = new();
 
+        // search drugs if search query is empty
         if (string.IsNullOrWhiteSpace(normalizedSearchQuery))
         {
-            items = await _drugRepository.SearchAsync(
+            drugs = await _drugRepository.SearchAsync(
                 searchQuery: null,
                 typeOfDrugsFilter: selectedTypesFilter,
                 searchField: DrugSearchField.None,
                 sortField: sortField,
                 ascending: ascending,
                 skip: query.Skip,
-                take: query.Take + 1,
+                take: takePlusOne,
                 cancellationToken: cancellationToken);
         }
         else
         {
-            items = new List<Drug>();
-            foreach ((DrugSearchField field, string token) in SearchPriority)
+            // search drugs if search query is not empty
+            drugs = new List<Drug>();
+            foreach ((string token, DrugSearchField field) in SearchPriority)
             {
                 List<Drug> attempt = await _drugRepository.SearchAsync(
                     searchQuery: normalizedSearchQuery,
@@ -95,37 +106,47 @@ internal sealed class SearchDrugsHandler : IRequestHandler<SearchDrugsQuery, Err
                     sortField: sortField,
                     ascending: ascending,
                     skip: query.Skip,
-                    take: query.Take + 1,
+                    take: takePlusOne,
                     cancellationToken: cancellationToken);
 
                 if (attempt.Count > 0)
                 {
-                    items = attempt;
+                    drugs = attempt;
                     matchedFieldToken = token;
+                    matchedFieldTokens.Add(token);
                     appliedSearchField = field;
                     break;
                 }
             }
         }
 
-        bool hasMore = items.Count > query.Take;
-        if (hasMore)
-        {
-            items = items.GetRange(0, query.Take);
-        }
+        // determine if there are more items
+        bool hasMore = drugs.Count > query.Take;
 
+        // get page
+        List<Drug> page = hasMore
+            ? drugs.Take(query.Take).ToList()
+            : drugs;
+
+        // map to DTOs
+        List<DrugDto> items = page.MapToDtoList();
+
+        // count total items
         if (query.Skip == 0)
         {
-            if (items.Count == 0){
+            if (drugs.Count == 0)
+            {
                 totalCount = 0;
-            } else if (string.IsNullOrWhiteSpace(normalizedSearchQuery))
+            }
+            else if (string.IsNullOrWhiteSpace(normalizedSearchQuery))
             {
                 totalCount = await _drugRepository.CountAsync(
                     searchQuery: null,
                     typeOfDrugsFilter: selectedTypesFilter,
                     searchField: DrugSearchField.None,
                     cancellationToken: cancellationToken);
-            } else
+            }
+            else
             {
                 totalCount = await _drugRepository.CountAsync(
                     searchQuery: normalizedSearchQuery,
@@ -135,29 +156,42 @@ internal sealed class SearchDrugsHandler : IRequestHandler<SearchDrugsQuery, Err
             }
         }
 
+        // build metadata
         SearchDrugsMetadata metadata = BuildMetadata(
             normalizedSearchQuery,
             matchedFieldToken,
             items.Count > 0,
-            SearchPriorityTokens);
+            matchedFieldTokens.AsReadOnly());
 
-        List<DrugDto> mapped = items.MapToDtoList();
-        return SearchDrugsMapping.MapToResponse(mapped, totalCount, hasMore, metadata);
+
+        return items.MapToResponse(totalCount, hasMore, metadata);
     }
 
-    private static IReadOnlyCollection<DrugType>? BuildTypeFilter(List<string>? requestedTypes)
+    private static IReadOnlyCollection<DrugType>? NormalizeTypeOfDrugFilter(List<string>? requestedTypes)
     {
-        if (requestedTypes != null)
+        if (requestedTypes is null || requestedTypes.Count == 0)
         {
-            IReadOnlyCollection<DrugType> parsed = requestedTypes
-                .Select(type => Enum.Parse<DrugType>(type, ignoreCase: true))
-                .Distinct()
-                .ToList()
-                .AsReadOnly();
-
-            return parsed;
+            return null;
         }
-        return null;
+
+        IReadOnlyCollection<DrugType> distinct = requestedTypes
+            .Select(status => TypeOfDrugMap.TryGetValue(status, out DrugType mapped) ? mapped : (DrugType?)null)
+            .Where(mapped => mapped.HasValue)
+            .Select(mapped => mapped!.Value)
+            .Distinct()
+            .ToList()
+            .AsReadOnly();
+
+        if (distinct.Count == 0)
+        {
+            return null;
+        }
+
+        var all = Enum.GetValues<DrugType>().ToHashSet();
+
+        bool selectsAll = all.SetEquals(distinct); 
+        
+        return selectsAll ? null : distinct.ToList().AsReadOnly();
     }
 
     private static string? NormalizeSearchQuery(string? searchQuery)

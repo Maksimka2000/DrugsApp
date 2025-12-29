@@ -12,7 +12,7 @@ public static class SearchPharmaceuticalFormsMapping
     /// </summary>
     public static SearchPharmaceuticalFormsQuery MapToQuery(
         this SearchPharmaceuticalFormsRequest request) => new(
-        Name: request.Name,
+        FormulationName: request.FormulationName,
         Skip: request.Skip,
         Take: request.Take);
 

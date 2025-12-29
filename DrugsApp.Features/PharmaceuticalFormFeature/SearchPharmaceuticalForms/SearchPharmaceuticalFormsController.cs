@@ -16,7 +16,7 @@ namespace DrugsApp.Features.PharmaceuticalFormFeature.SearchPharmaceuticalForms;
 /// Request model for search query parameters.
 /// </summary>
 public sealed record SearchPharmaceuticalFormsRequest(
-    string? Name,
+    string? FormulationName,
     int Skip,
     int Take);
 
@@ -32,7 +32,7 @@ public sealed record SearchPharmaceuticalFormsResponse(
 /// Query for searching pharmaceutical forms with filtering and pagination.
 /// </summary>
 public sealed record SearchPharmaceuticalFormsQuery(
-    string? Name,
+    string? FormulationName,
     int Skip,
     int Take) : IRequest<ErrorOr<SearchPharmaceuticalFormsResponse>>;
 
@@ -54,7 +54,7 @@ public sealed class SearchPharmaceuticalFormsController(
     /// <summary>
     /// Searches pharmaceutical forms by formulation name with pagination.
     /// </summary>
-    /// <param name="name">Optional partial match filter for formulation name.</param>
+    /// <param name="formulationName">Optional partial match filter for formulation name.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="skip">Number of results to skip for pagination, defaults to 0.</param>
     /// <param name="take">Number of results to return, defaults to 20.</param>
@@ -64,12 +64,12 @@ public sealed class SearchPharmaceuticalFormsController(
     [ProducesResponseType(typeof(SearchPharmaceuticalFormsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchPharmaceuticalFormsResponse>> Search(
-        [FromQuery] string? name,
+        [FromQuery] string? formulationName,
         [FromQuery] int skip = 0,
         [FromQuery] int take = 10,
         CancellationToken cancellationToken = default)
     {
-        SearchPharmaceuticalFormsRequest request = new(name, skip, take);
+        SearchPharmaceuticalFormsRequest request = new(formulationName, skip, take);
 
         ValidationResult validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)

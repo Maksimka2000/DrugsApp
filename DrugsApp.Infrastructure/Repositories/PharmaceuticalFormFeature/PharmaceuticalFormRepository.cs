@@ -12,6 +12,8 @@ namespace DrugsApp.Infrastructure.Repositories.PharmaceuticalFormFeature;
 
 public sealed class PharmaceuticalFormRepository : IPharmaceuticalFormRepository
 {
+    private const double SimilarityThreshold = 0.35;
+    
     private readonly DrugsAppDbContext _context;
 
     public PharmaceuticalFormRepository(DrugsAppDbContext context)
@@ -19,32 +21,7 @@ public sealed class PharmaceuticalFormRepository : IPharmaceuticalFormRepository
         _context = context;
     }
 
-    public async Task<List<PharmaceuticalForm>> SearchAsync(
-        string? nameFilter,
-        int skip,
-        int take,
-        CancellationToken cancellationToken)
-    {
-        IQueryable<PharmaceuticalForm> query = BuildSearchQueryable(nameFilter);
-
-        List<PharmaceuticalForm> result = await query
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync(cancellationToken);
-
-        return result;
-    }
-
-    public async Task<int> CountAsync(
-        string? nameFilter,
-        CancellationToken cancellationToken)
-    {
-        IQueryable<PharmaceuticalForm> query = BuildSearchQueryable(nameFilter);
-
-        int result = await query.CountAsync(cancellationToken);
-
-        return result;
-    }
+    
 
     public async Task<PharmaceuticalForm?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -77,35 +54,78 @@ public sealed class PharmaceuticalFormRepository : IPharmaceuticalFormRepository
             .Where(pharmaceuticalForm => ids.Contains(pharmaceuticalForm.Id))
             .ToListAsync(cancellationToken);
     }
-    private IQueryable<PharmaceuticalForm> BuildSearchQueryable(string? nameFilter)
+
+
+
+
+
+
+
+    public async Task<List<PharmaceuticalForm>> SearchAsync(
+        string? searchQuery,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
     {
-        string? trimmedFilter = nameFilter?.Trim();
+        // build query
+        IQueryable<PharmaceuticalForm> query = _context.PharmaceuticalForms.AsNoTracking();
 
-        if (string.IsNullOrWhiteSpace(trimmedFilter))
-        {
-            return _context.PharmaceuticalForms
-                .AsNoTracking()
-                .OrderBy(pf => pf.FormulationName);
-        }
+        // apply filters
 
-        if (trimmedFilter.Length < 3)
-        {
-            return _context.PharmaceuticalForms
-                .AsNoTracking()
-                .Where(pf => EF.Functions.ILike(pf.FormulationName, $"%{trimmedFilter}%"))
-                .OrderBy(pf => pf.FormulationName);
-        }
+        // apply search filter
+        query = ApplySearchFilter(query, searchQuery);
 
-        return _context.PharmaceuticalForms
-            .FromSqlInterpolated($"""
-                SELECT * FROM "PharmaceuticalForms" pf
-                WHERE pf."FormulationName" ILIKE '%' || {trimmedFilter} || '%'
-                   OR pf."FormulationName" % {trimmedFilter}
-                ORDER BY similarity(pf."FormulationName", {trimmedFilter}) DESC,
-                         pf."FormulationName"
-                """)
-            .AsNoTracking();
+        // apply includes
+
+        // apply sort
+        query = ApplySort(query);
+
+        // apply paging
+        return await query
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
     }
+
+    public async Task<int> CountAsync(
+        string? searchQuery,
+        CancellationToken cancellationToken)
+    {
+        // build query
+        IQueryable<PharmaceuticalForm> query = _context.PharmaceuticalForms.AsNoTracking();
+
+        // apply filters
+
+        // apply search filter
+        query = ApplySearchFilter(query, searchQuery);
+
+        // apply counting
+        return await query.CountAsync(cancellationToken);
+    }
+
+
+    private static IQueryable<PharmaceuticalForm> ApplySearchFilter(
+        IQueryable<PharmaceuticalForm> query,
+        string? searchQuery)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return query;
+        }
+
+        string trimmedQuery = searchQuery.Trim();
+        string prefixPattern = $"{trimmedQuery}%";
+        string containsPattern = $"%{trimmedQuery}%";
+        bool useTrigram = trimmedQuery.Length >= 3;
+
+        return query.Where(pf =>
+            EF.Functions.ILike(pf.FormulationName, prefixPattern) ||
+            EF.Functions.ILike(pf.FormulationName, containsPattern) ||
+            useTrigram && EF.Functions.TrigramsSimilarity(pf.FormulationName, trimmedQuery) >= SimilarityThreshold);
+    }
+
+    private static IQueryable<PharmaceuticalForm> ApplySort(IQueryable<PharmaceuticalForm> query) =>
+        query.OrderByDescending(pf => pf.FormulationName);
 }
 
 

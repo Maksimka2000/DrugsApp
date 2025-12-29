@@ -5,6 +5,7 @@ using DrugsApp.Domain.DrugFeature.Repositories;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Repositories;
 using DrugsApp.Domain.RouteOfAdministrationFeature.Repositories;
 using DrugsApp.Domain.TestFeature.Repositories;
+using DrugsApp.Domain.TempDrugFeature.Repositories;
 using DrugsApp.Domain.VetDrugFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.Repositories.ActiveSubstanceFeature;
@@ -12,6 +13,7 @@ using DrugsApp.Infrastructure.Repositories.DrugFeature;
 using DrugsApp.Infrastructure.Repositories.PharmaceuticalFormFeature;
 using DrugsApp.Infrastructure.Repositories.RouteOfAdministrationFeature;
 using DrugsApp.Infrastructure.Repositories.TestFeature;
+using DrugsApp.Infrastructure.Repositories.TempDrugFeature;
 using DrugsApp.Infrastructure.Repositories.VetDrugFeature;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -47,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IPharmaceuticalFormRepository, PharmaceuticalFormRepository>();
         services.AddScoped<IRouteOfAdministrationRepository, RouteOfAdministrationRepository>();
         services.AddScoped<IActiveSubstanceRepository, ActiveSubstanceRepository>();
+        services.AddScoped<ITempDrugRepository, TempDrugRepository>();
 
         // Register External services here
 

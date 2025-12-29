@@ -9,9 +9,9 @@ public sealed class SearchPharmaceuticalFormsRequestValidator : AbstractValidato
 {
     public SearchPharmaceuticalFormsRequestValidator()
     {
-        When(x => !string.IsNullOrWhiteSpace(x.Name), () => RuleFor(x => x.Name)
+        When(x => !string.IsNullOrWhiteSpace(x.FormulationName), () => RuleFor(x => x.FormulationName)
             .MaximumLength(200)
-            .WithMessage("Name filter must not exceed 200 characters."));
+            .WithMessage("FormulationName filter must not exceed 200 characters."));
 
         RuleFor(x => x.Skip)
             .GreaterThanOrEqualTo(0)

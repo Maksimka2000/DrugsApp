@@ -16,7 +16,7 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.SearchActiveSubstances;
 /// Request model for search query parameters.
 /// </summary>
 public sealed record SearchActiveSubstancesRequest(
-    string? Name,
+    string? ActiveSubstanceName,
     int Skip,
     int Take);
 
@@ -32,7 +32,7 @@ public sealed record SearchActiveSubstancesResponse(
 /// Query for searching active substances with filtering and pagination.
 /// </summary>
 public sealed record SearchActiveSubstancesQuery(
-    string? Name,
+    string? ActiveSubstanceName,
     int Skip,
     int Take) : IRequest<ErrorOr<SearchActiveSubstancesResponse>>;
 
@@ -54,7 +54,7 @@ public sealed class SearchActiveSubstancesController(
     /// <summary>
     /// Searches active substances by name with pagination.
     /// </summary>
-    /// <param name="name">Optional partial match filter for active substance name.</param>
+    /// <param name="activeSubstanceName">Optional partial match filter for active substance name.</param>
     /// <param name="skip">Number of results to skip for pagination, defaults to 0.</param>
     /// <param name="take">Number of results to return, defaults to 10.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -64,12 +64,12 @@ public sealed class SearchActiveSubstancesController(
     [ProducesResponseType(typeof(SearchActiveSubstancesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchActiveSubstancesResponse>> Search(
-        [FromQuery] string? name,
+        [FromQuery] string? activeSubstanceName,
         [FromQuery] int skip = 0,
         [FromQuery] int take = 10,
         CancellationToken cancellationToken = default)
     {
-        SearchActiveSubstancesRequest request = new(name, skip, take);
+        SearchActiveSubstancesRequest request = new(activeSubstanceName, skip, take);
 
         ValidationResult validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)

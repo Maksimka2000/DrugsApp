@@ -2,6 +2,7 @@
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 using DrugsApp.Domain.RouteOfAdministrationFeature.Entities;
+using DrugsApp.Domain.TempDrugFeature.Entities;
 using DrugsApp.Domain.TestFeature.Entities;
 using DrugsApp.Domain.VetDrugFeature.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<RouteOfAdministration> RoutesOfAdministration { get; set; } = null!;
     public DbSet<ActiveSubstance> ActiveSubstances { get; set; } = null!;
     public DbSet<OralMedicationIntakeGuidelines> OralMedicationIntakeGuidelines { get; set; } = null!;
+    public DbSet<TempDrug> TempDrugs { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

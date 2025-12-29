@@ -33,31 +33,53 @@ internal sealed class SearchRouteOfAdministrationsHandler
         SearchRouteOfAdministrationsQuery query,
         CancellationToken cancellationToken)
     {
-        string? normalizedNameFilter = string.IsNullOrWhiteSpace(query.Name)
-            ? null
-            : query.Name.Trim();
+        // initialize normalized name filter   
+        string? normalizedRouteOfAdministrationName = NormalizeRouteOfAdministrationName(query.RouteOfAdministrationName);
+        // nomalize filter
+        // determine sort order
+        // get sort field
+        // initialize take plus one
+        int takePlusOne = query.Take + 1;
+        // initialize total count
+        int? totalCount = null;
 
-        List<RouteOfAdministration> pagePlusOne = await _routeOfAdministrationRepository.SearchAsync(
-            normalizedNameFilter,
+        // search routes of administration
+        List<RouteOfAdministration> routeOfAdministrations = await _routeOfAdministrationRepository.SearchAsync(
+            normalizedRouteOfAdministrationName,
             query.Skip,
-            query.Take + 1,
+            takePlusOne,
             cancellationToken);
 
-        bool hasMore = pagePlusOne.Count > query.Take;
+        // determine if there are more items
+        bool hasMore = routeOfAdministrations.Count > query.Take;
 
-        List<RouteOfAdministrationDto> items = pagePlusOne
-            .Take(query.Take)
-            .MapToDtoList();
+        // get page
+        List<RouteOfAdministration> page = hasMore
+            ? routeOfAdministrations.Take(query.Take).ToList()
+            : routeOfAdministrations;
 
-        int? totalCount = null;
+        // map to DTOs
+        List<RouteOfAdministrationDto> items = page.MapToDtoList();
+
+        // count total items
         if (query.Skip == 0)
         {
             totalCount = await _routeOfAdministrationRepository.CountAsync(
-                normalizedNameFilter,
+                normalizedRouteOfAdministrationName,
                 cancellationToken);
         }
-
+        
         return items.MapToResponse(totalCount, hasMore);
+    }
+
+    private static string? NormalizeRouteOfAdministrationName(string? routeOfAdministrationName)
+    {
+        if (string.IsNullOrWhiteSpace(routeOfAdministrationName))
+        {
+            return null;
+        }
+
+        return routeOfAdministrationName.Trim();
     }
 }
 

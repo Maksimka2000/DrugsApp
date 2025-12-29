@@ -38,16 +38,19 @@ public sealed class DrugRepository : IDrugRepository
         int take,
         CancellationToken cancellationToken)
     {
-
+        // build query
         IQueryable<Drug> query = _context.Drugs.AsNoTracking();
+
+        // apply filters
         query = ApplyTypeFilter(query, typeOfDrugsFilter);
 
-        if (!string.IsNullOrWhiteSpace(searchQuery) && searchField != DrugSearchField.None)
-        {
-            query = ApplySearchFilter(query, searchQuery!, searchField);
-        }
+        // apply search filter
+        query = ApplySearchFilter(query, searchQuery, searchField);
 
+        // apply includes
         query = ApplyIncludes(query);
+
+        // apply sort
         query = ApplySort(query, sortField, ascending);
 
         return await query
@@ -62,14 +65,14 @@ public sealed class DrugRepository : IDrugRepository
         DrugSearchField searchField,
         CancellationToken cancellationToken)
     {
-
+        // build query
         IQueryable<Drug> query = _context.Drugs.AsNoTracking();
+
+        // apply filters
         query = ApplyTypeFilter(query, typeOfDrugsFilter);
 
-        if (!string.IsNullOrWhiteSpace(searchQuery) && searchField != DrugSearchField.None)
-        {
-            query = ApplySearchFilter(query, searchQuery!, searchField);
-        }
+        // apply search filter
+        query = ApplySearchFilter(query, searchQuery, searchField);
 
         return await query.CountAsync(cancellationToken);
     }
@@ -145,49 +148,56 @@ public sealed class DrugRepository : IDrugRepository
 
     private static IQueryable<Drug> ApplySearchFilter(
         IQueryable<Drug> query,
-        string searchQuery,
+        string? searchQuery,
         DrugSearchField searchField)
     {
-        string prefixPattern = $"{searchQuery}%";
-        string containsPattern = $"%{searchQuery}%";
-        bool useTrigram = searchQuery.Length >= 3;
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return query;
+        }
+
+        string trimmedQuery = searchQuery.Trim();    
+        string prefixPattern = $"{trimmedQuery}%";
+        string containsPattern = $"%{trimmedQuery}%";
+        bool useTrigram = trimmedQuery.Length >= 3;
 
         return searchField switch
         {
             DrugSearchField.CommercialName => query.Where(d =>
                 EF.Functions.ILike(d.CommercialName, prefixPattern) ||
                 EF.Functions.ILike(d.CommercialName, containsPattern) ||
-                useTrigram && EF.Functions.TrigramsSimilarity(d.CommercialName, searchQuery) >= SimilarityThreshold),
+                useTrigram && 
+                EF.Functions.TrigramsSimilarity(d.CommercialName, trimmedQuery) >= SimilarityThreshold),
 
             DrugSearchField.ActiveSubstance => query.Where(d =>
                 d.ActiveSubstances.Any(a =>
                     a.ActiveSubstanceName != null &&
                     (EF.Functions.ILike(a.ActiveSubstanceName, prefixPattern) ||
                      EF.Functions.ILike(a.ActiveSubstanceName, containsPattern) ||
-                     useTrigram && EF.Functions.TrigramsSimilarity(a.ActiveSubstanceName, searchQuery) >= SimilarityThreshold))),
+                     useTrigram && EF.Functions.TrigramsSimilarity(a.ActiveSubstanceName, trimmedQuery) >= SimilarityThreshold))),
 
             DrugSearchField.AtcCode => query.Where(d =>
                 d.DrugForms.Any(df =>
                     df.AtcCode != null &&
                     (EF.Functions.ILike(df.AtcCode, prefixPattern) ||
                      EF.Functions.ILike(df.AtcCode, containsPattern) ||
-                     useTrigram && EF.Functions.TrigramsSimilarity(df.AtcCode, searchQuery) >= SimilarityThreshold))),
+                     useTrigram && EF.Functions.TrigramsSimilarity(df.AtcCode, trimmedQuery) >= SimilarityThreshold))),
 
             DrugSearchField.RouteOfAdministration => query.Where(d =>
                 d.DrugForms.Any(df =>
                     df.RoutesOfAdministration.Any(roa =>
                         EF.Functions.ILike(roa.RouteOfAdministrationName, prefixPattern) ||
                         EF.Functions.ILike(roa.RouteOfAdministrationName, containsPattern) ||
-                        useTrigram && EF.Functions.TrigramsSimilarity(roa.RouteOfAdministrationName, searchQuery) >= SimilarityThreshold))),
+                        useTrigram && EF.Functions.TrigramsSimilarity(roa.RouteOfAdministrationName, trimmedQuery) >= SimilarityThreshold))),
 
             DrugSearchField.PharmaceuticalForm => query.Where(d =>
                 d.DrugForms.Any(df =>
                     df.PharmaceuticalForms.Any(pf =>
                         EF.Functions.ILike(pf.FormulationName, prefixPattern) ||
                         EF.Functions.ILike(pf.FormulationName, containsPattern) ||
-                        useTrigram && EF.Functions.TrigramsSimilarity(pf.FormulationName, searchQuery) >= SimilarityThreshold))),
+                        useTrigram && EF.Functions.TrigramsSimilarity(pf.FormulationName, trimmedQuery) >= SimilarityThreshold))),
 
-            DrugSearchField.ProductIdentifier => ApplyProductIdentifierFilter(query, searchQuery),
+            DrugSearchField.ProductIdentifier => ApplyProductIdentifierFilter(query, trimmedQuery),
 
             _ => query
         };

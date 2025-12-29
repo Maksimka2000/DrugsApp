@@ -19,9 +19,11 @@ public sealed class OralMedicationIntakeGuidelinesConfiguration : BaseEntityConf
             .IsUnique();
 
         builder.Property(g => g.FoodIntakeType)
+            .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(64)
-            .IsRequired();
+            .HasDefaultValue(FoodIntakeType.Sublingual);
+            
 
         builder.Property(g => g.WaitBeforeMinutes)
             .IsRequired(false);
