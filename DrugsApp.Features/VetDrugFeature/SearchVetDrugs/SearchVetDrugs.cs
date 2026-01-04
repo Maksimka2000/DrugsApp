@@ -13,15 +13,9 @@ namespace DrugsApp.Features.VetDrugFeature.SearchVetDrugs;
 /// <summary>
 /// Handles searching veterinary drugs by commercial name with sorting and pagination.
 /// </summary>
-internal sealed class SearchVetDrugsHandler
-    : IRequestHandler<SearchVetDrugsQuery, ErrorOr<List<VetDrugDto>>>
+internal sealed class SearchVetDrugsHandler(IVetDrugRepository _vetDrugRepository)
+        : IRequestHandler<SearchVetDrugsQuery, ErrorOr<List<VetDrugDto>>>
 {
-    private readonly IVetDrugRepository _vetDrugRepository;
-
-    public SearchVetDrugsHandler(IVetDrugRepository vetDrugRepository)
-    {
-        _vetDrugRepository = vetDrugRepository;
-    }
 
     /// <summary>
     /// Searches veterinary drugs by name with sorting and pagination.

@@ -37,13 +37,13 @@ public sealed record AddOralMedicationIntakeGuidelinesCommand(
 [Tags("Active Substances")]
 [Route("api/active-substances")]
 public sealed class AddOralMedicationIntakeGuidelinesController(
-    IMediator mediator,
-    IValidator<AddOralMedicationIntakeGuidelinesRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<AddOralMedicationIntakeGuidelinesRequest> _validator) : ControllerBase
 {
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "AddOralMedicationIntakeGuidelines";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<AddOralMedicationIntakeGuidelinesRequest> _validator = validator;
 
     /// <summary>
     /// Attaches oral medication intake guidelines to an active substance.

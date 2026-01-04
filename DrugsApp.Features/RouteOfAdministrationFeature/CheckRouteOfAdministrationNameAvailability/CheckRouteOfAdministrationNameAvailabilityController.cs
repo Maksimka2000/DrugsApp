@@ -39,13 +39,10 @@ public sealed record CheckRouteOfAdministrationNameAvailabilityQuery(
 [Tags("Routes Of Administration")]
 [Route("api/routes-of-administration")]
 public sealed class CheckRouteOfAdministrationNameAvailabilityController(
-    IMediator mediator,
-    IValidator<CheckRouteOfAdministrationNameAvailabilityRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<CheckRouteOfAdministrationNameAvailabilityRequest> _validator) : ControllerBase
 {
     public const string RouteName = "CheckRouteOfAdministrationNameAvailability";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<CheckRouteOfAdministrationNameAvailabilityRequest> _validator = validator;
 
     /// <summary>
     /// Checks whether the provided route of administration name is available.

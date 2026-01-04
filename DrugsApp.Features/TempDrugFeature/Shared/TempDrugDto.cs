@@ -18,6 +18,7 @@ public sealed record TempDrugDto(
     string? Leaflet,
     string? EducationalMaterials,
     string? Dosage,
+    string? Note,
     Guid? LinkedDrugFormId,
     Guid? LinkedDrugVetId,
     Guid LinkedImportId,

@@ -13,15 +13,9 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.SearchActiveSubstances;
 /// <summary>
 /// Handles searching active substances by name with pagination metadata.
 /// </summary>
-internal sealed class SearchActiveSubstancesHandler
+internal sealed class SearchActiveSubstancesHandler(IActiveSubstanceRepository _activeSubstanceRepository)
     : IRequestHandler<SearchActiveSubstancesQuery, ErrorOr<SearchActiveSubstancesResponse>>
 {
-    private readonly IActiveSubstanceRepository _activeSubstanceRepository;
-
-    public SearchActiveSubstancesHandler(IActiveSubstanceRepository activeSubstanceRepository)
-    {
-        _activeSubstanceRepository = activeSubstanceRepository;
-    }
 
     /// <summary>
     /// Searches active substances with paging and optional total count for the first page.

@@ -38,22 +38,19 @@ public sealed record SearchVetDrugsQuery(
 /// <remarks>
 /// Initializes a new instance of the <see cref="SearchVetDrugsController"/> class.
 /// </remarks>
-/// <param name="mediator">MediatR mediator.</param>
-/// <param name="validator">Validator for the request.</param>
+/// <param name="_mediator">MediatR mediator.</param>
+/// <param name="_validator">Validator for the request.</param>
 [ApiController]
 [Tags("Vet Drugs")]
 [Route("api/vet-drugs")]
 public sealed class SearchVetDrugsController(
-    IMediator mediator,
-    IValidator<SearchVetDrugsRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<SearchVetDrugsRequest> _validator) : ControllerBase
 {
     /// <summary>
     /// Route name used for link generation.
     /// </summary>
     public const string RouteName = "SearchVetDrugs";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<SearchVetDrugsRequest> _validator = validator;
 
     /// <summary>
     /// Searches veterinary drugs by commercial name with sorting and pagination.
@@ -69,11 +66,11 @@ public sealed class SearchVetDrugsController(
     [ProducesResponseType(typeof(List<VetDrugDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<VetDrugDto>>> Search(
-        [FromQuery] string? name,
+        [FromQuery(Name = "commercial_name")] string? name,
         CancellationToken cancellationToken,
-        [FromQuery] string order = "ascending",
-        [FromQuery] int skip = 0,
-        [FromQuery] int take = 10
+        [FromQuery(Name = "order_by")] string order = "ascending",
+        [FromQuery(Name = "skip")] int skip = 0,
+        [FromQuery(Name = "take")] int take = 10
         )
     {
         SearchVetDrugsRequest request = new(name, order, skip, take);

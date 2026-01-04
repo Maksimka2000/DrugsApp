@@ -10,15 +10,9 @@ namespace DrugsApp.Features.PharmaceuticalFormFeature.CheckPharmaceuticalFormNam
 /// <summary>
 /// Handles checking pharmaceutical form name availability.
 /// </summary>
-internal sealed class CheckPharmaceuticalFormNameAvailabilityHandler
+internal sealed class CheckPharmaceuticalFormNameAvailabilityHandler(IPharmaceuticalFormRepository _pharmaceuticalFormRepository)
     : IRequestHandler<CheckPharmaceuticalFormNameAvailabilityQuery, ErrorOr<PharmaceuticalFormNameAvailabilityDto>>
 {
-    private readonly IPharmaceuticalFormRepository _pharmaceuticalFormRepository;
-
-    public CheckPharmaceuticalFormNameAvailabilityHandler(IPharmaceuticalFormRepository pharmaceuticalFormRepository)
-    {
-        _pharmaceuticalFormRepository = pharmaceuticalFormRepository;
-    }
 
     /// <summary>
     /// Checks if a pharmaceutical form name is available, applying optional exclusion semantics.

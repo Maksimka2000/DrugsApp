@@ -10,15 +10,9 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.CheckActiveSubstanceNameAvail
 /// <summary>
 /// Handles checking active substance name availability.
 /// </summary>
-internal sealed class CheckActiveSubstanceNameAvailabilityHandler
+internal sealed class CheckActiveSubstanceNameAvailabilityHandler(IActiveSubstanceRepository _activeSubstanceRepository)
     : IRequestHandler<CheckActiveSubstanceNameAvailabilityQuery, ErrorOr<ActiveSubstanceNameAvailabilityResponse>>
 {
-    private readonly IActiveSubstanceRepository _activeSubstanceRepository;
-
-    public CheckActiveSubstanceNameAvailabilityHandler(IActiveSubstanceRepository activeSubstanceRepository)
-    {
-        _activeSubstanceRepository = activeSubstanceRepository;
-    }
 
     /// <summary>
     /// Checks if an active substance name is available, applying optional exclusion semantics.

@@ -43,13 +43,13 @@ public sealed record SearchPharmaceuticalFormsQuery(
 [Tags("Pharmaceutical Forms")]
 [Route("api/pharmaceutical-forms")]
 public sealed class SearchPharmaceuticalFormsController(
-    IMediator mediator,
-    IValidator<SearchPharmaceuticalFormsRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<SearchPharmaceuticalFormsRequest> _validator) : ControllerBase
 {
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "SearchPharmaceuticalForms";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<SearchPharmaceuticalFormsRequest> _validator = validator;
 
     /// <summary>
     /// Searches pharmaceutical forms by formulation name with pagination.
@@ -64,9 +64,9 @@ public sealed class SearchPharmaceuticalFormsController(
     [ProducesResponseType(typeof(SearchPharmaceuticalFormsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchPharmaceuticalFormsResponse>> Search(
-        [FromQuery] string? formulationName,
-        [FromQuery] int skip = 0,
-        [FromQuery] int take = 10,
+        [FromQuery(Name = "formulation_name")] string? formulationName,
+        [FromQuery(Name = "skip")] int skip = 0,
+        [FromQuery(Name = "take")] int take = 10,
         CancellationToken cancellationToken = default)
     {
         SearchPharmaceuticalFormsRequest request = new(formulationName, skip, take);

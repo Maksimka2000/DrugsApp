@@ -16,14 +16,16 @@ namespace DrugsApp.Features.TempDrugFeature.UpdateTempDrugStatus;
 /// Request model for updating a temporary drug status.
 /// </summary>
 public sealed record UpdateTempDrugStatusRequest(
-    TempDrugStatus Status);
+    TempDrugStatus Status,
+    string? Note);
 
 /// <summary>
 /// Response containing updated temporary drug status.
 /// </summary>
 public sealed record UpdatedTempDrugStatusResponse(
     Guid Id,
-    TempDrugStatus Status);
+    TempDrugStatus Status,
+    string? Note);
 
 /// <summary>
 /// Command for updating a temporary drug status.
@@ -39,11 +41,9 @@ public sealed record UpdateTempDrugStatusCommand(
 [Tags("Temp Drugs")]
 [Route("api/temp-drugs")]
 public sealed class UpdateTempDrugStatusController(
-    IMediator mediator,
-    IValidator<UpdateTempDrugStatusRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<UpdateTempDrugStatusRequest> _validator) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<UpdateTempDrugStatusRequest> _validator = validator;
 
     /// <summary>
     /// Updates the status of a temporary drug.

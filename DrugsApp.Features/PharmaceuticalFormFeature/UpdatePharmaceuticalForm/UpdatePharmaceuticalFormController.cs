@@ -38,13 +38,10 @@ public sealed record UpdatePharmaceuticalFormCommand(
 [Tags("Pharmaceutical Forms")]
 [Route("api/pharmaceutical-forms")]
 public sealed class UpdatePharmaceuticalFormController(
-    IMediator mediator,
-    IValidator<UpdatePharmaceuticalFormRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<UpdatePharmaceuticalFormRequest> _validator) : ControllerBase
 {
     public const string RouteName = "UpdatePharmaceuticalForm";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<UpdatePharmaceuticalFormRequest> _validator = validator;
 
     /// <summary>
     /// Updates the formulation name of a pharmaceutical form.

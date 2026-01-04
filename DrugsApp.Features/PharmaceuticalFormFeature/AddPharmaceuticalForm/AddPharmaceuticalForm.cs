@@ -11,15 +11,9 @@ namespace DrugsApp.Features.PharmaceuticalFormFeature.AddPharmaceuticalForm;
 /// <summary>
 /// Handles adding a new pharmaceutical form with uniqueness checks.
 /// </summary>
-internal sealed class AddPharmaceuticalFormHandler
+internal sealed class AddPharmaceuticalFormHandler(IPharmaceuticalFormRepository _pharmaceuticalFormRepository)
     : IRequestHandler<AddPharmaceuticalFormCommand, ErrorOr<CreatedPharmaceuticalFormResponse>>
 {
-    private readonly IPharmaceuticalFormRepository _pharmaceuticalFormRepository;
-
-    public AddPharmaceuticalFormHandler(IPharmaceuticalFormRepository pharmaceuticalFormRepository)
-    {
-        _pharmaceuticalFormRepository = pharmaceuticalFormRepository;
-    }
 
     /// <summary>
     /// Creates a new pharmaceutical form if no duplicate exists.

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Features.Common.Extensions;
+using DrugsApp.Features.DrugFeature.Shared;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
@@ -21,10 +22,6 @@ public sealed record UpdateDrugRequest(
     List<Guid>? NewActiveSubstanceIds,
     DrugType? TypeOfDrug);
 
-/// <summary>
-/// Data transfer object representing an active substance summary.
-/// </summary>
-public sealed record ActiveSubstanceSummaryDto(Guid Id, string Name);
 
 /// <summary>
 /// Response containing updated drug state required by the client.
@@ -34,7 +31,7 @@ public sealed record UpdatedDrugResponse(
     string CommercialName,
     string TypeOfProduct,
     DrugType TypeOfDrug,
-    List<ActiveSubstanceSummaryDto> ActiveSubstances);
+    List<LookupDto> ActiveSubstances);
 
 /// <summary>
 /// Command for partially updating a drug.
@@ -50,13 +47,14 @@ public sealed record UpdateDrugCommand(
 [Tags("Drugs")]
 [Route("api/drugs")]
 public sealed class UpdateDrugController(
-    IMediator mediator,
-    IValidator<UpdateDrugRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<UpdateDrugRequest> _validator) : ControllerBase
 {
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "UpdateDrug";
 
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<UpdateDrugRequest> _validator = validator;
 
     /// <summary>
     /// Partially updates a drug's commercial name, type, and active substances set.

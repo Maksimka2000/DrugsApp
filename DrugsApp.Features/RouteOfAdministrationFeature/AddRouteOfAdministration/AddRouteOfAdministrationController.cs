@@ -39,13 +39,10 @@ public sealed record AddRouteOfAdministrationCommand(
 [Tags("Routes Of Administration")]
 [Route("api/routes-of-administration")]
 public sealed class AddRouteOfAdministrationController(
-    IMediator mediator,
-    IValidator<AddRouteOfAdministrationRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<AddRouteOfAdministrationRequest> _validator) : ControllerBase
 {
     public const string RouteName = "AddRouteOfAdministration";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<AddRouteOfAdministrationRequest> _validator = validator;
 
     /// <summary>
     /// Creates a new route of administration.

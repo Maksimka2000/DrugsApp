@@ -113,6 +113,25 @@ public sealed class DrugForm : BaseEntity
     }
 
     /// <summary>
+    /// Updates the product identifier when a positive value is provided.
+    /// </summary>
+    /// <param name="productIdentifier">New product identifier value.</param>
+    public void SetProductIdentifier(int productIdentifier)
+    {
+        if (productIdentifier <= 0)
+        {
+            return;
+        }
+
+        if (ProductIdentifier == productIdentifier)
+        {
+            return;
+        }
+
+        ProductIdentifier = productIdentifier;
+    }
+
+    /// <summary>
     /// Sets the ATC code when a non-empty value is provided.
     /// </summary>
     /// <param name="atcCode">ATC code value.</param>

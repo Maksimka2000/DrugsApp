@@ -1,5 +1,9 @@
 ﻿using System.Reflection;
+using DrugsApp.Domain.DrugFeature.DomainServices;
+using DrugsApp.Features.DrugFeature.ApplicationServices;
 using DrugsApp.Features.Common.Behaviors;
+using DrugsApp.Features.TempDrugFeature.ApplicationServices;
+using DrugsApp.Features.VetDrugFeature.ApplicationServices;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +30,10 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(assembly);
 
         // Register applicaiton and domain services here
+        services.AddScoped<ITempDrugReviewApplicationService, TempDrugReviewApplicationService>();
+        services.AddScoped<IDrugReviewCanonicalizationService, DrugReviewCanonicalizationService>();
+        services.AddScoped<IVetDrugCanonicalizationService, VetDrugCanonicalizationService>();
+        services.AddScoped<IDrugSimilarityDomainService, DrugSimilarityDomainService>();
 
         return services;
     }

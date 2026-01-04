@@ -11,15 +11,9 @@ namespace DrugsApp.Features.PharmaceuticalFormFeature.UpdatePharmaceuticalForm;
 /// <summary>
 /// Handles updating a pharmaceutical form's formulation name.
 /// </summary>
-internal sealed class UpdatePharmaceuticalFormHandler
+internal sealed class UpdatePharmaceuticalFormHandler(IPharmaceuticalFormRepository _pharmaceuticalFormRepository)
     : IRequestHandler<UpdatePharmaceuticalFormCommand, ErrorOr<UpdatedPharmaceuticalFormResponse>>
 {
-    private readonly IPharmaceuticalFormRepository _pharmaceuticalFormRepository;
-
-    public UpdatePharmaceuticalFormHandler(IPharmaceuticalFormRepository pharmaceuticalFormRepository)
-    {
-        _pharmaceuticalFormRepository = pharmaceuticalFormRepository;
-    }
 
     /// <summary>
     /// Updates the pharmaceutical form's formulation name.

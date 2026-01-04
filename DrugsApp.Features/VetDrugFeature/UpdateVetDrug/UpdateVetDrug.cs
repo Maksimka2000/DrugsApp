@@ -14,16 +14,10 @@ namespace DrugsApp.Features.VetDrugFeature.UpdateVetDrug;
 /// <summary>
 /// Handles updating a veterinary drug's commercial name.
 /// </summary>
-internal sealed class UpdateVetDrugHandler
-    : IRequestHandler<UpdateVetDrugCommand, ErrorOr<UpdatedVetDrugResponse>>
+internal sealed class UpdateVetDrugHandler(IVetDrugRepository _vetDrugRepository)
+        : IRequestHandler<UpdateVetDrugCommand, ErrorOr<UpdatedVetDrugResponse>>
 {
-    private readonly IVetDrugRepository _vetDrugRepository;
-
-    public UpdateVetDrugHandler(IVetDrugRepository vetDrugRepository)
-    {
-        _vetDrugRepository = vetDrugRepository;
-    }
-
+    
     /// <summary>
     /// Updates the veterinary drug's commercial name.
     /// </summary>

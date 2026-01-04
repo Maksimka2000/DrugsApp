@@ -13,15 +13,9 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.SearchRouteOfAdministra
 /// <summary>
 /// Handles searching routes of administration by name with pagination metadata.
 /// </summary>
-internal sealed class SearchRouteOfAdministrationsHandler
+internal sealed class SearchRouteOfAdministrationsHandler(IRouteOfAdministrationRepository _routeOfAdministrationRepository)
     : IRequestHandler<SearchRouteOfAdministrationsQuery, ErrorOr<SearchRouteOfAdministrationsResponse>>
 {
-    private readonly IRouteOfAdministrationRepository _routeOfAdministrationRepository;
-
-    public SearchRouteOfAdministrationsHandler(IRouteOfAdministrationRepository routeOfAdministrationRepository)
-    {
-        _routeOfAdministrationRepository = routeOfAdministrationRepository;
-    }
 
     /// <summary>
     /// Searches routes of administration with paging and optional total count for the first page.

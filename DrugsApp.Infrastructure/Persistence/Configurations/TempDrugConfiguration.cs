@@ -69,6 +69,10 @@ public sealed class TempDrugConfiguration : BaseEntityConfiguration<TempDrug>
         builder.Property(t => t.Dosage)
             .HasMaxLength(500);
 
+        builder.Property(t => t.Note)
+            .IsRequired(false)
+            .HasMaxLength(200);
+
         builder.Property(t => t.LinkedImportId)
             .IsRequired();
 

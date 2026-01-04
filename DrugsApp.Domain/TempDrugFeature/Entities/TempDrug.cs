@@ -64,6 +64,11 @@ public sealed class TempDrug : BaseEntity
     public string? Dosage { get; private set; }
 
     /// <summary>
+    /// Optional administrator note explaining how the record was reviewed or resolved.
+    /// </summary>
+    public string? Note { get; private set; }
+
+    /// <summary>
     /// Linked canonical drug form identifier (XOR with <see cref="LinkedDrugVetId"/>).
     /// </summary>
     public Guid? LinkedDrugFormId { get; private set; }
@@ -212,6 +217,24 @@ public sealed class TempDrug : BaseEntity
         }
 
         LinkedDrugVetId = vetDrugId;
+        return Result.Success;
+    }
+
+    /// <summary>
+    /// Sets or clears the administrator note for this record.
+    /// </summary>
+    /// <param name="note">Note text; null/whitespace clears the note.</param>
+    /// <returns>Success or validation error.</returns>
+    public ErrorOr<Success> SetNote(string? note)
+    {
+        string? normalized = note?.Trim();
+
+        if (Note == normalized)
+        {
+            return Result.Success;
+        }
+
+        Note = normalized;
         return Result.Success;
     }
 

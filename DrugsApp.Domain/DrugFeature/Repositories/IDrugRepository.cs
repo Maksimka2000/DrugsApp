@@ -54,5 +54,25 @@ public interface IDrugRepository
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Tracked drug aggregate or null.</returns>
     Task<Drug?> GetByIdAsync(Guid drugId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Adds a new drug aggregate to the repository.
+    /// </summary>
+    /// <param name="drug">Drug aggregate to add.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task representing the asynchronous operation.</returns>
+    Task AddAsync(Drug drug, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Searches for similar candidates based on commercial name and type of product.
+    /// </summary>
+    /// <param name="commercialName">Commercial name to search for.</param>
+    /// <param name="typeOfProduct">Type of product to search for.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of similar drug aggregates.</returns>
+    Task<List<Drug>> SearchSimilarCandidatesAsync(
+        string commercialName,
+        string typeOfProduct,
+        CancellationToken cancellationToken);
 }
 
