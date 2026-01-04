@@ -11,15 +11,9 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.AddOralMedicationIntakeGuidel
 /// <summary>
 /// Handles attaching oral medication intake guidelines to an active substance.
 /// </summary>
-internal sealed class AddOralMedicationIntakeGuidelinesHandler
-    : IRequestHandler<AddOralMedicationIntakeGuidelinesCommand, ErrorOr<CreatedOralMedicationIntakeGuidelinesResponse>>
+internal sealed class AddOralMedicationIntakeGuidelinesHandler(IActiveSubstanceRepository _activeSubstanceRepository)
+        : IRequestHandler<AddOralMedicationIntakeGuidelinesCommand, ErrorOr<CreatedOralMedicationIntakeGuidelinesResponse>>
 {
-    private readonly IActiveSubstanceRepository _activeSubstanceRepository;
-
-    public AddOralMedicationIntakeGuidelinesHandler(IActiveSubstanceRepository activeSubstanceRepository)
-    {
-        _activeSubstanceRepository = activeSubstanceRepository;
-    }
 
     /// <summary>
     /// Attaches oral medication intake guidelines if none exist.

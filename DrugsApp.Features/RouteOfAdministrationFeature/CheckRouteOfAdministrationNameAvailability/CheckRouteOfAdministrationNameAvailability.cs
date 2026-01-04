@@ -10,16 +10,9 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.CheckRouteOfAdministrat
 /// <summary>
 /// Handles checking route of administration name availability.
 /// </summary>
-internal sealed class CheckRouteOfAdministrationNameAvailabilityHandler
+internal sealed class CheckRouteOfAdministrationNameAvailabilityHandler(IRouteOfAdministrationRepository _routeOfAdministrationRepository)
     : IRequestHandler<CheckRouteOfAdministrationNameAvailabilityQuery, ErrorOr<RouteOfAdministrationNameAvailabilityDto>>
 {
-    private readonly IRouteOfAdministrationRepository _routeOfAdministrationRepository;
-
-    public CheckRouteOfAdministrationNameAvailabilityHandler(IRouteOfAdministrationRepository routeOfAdministrationRepository)
-    {
-        _routeOfAdministrationRepository = routeOfAdministrationRepository;
-    }
-
     /// <summary>
     /// Checks if a route of administration name is available, applying optional exclusion semantics.
     /// </summary>

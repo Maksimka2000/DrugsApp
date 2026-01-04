@@ -41,22 +41,19 @@ public sealed record UpdateVetDrugCommand(
 /// <remarks>
 /// Initializes a new instance of the <see cref="UpdateVetDrugController"/> class.
 /// </remarks>
-/// <param name="mediator">MediatR mediator.</param>
-/// <param name="validator">Validator for the request.</param>
+/// <param name="_mediator">MediatR mediator.</param>
+/// <param name="_validator">Validator for the request.</param>
 [ApiController]
 [Tags("Vet Drugs")]
 [Route("api/vet-drugs")]
 public sealed class UpdateVetDrugController(
-    IMediator mediator,
-    IValidator<UpdateVetDrugRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<UpdateVetDrugRequest> _validator) : ControllerBase
 {
     /// <summary>
     /// Route name used for link generation.
     /// </summary>
     public const string RouteName = "UpdateVetDrug";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<UpdateVetDrugRequest> _validator = validator;
 
     /// <summary>
     /// Updates the commercial name of a veterinary drug.

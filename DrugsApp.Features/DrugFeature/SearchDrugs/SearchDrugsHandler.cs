@@ -15,7 +15,7 @@ namespace DrugsApp.Features.DrugFeature.SearchDrugs;
 /// <summary>
 /// Handles searching and listing drugs with paging metadata.
 /// </summary>
-internal sealed class SearchDrugsHandler : IRequestHandler<SearchDrugsQuery, ErrorOr<SearchDrugsResponse>>
+internal sealed class SearchDrugsHandler(IDrugRepository _drugRepository) : IRequestHandler<SearchDrugsQuery, ErrorOr<SearchDrugsResponse>>
 {
     private static readonly Dictionary<string, DrugSearchField> SearchPriority = new()
         {
@@ -41,12 +41,6 @@ internal sealed class SearchDrugsHandler : IRequestHandler<SearchDrugsQuery, Err
         ["special"] = DrugType.Special
     };
 
-    private readonly IDrugRepository _drugRepository;
-
-    public SearchDrugsHandler(IDrugRepository drugRepository)
-    {
-        _drugRepository = drugRepository;
-    }
 
     /// <summary>
     /// Searches drugs with stable sorting and returns paging envelope.

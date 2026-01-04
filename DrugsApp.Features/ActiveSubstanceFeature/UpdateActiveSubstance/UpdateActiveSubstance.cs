@@ -11,15 +11,9 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.UpdateActiveSubstance;
 /// <summary>
 /// Handles partially updating an active substance and its oral guidelines.
 /// </summary>
-internal sealed class UpdateActiveSubstanceHandler
+internal sealed class UpdateActiveSubstanceHandler(IActiveSubstanceRepository _activeSubstanceRepository)
     : IRequestHandler<UpdateActiveSubstanceCommand, ErrorOr<UpdatedActiveSubstanceResponse>>
 {
-    private readonly IActiveSubstanceRepository _activeSubstanceRepository;
-
-    public UpdateActiveSubstanceHandler(IActiveSubstanceRepository activeSubstanceRepository)
-    {
-        _activeSubstanceRepository = activeSubstanceRepository;
-    }
 
     /// <summary>
     /// Applies a partial update to an active substance and its oral guidelines.

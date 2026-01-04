@@ -13,7 +13,8 @@ internal static class UpdateTempDrugStatusMapping
 
     public static UpdatedTempDrugStatusResponse MapToResponse(this TempDrug tempDrug) => new(
         Id: tempDrug.Id,
-        Status: tempDrug.Status);
+        Status: tempDrug.Status,
+        Note: tempDrug.Note ?? string.Empty);
 }
 
 

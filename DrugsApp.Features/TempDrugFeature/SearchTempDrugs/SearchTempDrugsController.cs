@@ -52,11 +52,9 @@ public sealed record SearchTempDrugsResponse(
 [Tags("Temp Drugs")]
 [Route("api/temp-drugs")]
 public sealed class SearchTempDrugsController(
-    IMediator mediator,
-    IValidator<SearchTempDrugsRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<SearchTempDrugsRequest> _validator) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<SearchTempDrugsRequest> _validator = validator;
 
     /// <summary>
     /// Searches temporary drugs with filters, sorting, and pagination.
@@ -76,7 +74,7 @@ public sealed class SearchTempDrugsController(
         [FromQuery(Name = "commercial_name")] string? commercialName,
         CancellationToken cancellationToken,
         [FromQuery(Name = "statuses")] List<string>? statuses,
-        [FromQuery(Name = "type_of_products")] List<string>? typeOfProducts,
+        [FromQuery(Name = "type_of_drug")] List<string>? typeOfProducts,
         [FromQuery(Name = "sort_by")] string sortBy = "created_at",
         [FromQuery(Name = "order_by")] string orderBy = "descending",
         [FromQuery(Name = "skip")] int skip = 0,

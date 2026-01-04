@@ -41,5 +41,24 @@ public sealed class VetDrugRepository(DrugsAppDbContext context) : IVetDrugRepos
     public async Task<VetDrug?> GetByIdAsync(Guid id, CancellationToken cancellationToken) {
         return await _context.VetDrugs.FirstOrDefaultAsync(vd => vd.Id == id, cancellationToken);
     } 
+
+    public async Task<VetDrug?> GetByCommercialNameAsync(string commercialName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(commercialName))
+        {
+            return null;
+        }
+
+        string trimmedName = commercialName.Trim();
+
+        return await _context.VetDrugs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(vd => EF.Functions.ILike(vd.CommercialName, trimmedName), cancellationToken);
+    }
+
+    public async Task AddAsync(VetDrug vetDrug, CancellationToken cancellationToken)
+    {
+        await _context.VetDrugs.AddAsync(vetDrug, cancellationToken);
+    }
 }
 

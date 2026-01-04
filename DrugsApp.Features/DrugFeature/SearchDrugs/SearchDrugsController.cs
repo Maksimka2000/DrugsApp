@@ -61,11 +61,10 @@ public sealed record SearchDrugsMetadata(
 [Tags("Drugs")]
 [Route("api/drugs")]
 public sealed class SearchDrugsController(
-    IMediator mediator,
-    IValidator<SearchDrugsRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<SearchDrugsRequest> _validator) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<SearchDrugsRequest> _validator = validator;
+
 
     /// <summary>
     /// Searches drugs using mixed-field fuzzy query and paging metadata.

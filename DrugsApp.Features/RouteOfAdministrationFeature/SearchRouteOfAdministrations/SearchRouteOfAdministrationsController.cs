@@ -43,13 +43,13 @@ public sealed record SearchRouteOfAdministrationsQuery(
 [Tags("Routes Of Administration")]
 [Route("api/routes-of-administration")]
 public sealed class SearchRouteOfAdministrationsController(
-    IMediator mediator,
-    IValidator<SearchRouteOfAdministrationsRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<SearchRouteOfAdministrationsRequest> _validator) : ControllerBase
 {
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "SearchRouteOfAdministrations";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<SearchRouteOfAdministrationsRequest> _validator = validator;
 
     /// <summary>
     /// Searches routes of administration by name with pagination.
@@ -64,9 +64,9 @@ public sealed class SearchRouteOfAdministrationsController(
     [ProducesResponseType(typeof(SearchRouteOfAdministrationsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchRouteOfAdministrationsResponse>> Search(
-        [FromQuery] string? routeOfAdministrationName,
-        [FromQuery] int skip = 0,
-        [FromQuery] int take = 10,
+        [FromQuery(Name = "route_of_administration_name")] string? routeOfAdministrationName,
+        [FromQuery(Name = "skip")] int skip = 0,
+        [FromQuery(Name = "take")] int take = 10,
         CancellationToken cancellationToken = default)
     {
         SearchRouteOfAdministrationsRequest request = new(routeOfAdministrationName, skip, take);

@@ -58,13 +58,10 @@ public sealed record UpdateDrugFormCommand(
 [Tags("Drugs")]
 [Route("api/drugs")]
 public sealed class UpdateDrugFormController(
-    IMediator mediator,
-    IValidator<UpdateDrugFormRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<UpdateDrugFormRequest> _validator) : ControllerBase
 {
     public const string RouteName = "UpdateDrugForm";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<UpdateDrugFormRequest> _validator = validator;
 
     /// <summary>
     /// Partially updates a drug form belonging to the specified drug.

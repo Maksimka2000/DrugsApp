@@ -42,13 +42,10 @@ public sealed record AddActiveSubstanceCommand(
 [Tags("Active Substances")]
 [Route("api/active-substances")]
 public sealed class AddActiveSubstanceController(
-    IMediator mediator,
-    IValidator<AddActiveSubstanceRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<AddActiveSubstanceRequest> _validator) : ControllerBase
 {
     public const string RouteName = "AddActiveSubstance";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<AddActiveSubstanceRequest> _validator = validator;
 
     /// <summary>
     /// Creates a new active substance.

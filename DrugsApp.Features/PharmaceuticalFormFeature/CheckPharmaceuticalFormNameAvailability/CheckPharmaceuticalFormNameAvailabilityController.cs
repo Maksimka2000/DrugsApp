@@ -39,13 +39,10 @@ public sealed record CheckPharmaceuticalFormNameAvailabilityQuery(
 [Tags("Pharmaceutical Forms")]
 [Route("api/pharmaceutical-forms")]
 public sealed class CheckPharmaceuticalFormNameAvailabilityController(
-    IMediator mediator,
-    IValidator<CheckPharmaceuticalFormNameAvailabilityRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<CheckPharmaceuticalFormNameAvailabilityRequest> _validator) : ControllerBase
 {
     public const string RouteName = "CheckPharmaceuticalFormNameAvailability";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<CheckPharmaceuticalFormNameAvailabilityRequest> _validator = validator;
 
     /// <summary>
     /// Checks whether the provided pharmaceutical form name is available.

@@ -18,22 +18,11 @@ namespace DrugsApp.Features.DrugFeature.UpdateDrugForm;
 /// <summary>
 /// Handles partially updating a drug form owned by a specific drug.
 /// </summary>
-internal sealed class UpdateDrugFormHandler : IRequestHandler<UpdateDrugFormCommand, ErrorOr<UpdatedDrugFormResponse>>
+internal sealed class UpdateDrugFormHandler(
+    IDrugFormRepository _drugFormRepository,
+    IRouteOfAdministrationRepository _routeOfAdministrationRepository,
+    IPharmaceuticalFormRepository _pharmaceuticalFormRepository) : IRequestHandler<UpdateDrugFormCommand, ErrorOr<UpdatedDrugFormResponse>>
 {
-    private readonly IDrugFormRepository _drugFormRepository;
-    private readonly IRouteOfAdministrationRepository _routeOfAdministrationRepository;
-    private readonly IPharmaceuticalFormRepository _pharmaceuticalFormRepository;
-
-    public UpdateDrugFormHandler(
-        IDrugFormRepository drugFormRepository,
-        IRouteOfAdministrationRepository routeOfAdministrationRepository,
-        IPharmaceuticalFormRepository pharmaceuticalFormRepository)
-    {
-        _drugFormRepository = drugFormRepository;
-        _routeOfAdministrationRepository = routeOfAdministrationRepository;
-        _pharmaceuticalFormRepository = pharmaceuticalFormRepository;
-    }
-
     /// <summary>
     /// Loads a tracked drug form, validates ownership, applies updates, and returns the updated state.
     /// </summary>

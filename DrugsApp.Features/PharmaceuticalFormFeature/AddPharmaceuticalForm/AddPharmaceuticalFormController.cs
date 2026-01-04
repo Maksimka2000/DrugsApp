@@ -37,13 +37,10 @@ public sealed record AddPharmaceuticalFormCommand(
 [Tags("Pharmaceutical Forms")]
 [Route("api/pharmaceutical-forms")]
 public sealed class AddPharmaceuticalFormController(
-    IMediator mediator,
-    IValidator<AddPharmaceuticalFormRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<AddPharmaceuticalFormRequest> _validator) : ControllerBase
 {
     public const string RouteName = "AddPharmaceuticalForm";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<AddPharmaceuticalFormRequest> _validator = validator;
 
     /// <summary>
     /// Creates a new pharmaceutical form.

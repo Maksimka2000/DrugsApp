@@ -43,13 +43,10 @@ public sealed record SearchActiveSubstancesQuery(
 [Tags("Active Substances")]
 [Route("api/active-substances")]
 public sealed class SearchActiveSubstancesController(
-    IMediator mediator,
-    IValidator<SearchActiveSubstancesRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<SearchActiveSubstancesRequest> _validator) : ControllerBase
 {
     public const string RouteName = "SearchActiveSubstances";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<SearchActiveSubstancesRequest> _validator = validator;
 
     /// <summary>
     /// Searches active substances by name with pagination.
@@ -64,9 +61,9 @@ public sealed class SearchActiveSubstancesController(
     [ProducesResponseType(typeof(SearchActiveSubstancesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchActiveSubstancesResponse>> Search(
-        [FromQuery] string? activeSubstanceName,
-        [FromQuery] int skip = 0,
-        [FromQuery] int take = 10,
+        [FromQuery(Name = "active_substance_name")] string? activeSubstanceName,
+        [FromQuery(Name = "skip")] int skip = 0,
+        [FromQuery(Name = "take")] int take = 10,
         CancellationToken cancellationToken = default)
     {
         SearchActiveSubstancesRequest request = new(activeSubstanceName, skip, take);

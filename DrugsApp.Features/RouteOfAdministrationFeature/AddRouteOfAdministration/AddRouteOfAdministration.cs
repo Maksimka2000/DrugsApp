@@ -11,15 +11,10 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.AddRouteOfAdministratio
 /// <summary>
 /// Handles adding a new route of administration with uniqueness checks.
 /// </summary>
-internal sealed class AddRouteOfAdministrationHandler
+internal sealed class AddRouteOfAdministrationHandler (IRouteOfAdministrationRepository _routeOfAdministrationRepository)
     : IRequestHandler<AddRouteOfAdministrationCommand, ErrorOr<CreatedRouteOfAdministrationResponse>>
 {
-    private readonly IRouteOfAdministrationRepository _routeOfAdministrationRepository;
 
-    public AddRouteOfAdministrationHandler(IRouteOfAdministrationRepository routeOfAdministrationRepository)
-    {
-        _routeOfAdministrationRepository = routeOfAdministrationRepository;
-    }
 
     /// <summary>
     /// Creates a new route of administration if no duplicate exists.

@@ -15,8 +15,8 @@ namespace DrugsApp.Features.TempDrugFeature.SearchTempDrugs;
 /// <summary>
 /// Handles searching temporary drugs with filters and paging metadata.
 /// </summary>
-internal sealed class SearchTempDrugsHandler
-    : IRequestHandler<SearchTempDrugsQuery, ErrorOr<SearchTempDrugsResponse>>
+internal sealed class SearchTempDrugsHandler(ITempDrugRepository _tempDrugRepository)
+        : IRequestHandler<SearchTempDrugsQuery, ErrorOr<SearchTempDrugsResponse>>
 {
     private static readonly Dictionary<string, TempDrugSortField> SortFieldMap = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -43,12 +43,6 @@ internal sealed class SearchTempDrugsHandler
         ["weterynaryjny"] = VeterinaryTypeOfProduct
     };
 
-    private readonly ITempDrugRepository _tempDrugRepository;
-
-    public SearchTempDrugsHandler(ITempDrugRepository tempDrugRepository)
-    {
-        _tempDrugRepository = tempDrugRepository;
-    }
 
     /// <summary>
     /// Executes the temporary drugs search and returns the paging envelope.
@@ -136,7 +130,7 @@ internal sealed class SearchTempDrugsHandler
             .ToList()
             .AsReadOnly();
 
-        if (distinct.Count == 0)
+        if (distinct.Count == 0 )
         {
             return null;
         }
@@ -155,21 +149,31 @@ internal sealed class SearchTempDrugsHandler
             return null;
         }
 
-        IReadOnlyCollection<string?> distinct = typeOfProducts
-            .Select(product => !string.IsNullOrWhiteSpace(product) && TypeOfProductsMap.TryGetValue(product, out string? mapped) ? mapped : null)
+        IReadOnlyCollection<string> distinct = typeOfProducts
+            .Select(product =>
+            {
+                if (string.IsNullOrWhiteSpace(product))
+                {
+                    return null;
+                }
+
+                string trimmed = product.Trim();
+                return TypeOfProductsMap.TryGetValue(trimmed, out string? mapped) ? mapped : null;
+            })
             .Where(mapped => !string.IsNullOrWhiteSpace(mapped))
+            .Select(mapped => mapped!)
             .Distinct(StringComparer.Ordinal)
             .ToArray()
             .AsReadOnly();
 
-        if (distinct.Count == 0)
+        if (distinct.Count == 0 )
         {
             return null;
         }
 
-        var all = TypeOfProductsMap.Values.ToHashSet();
+        var all = TypeOfProductsMap.Values.ToHashSet(StringComparer.Ordinal);
 
-        bool selectsAll = all.SetEquals(distinct!);
+        bool selectsAll = all.SetEquals(distinct);
 
         return selectsAll ? null : distinct;
     }

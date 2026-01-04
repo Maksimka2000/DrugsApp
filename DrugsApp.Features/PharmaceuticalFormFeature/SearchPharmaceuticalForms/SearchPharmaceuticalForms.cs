@@ -13,15 +13,9 @@ namespace DrugsApp.Features.PharmaceuticalFormFeature.SearchPharmaceuticalForms;
 /// <summary>
 /// Handles searching pharmaceutical forms by formulation name with pagination.
 /// </summary>
-internal sealed class SearchPharmaceuticalFormsHandler
+internal sealed class SearchPharmaceuticalFormsHandler (IPharmaceuticalFormRepository _pharmaceuticalFormRepository)
     : IRequestHandler<SearchPharmaceuticalFormsQuery, ErrorOr<SearchPharmaceuticalFormsResponse>>
 {
-    private readonly IPharmaceuticalFormRepository _pharmaceuticalFormRepository;
-
-    public SearchPharmaceuticalFormsHandler(IPharmaceuticalFormRepository pharmaceuticalFormRepository)
-    {
-        _pharmaceuticalFormRepository = pharmaceuticalFormRepository;
-    }
 
     /// <summary>
     /// Searches pharmaceutical forms by name with pagination.

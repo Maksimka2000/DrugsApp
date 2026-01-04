@@ -23,9 +23,47 @@ public sealed class DrugRepository : IDrugRepository
 
     public async Task<Drug?> GetByIdAsync(Guid drugId, CancellationToken cancellationToken)
     {
-        return await _context.Drugs
-            .Include(d => d.ActiveSubstances)
+        return await ApplyIncludes(_context.Drugs)
             .FirstOrDefaultAsync(d => d.Id == drugId, cancellationToken);
+    }
+
+    public async Task AddAsync(Drug drug, CancellationToken cancellationToken)
+    {
+        await _context.Drugs.AddAsync(drug, cancellationToken);
+    }
+
+    public async Task<List<Drug>> SearchSimilarCandidatesAsync(
+        string commercialName,
+        string typeOfProduct,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(commercialName) || string.IsNullOrWhiteSpace(typeOfProduct))
+        {
+            return new List<Drug>();
+        }
+
+        string trimmedCommercialName = commercialName.Trim();
+        string trimmedTypeOfProduct = typeOfProduct.Trim();
+
+        bool useTrigram = trimmedCommercialName.Length >= 3;
+        string containsPattern = $"%{trimmedCommercialName}%";
+
+        IQueryable<Drug> query = _context.Drugs
+            .AsNoTracking()
+            .Where(d => EF.Functions.ILike(d.TypeOfProduct, trimmedTypeOfProduct))
+            .Where(d =>
+                EF.Functions.ILike(d.CommercialName, containsPattern) ||
+                useTrigram && EF.Functions.TrigramsSimilarity(d.CommercialName, trimmedCommercialName) >= SimilarityThreshold);
+
+        query = ApplyIncludes(query);
+
+        
+        query = query
+                .OrderBy(d => d.CommercialName)
+                .ThenBy(d => d.Id);
+    
+
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task<List<Drug>> SearchAsync(

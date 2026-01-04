@@ -24,6 +24,7 @@ public static class TempDrugMappings
         Leaflet: tempDrug.Leaflet,
         EducationalMaterials: tempDrug.EducationalMaterials,
         Dosage: tempDrug.Dosage,
+        Note: tempDrug.Note,
         LinkedDrugFormId: tempDrug.LinkedDrugFormId,
         LinkedDrugVetId: tempDrug.LinkedDrugVetId,
         LinkedImportId: tempDrug.LinkedImportId,

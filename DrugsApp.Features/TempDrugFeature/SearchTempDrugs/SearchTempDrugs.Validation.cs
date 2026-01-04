@@ -41,35 +41,26 @@ public sealed class SearchTempDrugsRequestValidator : AbstractValidator<SearchTe
 
     public SearchTempDrugsRequestValidator()
     {
-        When(x => x.CommercialName is not null, () =>
-        {
-            RuleFor(x => x.CommercialName)
+        When(x => x.CommercialName is not null, () => RuleFor(x => x.CommercialName)
                 .Must(value => !string.IsNullOrWhiteSpace(value))
                 .WithMessage("commercial_name must not be empty when provided.")
                 .Must(value => value!.Trim().Length <= 300)
-                .WithMessage("commercial_name must not exceed 300 characters.");
-        });
+                .WithMessage("commercial_name must not exceed 300 characters."));
 
-        When(x => x.Statuses is not null, () =>
-        {
-            RuleFor(x => x.Statuses!)
+        When(x => x.Statuses is not null, () => RuleFor(x => x.Statuses!)
                 .Must(statuses => statuses.All(status => AllowedStatuses.Contains(status.Trim())))
-                .WithMessage("statuses contains invalid values.")
+                .WithMessage("statuses contains invalid values. Satus must be one of: pending_review, review_later, reviewed_resolved, reviewed_added.")
                 .Must(statuses => statuses.Distinct().Count() == statuses.Count)
-                .WithMessage("Duplicate statuses values are not allowed.");
-        });
+                .WithMessage("Duplicate statuses values are not allowed."));
 
-        When(x => x.TypeOfProducts is not null, () =>
-        {
-            RuleFor(x => x.TypeOfProducts!)
+        When(x => x.TypeOfProducts is not null, () => RuleFor(x => x.TypeOfProducts!)
                 .Must(types => types.All(type => AllowedTypeOfProduct.Contains(type.Trim())))
                 .WithMessage("type_of_products must be one of: Ludzki, Weterynaryjny.")
                 .Must(types => types
                     .Select(type => type.Trim())
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .Count() == types.Count)
-                .WithMessage("Duplicate type_of_products values are not allowed.");
-        });
+                .WithMessage("Duplicate type_of_products values are not allowed."));
 
         RuleFor(x => x.SortBy!)
             .Must(value => AllowedSortBy.Contains(value.Trim()))

@@ -39,14 +39,15 @@ public sealed record CheckActiveSubstanceNameAvailabilityQuery(
 [Tags("Active Substances")]
 [Route("api/active-substances")]
 public sealed class CheckActiveSubstanceNameAvailabilityController(
-    IMediator mediator,
-    IValidator<CheckActiveSubstanceNameAvailabilityRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<CheckActiveSubstanceNameAvailabilityRequest> _validator) : ControllerBase
 {
+    
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "CheckActiveSubstanceNameAvailability";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<CheckActiveSubstanceNameAvailabilityRequest> _validator = validator;
-
+    
     /// <summary>
     /// Checks whether the provided active substance name is available.
     /// </summary>

@@ -11,15 +11,9 @@ namespace DrugsApp.Features.RouteOfAdministrationFeature.UpdateRouteOfAdministra
 /// <summary>
 /// Handles updating a route of administration name.
 /// </summary>
-internal sealed class UpdateRouteOfAdministrationHandler
-    : IRequestHandler<UpdateRouteOfAdministrationCommand, ErrorOr<UpdatedRouteOfAdministrationResponse>>
+internal sealed class UpdateRouteOfAdministrationHandler(IRouteOfAdministrationRepository _routeOfAdministrationRepository)
+        : IRequestHandler<UpdateRouteOfAdministrationCommand, ErrorOr<UpdatedRouteOfAdministrationResponse>>
 {
-    private readonly IRouteOfAdministrationRepository _routeOfAdministrationRepository;
-
-    public UpdateRouteOfAdministrationHandler(IRouteOfAdministrationRepository routeOfAdministrationRepository)
-    {
-        _routeOfAdministrationRepository = routeOfAdministrationRepository;
-    }
 
     /// <summary>
     /// Updates the route of administration name.

@@ -11,15 +11,9 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.AddActiveSubstance;
 /// <summary>
 /// Handles adding a new active substance with uniqueness checks.
 /// </summary>
-internal sealed class AddActiveSubstanceHandler
+internal sealed class AddActiveSubstanceHandler(IActiveSubstanceRepository _activeSubstanceRepository)
     : IRequestHandler<AddActiveSubstanceCommand, ErrorOr<CreatedActiveSubstanceResponse>>
 {
-    private readonly IActiveSubstanceRepository _activeSubstanceRepository;
-
-    public AddActiveSubstanceHandler(IActiveSubstanceRepository activeSubstanceRepository)
-    {
-        _activeSubstanceRepository = activeSubstanceRepository;
-    }
 
     /// <summary>
     /// Creates a new active substance if no duplicate exists.

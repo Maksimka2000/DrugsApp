@@ -40,13 +40,10 @@ public sealed record UpdateRouteOfAdministrationCommand(
 [Tags("Routes Of Administration")]
 [Route("api/routes-of-administration")]
 public sealed class UpdateRouteOfAdministrationController(
-    IMediator mediator,
-    IValidator<UpdateRouteOfAdministrationRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<UpdateRouteOfAdministrationRequest> _validator) : ControllerBase
 {
     public const string RouteName = "UpdateRouteOfAdministration";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<UpdateRouteOfAdministrationRequest> _validator = validator;
 
     /// <summary>
     /// Updates the name of a route of administration.

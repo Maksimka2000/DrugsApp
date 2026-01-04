@@ -17,5 +17,9 @@ public interface IVetDrugRepository
         CancellationToken cancellationToken);
 
     Task<VetDrug?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    Task<VetDrug?> GetByCommercialNameAsync(string commercialName, CancellationToken cancellationToken);
+
+    Task AddAsync(VetDrug vetDrug, CancellationToken cancellationToken);
 }
 

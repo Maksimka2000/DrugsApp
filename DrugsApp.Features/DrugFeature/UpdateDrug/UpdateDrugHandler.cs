@@ -15,19 +15,10 @@ namespace DrugsApp.Features.DrugFeature.UpdateDrug;
 /// <summary>
 /// Handles partially updating an existing drug.
 /// </summary>
-internal sealed class UpdateDrugHandler : IRequestHandler<UpdateDrugCommand, ErrorOr<UpdatedDrugResponse>>
+internal sealed class UpdateDrugHandler(
+    IDrugRepository _drugRepository,
+    IActiveSubstanceRepository _activeSubstanceRepository) : IRequestHandler<UpdateDrugCommand, ErrorOr<UpdatedDrugResponse>>
 {
-    private readonly IDrugRepository _drugRepository;
-    private readonly IActiveSubstanceRepository _activeSubstanceRepository;
-
-    public UpdateDrugHandler(
-        IDrugRepository drugRepository,
-        IActiveSubstanceRepository activeSubstanceRepository)
-    {
-        _drugRepository = drugRepository;
-        _activeSubstanceRepository = activeSubstanceRepository;
-    }
-
     /// <summary>
     /// Loads a drug, applies partial updates, and validates the active substance invariant.
     /// </summary>

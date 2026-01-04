@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
+using DrugsApp.Features.DrugFeature.Shared;
 
 namespace DrugsApp.Features.DrugFeature.UpdateDrug;
 
@@ -18,7 +19,7 @@ internal static class UpdateDrugMapping
         TypeOfDrug: drug.TypeOfDrug,
         ActiveSubstances: drug.ActiveSubstances
             .OrderBy(activeSubstance => activeSubstance.ActiveSubstanceName)
-            .Select(activeSubstance => new ActiveSubstanceSummaryDto(activeSubstance.Id, activeSubstance.ActiveSubstanceName))
+            .Select(activeSubstance => new LookupDto(Id: activeSubstance.Id, Name: activeSubstance.ActiveSubstanceName))
             .ToList());
 
     // public static IReadOnlyCollection<Guid> ToIdSet(this IEnumerable<Guid> ids)

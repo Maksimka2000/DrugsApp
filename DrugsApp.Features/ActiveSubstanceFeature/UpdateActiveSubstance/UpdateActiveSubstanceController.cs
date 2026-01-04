@@ -60,13 +60,13 @@ public sealed record UpdateActiveSubstanceCommand(
 [Tags("Active Substances")]
 [Route("api/active-substances")]
 public sealed class UpdateActiveSubstanceController(
-    IMediator mediator,
-    IValidator<UpdateActiveSubstanceRequest> validator) : ControllerBase
+    IMediator _mediator,
+    IValidator<UpdateActiveSubstanceRequest> _validator) : ControllerBase
 {
+    /// <summary>
+    /// Route name used for link generation.
+    /// </summary>
     public const string RouteName = "UpdateActiveSubstance";
-
-    private readonly IMediator _mediator = mediator;
-    private readonly IValidator<UpdateActiveSubstanceRequest> _validator = validator;
 
     /// <summary>
     /// Partially updates the active substance and optional oral guidelines fields.
