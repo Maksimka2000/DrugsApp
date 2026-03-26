@@ -92,7 +92,7 @@ public static class ErrorOrExtensions
 
 
     /// <summary>
-    /// Builds a problme of unhandled excepiton
+    /// Builds a problem of unhandled exception
     /// </summary>
     public static ObjectResult MapToGlobalProblem(HttpContext httpContext) => BuildProblemResult(
                 httpContext,
