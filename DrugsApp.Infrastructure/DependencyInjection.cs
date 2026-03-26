@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using Azure.Storage.Blobs;
 using DrugsApp.Domain.Common;
 using DrugsApp.Domain.ActiveSubstanceFeature.Repositories;
 using DrugsApp.Domain.DrugFeature.Repositories;
@@ -8,6 +9,7 @@ using DrugsApp.Domain.TestFeature.Repositories;
 using DrugsApp.Domain.TempDrugFeature.Repositories;
 using DrugsApp.Domain.VetDrugFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
+using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
 using DrugsApp.Infrastructure.Repositories.ActiveSubstanceFeature;
 using DrugsApp.Infrastructure.Repositories.DrugFeature;
 using DrugsApp.Infrastructure.Repositories.PharmaceuticalFormFeature;
@@ -28,7 +30,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Register DbContext
+        // Register DbContext 
         services.AddDbContext<DrugsAppDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("Postgres")));
@@ -51,7 +53,14 @@ public static class DependencyInjection
         services.AddScoped<IActiveSubstanceRepository, ActiveSubstanceRepository>();
         services.AddScoped<ITempDrugRepository, TempDrugRepository>();
 
-        // Register External services here
+        // Register BLOB AZURE External services here
+        string? blobConnection = configuration.GetConnectionString("BlobStorage");
+        if (string.IsNullOrWhiteSpace(blobConnection))
+        {
+            throw new InvalidOperationException("ConnectionStrings:BlobStorage must be configured.");
+        }
+        services.AddSingleton(new BlobServiceClient(blobConnection));
+        services.AddSingleton<IBlobService, BlobService>();
 
 
         return services;

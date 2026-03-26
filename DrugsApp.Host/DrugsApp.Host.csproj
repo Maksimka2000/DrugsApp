@@ -12,6 +12,8 @@
 
   <ItemGroup>
       <!-- <PackageReference Include="Microsoft.AspNetCore.OpenApi" />  -->
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Hangfire.PostgreSql" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Seq" />
     <PackageReference Include="Swashbuckle.AspNetCore" />

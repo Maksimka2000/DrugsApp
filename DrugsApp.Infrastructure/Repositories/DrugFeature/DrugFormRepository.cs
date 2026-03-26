@@ -25,4 +25,3 @@ public sealed class DrugFormRepository : IDrugFormRepository
             .FirstOrDefaultAsync(df => df.Id == drugFormId, cancellationToken);
     }
 }
-
