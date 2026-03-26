@@ -19,6 +19,7 @@ services:
       - drugsapp-database
       - drugsapp-cache
       - drugsapp-seq
+      - drugsapp-blobstorage
   
   
   # PostgreSQL Database Service
@@ -68,9 +69,19 @@ services:
     depends_on:
       - drugsapp-database
 
+  drugsapp-blobstorage:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: drugsapp-blobstorage
+    volumes:
+      - blob_storage_data:/data
+    ports:
+      - "10000:10000"
+    command: "azurite-blob --blobHost 0.0.0.0 --location /data"
+
 
 volumes:
   postgres_data:
+  blob_storage_data:
     # Docker automatically manages location:
     # Windows: C:\ProgramData\Docker\volumes\<project_name>_postgres_data
     # Linux/Mac: /var/lib/docker/volumes/<project_name>_postgres_data
