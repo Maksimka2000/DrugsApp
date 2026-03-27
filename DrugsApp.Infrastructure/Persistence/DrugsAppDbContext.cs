@@ -1,4 +1,4 @@
-﻿using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
+using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 using DrugsApp.Domain.RouteOfAdministrationFeature.Entities;
@@ -19,6 +19,8 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<ActiveSubstance> ActiveSubstances { get; set; } = null!;
     public DbSet<OralMedicationIntakeGuidelines> OralMedicationIntakeGuidelines { get; set; } = null!;
     public DbSet<TempDrug> TempDrugs { get; set; } = null!;
+    public DbSet<TempDrugImportBatch> TempDrugImportBatches { get; set; } = null!;
+    public DbSet<DefaultMappingForColumnsAttribute> DefaultMappingForColumnsAttributes { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

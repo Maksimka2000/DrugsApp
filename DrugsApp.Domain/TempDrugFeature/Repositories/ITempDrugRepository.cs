@@ -54,6 +54,26 @@ public interface ITempDrugRepository
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Tracked temporary drug aggregate or null.</returns>
     Task<TempDrug?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Checks whether a temporary drug exists for provided product identifier.
+    /// </summary>
+    Task<bool> ExistsByProductIdentifierAsync(string productIdentifier, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Stages a new temporary drug for persistence.
+    /// </summary>
+    Task AddAsync(TempDrug tempDrug, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes temporary drug by id when it exists.
+    /// </summary>
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns temporary drug ids linked to specified import batch.
+    /// </summary>
+    Task<List<Guid>> GetIdsByImportBatchIdAsync(Guid importBatchId, CancellationToken cancellationToken);
 }
 
 
