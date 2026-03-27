@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using DrugsApp.Domain.DrugFeature.DomainServices;
 using DrugsApp.Features.DrugFeature.ApplicationServices;
 using DrugsApp.Features.Common.Behaviors;
@@ -31,6 +31,9 @@ public static class DependencyInjection
 
         // Register applicaiton and domain services here
         services.AddScoped<ITempDrugReviewApplicationService, TempDrugReviewApplicationService>();
+        services.AddScoped<ITempDrugImportUploadApplicationService, TempDrugImportUploadApplicationService>();
+        services.AddScoped<ITempDrugImportApplicationService, TempDrugImportApplicationService>();
+        services.AddScoped<ITempDrugRevertApplicationService, TempDrugRevertApplicationService>();
         services.AddScoped<IDrugReviewCanonicalizationService, DrugReviewCanonicalizationService>();
         services.AddScoped<IVetDrugCanonicalizationService, VetDrugCanonicalizationService>();
         services.AddScoped<IDrugSimilarityDomainService, DrugSimilarityDomainService>();

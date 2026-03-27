@@ -28,6 +28,46 @@ public sealed class TempDrugRepository : ITempDrugRepository
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
 
+    public async Task<bool> ExistsByProductIdentifierAsync(string productIdentifier, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(productIdentifier))
+        {
+            return false;
+        }
+
+        string normalizedProductIdentifier = productIdentifier.Trim();
+        return await _context.TempDrugs
+            .AsNoTracking()
+            .AnyAsync(tempDrug => tempDrug.ProductIdentifier == normalizedProductIdentifier, cancellationToken);
+    }
+
+    public async Task AddAsync(TempDrug tempDrug, CancellationToken cancellationToken)
+    {
+        await _context.TempDrugs.AddAsync(tempDrug, cancellationToken);
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        TempDrug? tempDrug = await _context.TempDrugs
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+        if (tempDrug is null)
+        {
+            return;
+        }
+
+        _context.TempDrugs.Remove(tempDrug);
+    }
+
+    public async Task<List<Guid>> GetIdsByImportBatchIdAsync(Guid importBatchId, CancellationToken cancellationToken)
+    {
+        return await _context.TempDrugs
+            .AsNoTracking()
+            .Where(tempDrug => tempDrug.LinkedImportId == importBatchId)
+            .Select(tempDrug => tempDrug.Id)
+            .ToListAsync(cancellationToken);
+    }
+
 
     public async Task<List<TempDrug>> SearchAsync(
         string? searchQuery,
