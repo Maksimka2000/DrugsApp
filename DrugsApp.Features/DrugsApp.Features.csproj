@@ -3,6 +3,7 @@
   
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="ErrorOr" />

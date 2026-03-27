@@ -5,6 +5,9 @@ namespace DrugsApp.Host.Hangfire;
 /// </summary>
 public sealed class HangfireSettings
 {
+    /// <summary>
+    /// name
+    /// </summary>
     public const string SectionName = "Hangfire";
 
     /// <summary>

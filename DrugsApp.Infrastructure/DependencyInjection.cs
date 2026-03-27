@@ -52,6 +52,12 @@ public static class DependencyInjection
         services.AddScoped<IRouteOfAdministrationRepository, RouteOfAdministrationRepository>();
         services.AddScoped<IActiveSubstanceRepository, ActiveSubstanceRepository>();
         services.AddScoped<ITempDrugRepository, TempDrugRepository>();
+        services.AddScoped<ITempDrugImportBatchRepository, TempDrugImportBatchRepository>();
+        services.AddScoped<IDefaultMappingForColumnsAttributeRepository, DefaultMappingForColumnsAttributeRepository>();
+        services.AddHttpClient("ImportDownload", client =>
+        {
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
 
         // Register BLOB AZURE External services here
         string? blobConnection = configuration.GetConnectionString("BlobStorage");

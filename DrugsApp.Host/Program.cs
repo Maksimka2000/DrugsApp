@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using DrugsApp.Domain.TempDrugFeature.Interfaces;
 using DrugsApp.Features;
 using DrugsApp.Infrastructure;
 using DrugsApp.Host.Exceptions;
@@ -19,6 +20,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFeatures();
 // Register Hangfire (Storage, retries, worker server)
 builder.Services.AddHangfireProcessing(builder.Configuration);
+builder.Services.AddScoped<ITempDrugImportJobScheduler, HangfireTempDrugImportJobScheduler>();
 
 // Exception Handling
 builder.Services.AddProblemDetails();
