@@ -26,6 +26,14 @@ builder.Services.AddScoped<ITempDrugImportJobScheduler, HangfireTempDrugImportJo
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+// CORS
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options =>
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()));
+
 // Add Controllers
 builder.Services.AddControllers();
 
@@ -46,6 +54,8 @@ if (!app.Environment.IsProduction())
 
 // Exception Handling
 app.UseExceptionHandler();
+// CORS must precede HTTPS redirection so preflight responses include the correct headers
+app.UseCors();
 // Logging
 app.UseMiddleware<RequestLogContextMiddleware>();
 app.UseSerilogRequestLogging();

@@ -65,7 +65,9 @@ public static class DependencyInjection
         {
             throw new InvalidOperationException("ConnectionStrings:BlobStorage must be configured.");
         }
-        services.AddSingleton(new BlobServiceClient(blobConnection));
+        services.AddSingleton(_ => new BlobServiceClient(
+            blobConnection,
+            new BlobClientOptions(BlobClientOptions.ServiceVersion.V2021_12_02)));
         services.AddSingleton<IBlobService, BlobService>();
 
 

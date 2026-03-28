@@ -57,7 +57,7 @@ public sealed class DefaultMappingForColumnsAttributeConfiguration : BaseEntityC
             new
             {
                 Id = Guid.Parse("35AECB0C-29EA-43EA-9A53-6608A7991AC4"),
-                SourceColumnName = "Droga podania / Gatunek / Tkanka / Okres karencji",
+                SourceColumnName = "Droga podania - Gatunek - Tkanka - Okres karencji",
                 MappedFieldName = "RouteOfAdministration",
                 CreatedAtUtc = SeedCreatedAtUtc
             },
@@ -85,7 +85,7 @@ public sealed class DefaultMappingForColumnsAttributeConfiguration : BaseEntityC
             new
             {
                 Id = Guid.Parse("00DBB8B7-30D5-421F-96A2-2D9920E786CE"),
-                SourceColumnName = "Materiały edukacyjne dla osoby wykonującej zawód medyczny",
+                SourceColumnName = "Narzędzia edukacyjne dla osoby wykonującej zawód medyczny",
                 MappedFieldName = "EducationalMaterials",
                 CreatedAtUtc = SeedCreatedAtUtc
             },
