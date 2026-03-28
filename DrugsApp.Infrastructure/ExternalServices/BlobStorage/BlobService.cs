@@ -85,7 +85,6 @@ internal sealed class BlobService(BlobServiceClient blobServiceClient) : IBlobSe
     private async Task<BlobContainerClient> GetContainerClientAsync(CancellationToken cancellationToken)
     {
         BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
         return containerClient;
     }
 }

@@ -335,6 +335,109 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("RoutesOfAdministration", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.TempDrugFeature.Entities.DefaultMappingForColumnsAttribute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("MappedFieldName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("SourceColumnName")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceColumnName")
+                        .IsUnique();
+
+                    b.ToTable("DefaultMappingForColumnsAttributes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11f856d0-ca3a-4b95-9c07-9c8ee10473a1"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "ProductIdentifier",
+                            SourceColumnName = "Identyfikator Produktu Leczniczego"
+                        },
+                        new
+                        {
+                            Id = new Guid("a26ab581-877b-490a-93f8-3e9234e36a13"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "CommercialName",
+                            SourceColumnName = "Nazwa Produktu Leczniczego"
+                        },
+                        new
+                        {
+                            Id = new Guid("15c2fea5-0f41-40af-9179-f6dd7b06a04c"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "ActiveSubstance",
+                            SourceColumnName = "Nazwa powszechnie stosowana"
+                        },
+                        new
+                        {
+                            Id = new Guid("05d450e8-2c20-4606-913a-5c44a8ca7dc4"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "TypeOfProduct",
+                            SourceColumnName = "Rodzaj preparatu"
+                        },
+                        new
+                        {
+                            Id = new Guid("35aecb0c-29ea-43ea-9a53-6608a7991ac4"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "RouteOfAdministration",
+                            SourceColumnName = "Droga podania - Gatunek - Tkanka - Okres karencji"
+                        },
+                        new
+                        {
+                            Id = new Guid("8cfd62cc-ebb3-4409-933d-ba227a598e4a"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "PharmaceuticalFormulation",
+                            SourceColumnName = "Postać farmaceutyczna"
+                        },
+                        new
+                        {
+                            Id = new Guid("2d03f41a-0a99-49da-bbc6-9c56a9226156"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "ATCCode",
+                            SourceColumnName = "Kod ATC"
+                        },
+                        new
+                        {
+                            Id = new Guid("7290f113-d8cb-4d3a-b6ab-ef866fa69a17"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "Leaflet",
+                            SourceColumnName = "Ulotka"
+                        },
+                        new
+                        {
+                            Id = new Guid("00dbb8b7-30d5-421f-96a2-2d9920e786ce"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "EducationalMaterials",
+                            SourceColumnName = "Narzędzia edukacyjne dla osoby wykonującej zawód medyczny"
+                        },
+                        new
+                        {
+                            Id = new Guid("a8437908-8f3a-48d0-b4e8-4d5f35ef90b5"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MappedFieldName = "Dosage",
+                            SourceColumnName = "Moc"
+                        });
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.TempDrugFeature.Entities.TempDrug", b =>
                 {
                     b.Property<Guid>("Id")
@@ -378,8 +481,8 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("PharmaceuticalFormulation")
                         .HasMaxLength(300)
@@ -433,6 +536,126 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("CK_TempDrugs_LinkedDrugIds_Xor", "\"LinkedDrugFormId\" IS NULL OR \"LinkedDrugVetId\" IS NULL");
                         });
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.TempDrugFeature.Entities.TempDrugImportBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BlobFileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("ErrorNote")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FailedToCreate")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("FailedToDelete")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("HangfireJobId")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("ImportFinishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ImportStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImportedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("ImportedCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ImportedIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("MappingPlanJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NameOfFile")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<int>("RecordsDeletedInRevert")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("RecordsDeletedInRevertIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<DateTime?>("ScheduledInfo")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("SkippedCounter")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("SkippedIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("SourcePath")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("StatusOfImport")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("TotalQuantityCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("StatusOfImport");
+
+                    b.ToTable("TempDrugImportBatches", (string)null);
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.TestFeature.Entities.Test", b =>
