@@ -25,7 +25,7 @@ public sealed record UploadImportViaUrlCommand(
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class UploadImportViaUrlController(
     IMediator _mediator,
     IValidator<UploadImportViaUrlRequest> _validator) : ControllerBase

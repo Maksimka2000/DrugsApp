@@ -23,7 +23,7 @@ public sealed record RevertImportCommand(Guid BatchId) : IRequest<ErrorOr<Revert
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class RevertImportController(IMediator _mediator) : ControllerBase
 {
     /// <summary>

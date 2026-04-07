@@ -8,7 +8,7 @@ namespace DrugsApp.Features.TempDrugFeature.UploadImportViaFile;
 /// <summary>
 /// Handles file upload import command.
 /// </summary>
-internal sealed class UploadImportViaFileHandler(ITempDrugImportUploadApplicationService _uploadApplicationService)
+internal sealed class UploadImportViaFileHandler(ITempDrugUploadApplicationService _tempDrugUploadApplicationService)
     : IRequestHandler<UploadImportViaFileCommand, ErrorOr<CreatedImportBatchResponse>>
 {
     
@@ -16,7 +16,7 @@ internal sealed class UploadImportViaFileHandler(ITempDrugImportUploadApplicatio
         UploadImportViaFileCommand command,
         CancellationToken cancellationToken)
     {
-        return await _uploadApplicationService.UploadFromFileAsync(command.Request.File, cancellationToken);
+        return await _tempDrugUploadApplicationService.UploadFromFileAsync(command.Request.File, cancellationToken);
     }
 }
 

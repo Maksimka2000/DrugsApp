@@ -5,6 +5,7 @@ using DrugsApp.Features.TempDrugFeature.CompleteRevert;
 using DrugsApp.Features.TempDrugFeature.ProcessTempDrugRevertChunk;
 using MediatR;
 using System.Linq;
+using ErrorOr;
 
 namespace DrugsApp.Features.TempDrugFeature.ApplicationServices;
 
@@ -32,8 +33,11 @@ internal sealed class TempDrugRevertApplicationService(
             List<Guid> tempDrugIds = await _tempDrugRepository.GetIdsByImportBatchIdAsync(batchId, cancellationToken);
             foreach (IEnumerable<Guid> chunk in tempDrugIds.Chunk(ChunkSize))
             {
-                List<Guid> chunkIds = chunk.ToList();
-                var chunkResult = await _mediator.Send(chunkIds.MapToCommand(batchId), cancellationToken);
+                var chunkIds = chunk.ToList();
+                // ProcessTempDrugRevertChunkCommand map to command 
+                ProcessTempDrugRevertChunkCommand chunkCommand = chunkIds.MapToCommand(batchId);
+                // ProcessTempDrugRevertChunkCommand call 
+                ErrorOr<Success> chunkResult = await _mediator.Send(chunkCommand, cancellationToken);
                 if (chunkResult.IsError)
                 {
                     await MarkBatchErrorAsync(batchId, chunkResult.FirstError.Description, cancellationToken);
@@ -48,8 +52,12 @@ internal sealed class TempDrugRevertApplicationService(
                 return;
             }
 
-            // complete revert
-            var completeRevertResult = await _mediator.Send(CompleteRevertMapping.MapToCommand(batchId), cancellationToken);
+            // CompleteRevertCommand map to command 
+            CompleteRevertCommand command = CompleteRevertMapping.MapToCommand(batchId);
+            // CompleteRevertCommand call 
+            ErrorOr<Success> completeRevertResult = await _mediator.Send(command, cancellationToken);
+            
+            //
             if (completeRevertResult.IsError)
             {
                 await MarkBatchErrorAsync(batchId, completeRevertResult.FirstError.Description, cancellationToken);

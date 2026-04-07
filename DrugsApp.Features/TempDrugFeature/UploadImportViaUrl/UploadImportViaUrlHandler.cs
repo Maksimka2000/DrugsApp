@@ -8,7 +8,7 @@ namespace DrugsApp.Features.TempDrugFeature.UploadImportViaUrl;
 /// <summary>
 /// Handles URL upload import command.
 /// </summary>
-internal sealed class UploadImportViaUrlHandler(ITempDrugImportUploadApplicationService _uploadApplicationService)
+internal sealed class UploadImportViaUrlHandler(ITempDrugUploadApplicationService _uploadApplicationService)
     : IRequestHandler<UploadImportViaUrlCommand, ErrorOr<CreatedImportBatchResponse>>
 {
     public async Task<ErrorOr<CreatedImportBatchResponse>> Handle(

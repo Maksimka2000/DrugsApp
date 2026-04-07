@@ -25,7 +25,7 @@ public sealed record UploadImportViaFileCommand(
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class UploadImportViaFileController(
     IMediator _mediator,
     IValidator<UploadImportViaFileRequest> _validator) : ControllerBase

@@ -17,7 +17,7 @@ public sealed record GetImportBatchQuery(Guid Id) : IRequest<ErrorOr<ImportBatch
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class GetImportBatchController(IMediator _mediator) : ControllerBase
 {
     

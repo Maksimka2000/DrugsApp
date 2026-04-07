@@ -7,7 +7,7 @@ namespace DrugsApp.Features.TempDrugFeature.ApplicationServices;
 /// <summary>
 /// Upload orchestration service for URL/file import entrypoints.
 /// </summary>
-public interface ITempDrugImportUploadApplicationService
+public interface ITempDrugUploadApplicationService
 {
     /// <summary>
     /// Downloads, validates, stores, and analyzes import file from URL.

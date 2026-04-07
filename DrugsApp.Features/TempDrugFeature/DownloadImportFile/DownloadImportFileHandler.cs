@@ -1,4 +1,5 @@
 using DrugsApp.Domain.Common;
+using DrugsApp.Domain.TempDrugFeature.Entities;
 using DrugsApp.Domain.TempDrugFeature.Repositories;
 using ErrorOr;
 using MediatR;
@@ -17,7 +18,7 @@ internal sealed class DownloadImportFileHandler(
         DownloadImportFileQuery query,
         CancellationToken cancellationToken)
     {
-        var batch = await _batchRepository.GetByIdAsync(query.BatchId, cancellationToken);
+        TempDrugImportBatch? batch = await _batchRepository.GetByIdAsync(query.BatchId, cancellationToken);
         if (batch is null)
         {
             return Error.NotFound(

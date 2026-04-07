@@ -14,8 +14,8 @@ public sealed class TempDrugImportHangfireJob(IServiceScopeFactory _serviceScope
     public async Task ExecuteImportAsync(Guid batchId, CancellationToken cancellationToken)
     {
         using IServiceScope scope = _serviceScopeFactory.CreateScope();
-        ITempDrugImportApplicationService importApplicationService = scope.ServiceProvider.GetRequiredService<ITempDrugImportApplicationService>();
-        await importApplicationService.RunImportAsync(batchId, cancellationToken);
+        ITempDrugImportApplicationService _tempDrugImportApplicationService = scope.ServiceProvider.GetRequiredService<ITempDrugImportApplicationService>();
+        await _tempDrugImportApplicationService.RunImportAsync(batchId, cancellationToken);
     }
 
     /// <summary>
@@ -24,8 +24,8 @@ public sealed class TempDrugImportHangfireJob(IServiceScopeFactory _serviceScope
     public async Task ExecuteRevertAsync(Guid batchId, CancellationToken cancellationToken)
     {
         using IServiceScope scope = _serviceScopeFactory.CreateScope();
-        ITempDrugRevertApplicationService revertApplicationService = scope.ServiceProvider.GetRequiredService<ITempDrugRevertApplicationService>();
-        await revertApplicationService.RunRevertAsync(batchId, cancellationToken);
+        ITempDrugRevertApplicationService _tempDrugImportApplicationService = scope.ServiceProvider.GetRequiredService<ITempDrugRevertApplicationService>();
+        await _tempDrugImportApplicationService.RunRevertAsync(batchId, cancellationToken);
     }
 }
 
