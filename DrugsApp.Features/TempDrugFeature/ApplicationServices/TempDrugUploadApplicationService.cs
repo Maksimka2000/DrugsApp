@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace DrugsApp.Features.TempDrugFeature.ApplicationServices;
 
-internal sealed class TempDrugImportUploadApplicationService(
+internal sealed class TempDrugUploadApplicationService(
     IBlobService _blobService,
     ITempDrugImportBatchRepository _batchRepository,
     IDefaultMappingForColumnsAttributeRepository _defaultMappingRepository,
-    IHttpClientFactory _httpClientFactory) : ITempDrugImportUploadApplicationService
+    IHttpClientFactory _httpClientFactory) : ITempDrugUploadApplicationService
 {
     public async Task<ErrorOr<CreatedImportBatchResponse>> UploadFromUrlAsync(string url, CancellationToken cancellationToken)
     {
@@ -21,7 +21,7 @@ internal sealed class TempDrugImportUploadApplicationService(
             return Error.Validation(description: "Url is required.");
         }
 
-        if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? parsedUrl) || (parsedUrl.Scheme != Uri.UriSchemeHttp && parsedUrl.Scheme != Uri.UriSchemeHttps))
+        if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? parsedUrl) || parsedUrl.Scheme != Uri.UriSchemeHttp && parsedUrl.Scheme != Uri.UriSchemeHttps)
         {
             return Error.Validation(description: "Url must be a valid absolute HTTP or HTTPS URL.");
         }
@@ -152,7 +152,7 @@ internal sealed class TempDrugImportUploadApplicationService(
                 return (new List<string>(), 0);
             }
 
-            List<string> headers = usedRange.FirstRow()
+            var headers = usedRange.FirstRow()
                 .Cells()
                 .Select(cell => cell.GetString().Trim())
                 .Where(value => !string.IsNullOrWhiteSpace(value))

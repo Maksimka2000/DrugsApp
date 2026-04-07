@@ -1,3 +1,4 @@
+using DrugsApp.Domain.TempDrugFeature.Entities;
 using DrugsApp.Domain.TempDrugFeature.Repositories;
 using ErrorOr;
 using MediatR;
@@ -18,7 +19,7 @@ internal sealed class CompleteTempDrugImportHandler(ITempDrugImportBatchReposito
 
     public async Task<ErrorOr<Success>> Handle(CompleteTempDrugImportCommand command, CancellationToken cancellationToken)
     {
-        var batch = await _batchRepository.GetByIdAsync(command.BatchId, cancellationToken);
+        TempDrugImportBatch? batch = await _batchRepository.GetByIdAsync(command.BatchId, cancellationToken);
         if (batch is null)
         {
             return Error.NotFound(

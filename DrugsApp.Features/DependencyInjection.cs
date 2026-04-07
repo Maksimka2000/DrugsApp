@@ -31,7 +31,7 @@ public static class DependencyInjection
 
         // Register applicaiton and domain services here
         services.AddScoped<ITempDrugReviewApplicationService, TempDrugReviewApplicationService>();
-        services.AddScoped<ITempDrugImportUploadApplicationService, TempDrugImportUploadApplicationService>();
+        services.AddScoped<ITempDrugUploadApplicationService, TempDrugUploadApplicationService>();
         services.AddScoped<ITempDrugImportApplicationService, TempDrugImportApplicationService>();
         services.AddScoped<ITempDrugRevertApplicationService, TempDrugRevertApplicationService>();
         services.AddScoped<IDrugReviewCanonicalizationService, DrugReviewCanonicalizationService>();

@@ -42,7 +42,10 @@ internal sealed class TempDrugImportApplicationService(
             // validate used range
             if (usedRange is null)
             {
-                ErrorOr<Success> completeResult = await _mediator.Send(CompleteTempDrugImportMapping.MapToCommand(batchId), cancellationToken);
+                // Map to command 
+                CompleteTempDrugImportCommand completeTempDrugImportCommand = CompleteTempDrugImportMapping.MapToCommand(batchId);
+                // Call the handler: CompleteTempDrugImport 
+                ErrorOr<Success> completeResult = await _mediator.Send(completeTempDrugImportCommand, cancellationToken);
                 if (completeResult.IsError)
                 {
                     await MarkBatchErrorAsync(batchId, completeResult.FirstError.Description, cancellationToken);
@@ -64,8 +67,10 @@ internal sealed class TempDrugImportApplicationService(
                 {
                     continue;
                 }
-
-                ErrorOr<Success> chunkResult = await _mediator.Send(rowsBuffer.MapToCommand(batchId), cancellationToken);
+                // ProcessTempDrugImportChunkCommand map to command 
+                ProcessTempDrugImportChunkCommand chunkCommand = rowsBuffer.MapToCommand(batchId);
+                // ProcessTempDrugImportChunkCommand call 
+                ErrorOr<Success> chunkResult = await _mediator.Send(chunkCommand, cancellationToken);
                 if (chunkResult.IsError)
                 {
                     await MarkBatchErrorAsync(batchId, chunkResult.FirstError.Description, cancellationToken);
@@ -78,7 +83,10 @@ internal sealed class TempDrugImportApplicationService(
             // process remaining rows
             if (rowsBuffer.Count > 0)
             {
-                ErrorOr<Success> chunkResult = await _mediator.Send(rowsBuffer.MapToCommand(batchId), cancellationToken);
+                // ProcessTempDrugImportChunkCommand map to command 
+                ProcessTempDrugImportChunkCommand chunkCommand = rowsBuffer.MapToCommand(batchId);
+                // ProcessTempDrugImportChunkCommand call 
+                ErrorOr<Success> chunkResult = await _mediator.Send(chunkCommand, cancellationToken);
                 if (chunkResult.IsError)
                 {
                     await MarkBatchErrorAsync(batchId, chunkResult.FirstError.Description, cancellationToken);
@@ -93,8 +101,11 @@ internal sealed class TempDrugImportApplicationService(
                 return;
             }
 
+            // Map to command 
+            CompleteTempDrugImportCommand completeTempDrugImportCommand2 = CompleteTempDrugImportMapping.MapToCommand(batchId);
+            // Call the handler: CompleteTempDrugImport 
+            ErrorOr<Success> completeImportResult = await _mediator.Send(completeTempDrugImportCommand2, cancellationToken);
             
-            ErrorOr<Success> completeImportResult = await _mediator.Send(CompleteTempDrugImportMapping.MapToCommand(batchId), cancellationToken);
             if (completeImportResult.IsError)
             {
                 await MarkBatchErrorAsync(batchId, completeImportResult.FirstError.Description, cancellationToken);

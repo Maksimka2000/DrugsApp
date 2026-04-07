@@ -1,3 +1,4 @@
+using DrugsApp.Domain.TempDrugFeature.Entities;
 using DrugsApp.Domain.TempDrugFeature.Repositories;
 using DrugsApp.Features.TempDrugFeature.Shared;
 using ErrorOr;
@@ -14,7 +15,7 @@ internal sealed class GetImportBatchHandler(ITempDrugImportBatchRepository _batc
     
     public async Task<ErrorOr<ImportBatchDto>> Handle(GetImportBatchQuery query, CancellationToken cancellationToken)
     {
-        var batch = await _batchRepository.GetByIdAsync(query.Id, cancellationToken);
+        TempDrugImportBatch? batch = await _batchRepository.GetByIdAsync(query.Id, cancellationToken);
         if (batch is null)
         {
             return Error.NotFound(
