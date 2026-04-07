@@ -23,7 +23,7 @@ public sealed record CancelImportCommand(Guid BatchId) : IRequest<ErrorOr<Cancel
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class CancelImportController(IMediator _mediator) : ControllerBase
 {
     /// <summary>

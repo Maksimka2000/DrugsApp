@@ -34,7 +34,7 @@ public sealed record StartImportCommand(
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class StartImportController(
     IMediator _mediator,
     IValidator<StartImportRequest> _validator) : ControllerBase

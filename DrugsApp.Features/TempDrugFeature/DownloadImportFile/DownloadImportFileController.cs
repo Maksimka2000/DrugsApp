@@ -24,7 +24,7 @@ public sealed record DownloadImportFileResponse(
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class DownloadImportFileController(IMediator _mediator) : ControllerBase
 {
     /// <summary>

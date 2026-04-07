@@ -38,7 +38,7 @@ public sealed record SearchImportBatchesQuery(
 /// </summary>
 [ApiController]
 [Tags("TempDrugImport")]
-[Route("api/temp-drug-import-batches")]
+[Route("api/temp-drug-imports")]
 public sealed class SearchImportBatchesController(
     IMediator _mediator,
     IValidator<SearchImportBatchesRequest> _validator) : ControllerBase
