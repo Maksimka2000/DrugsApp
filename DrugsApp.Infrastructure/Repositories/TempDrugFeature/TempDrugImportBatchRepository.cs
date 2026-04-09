@@ -62,6 +62,9 @@ public sealed class TempDrugImportBatchRepository(DrugsAppDbContext context) : I
         {
             (TempDrugImportBatchSortField.CreatedAtUtc, true) => query.OrderBy(batch => batch.CreatedAtUtc).ThenBy(batch => batch.Id),
             (TempDrugImportBatchSortField.CreatedAtUtc, false) => query.OrderByDescending(batch => batch.CreatedAtUtc).ThenBy(batch => batch.Id),
+            _ => ascending
+                ? query.OrderBy(batch => batch.CreatedAtUtc).ThenBy(batch => batch.Id)
+                : query.OrderByDescending(batch => batch.CreatedAtUtc).ThenBy(batch => batch.Id),
         };
     }
 

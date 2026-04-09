@@ -1,0 +1,38 @@
+name: Build and Unit Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore DrugsApp.UnitTests/DrugsApp.UnitTests.csproj
+
+      - name: Build
+        run: dotnet build DrugsApp.UnitTests/DrugsApp.UnitTests.csproj --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test DrugsApp.UnitTests/DrugsApp.UnitTests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/TestResults/**/*.trx
+            **/TestResults/**/coverage.cobertura.xml

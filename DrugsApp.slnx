@@ -10,6 +10,9 @@
     <Project Path="DrugsApp.Host/DrugsApp.Host.csproj" />
     <Project Path="DrugsApp.Infrastructure/DrugsApp.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="DrugsApp.UnitTests/DrugsApp.UnitTests.csproj" />
+  </Folder>
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>

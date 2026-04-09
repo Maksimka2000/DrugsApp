@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   
 
@@ -19,6 +19,10 @@
 
   <ItemGroup>
     <Folder Include="Shared\ApplicationServices\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DrugsApp.UnitTests" />
   </ItemGroup>
 
 </Project>
