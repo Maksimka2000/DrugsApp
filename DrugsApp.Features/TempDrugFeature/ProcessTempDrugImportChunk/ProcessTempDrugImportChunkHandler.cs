@@ -22,6 +22,16 @@ internal sealed class ProcessTempDrugImportChunkHandler(
     : IRequestHandler<ProcessTempDrugImportChunkCommand, ErrorOr<Success>>
 {
 
+    private const int maxCommercialName = 500;
+    private const int maxActiveSubstance = 2000;
+    private const int maxTypeOfProduct = 100;
+    private const int maxRouteOfAdministration = 2000;
+    private const int maxPharmaceuticalFormulation = 2000;
+    private const int maxAtcCode = 64;
+    private const int maxLeaflet = 2000;
+    private const int maxEducationalMaterials = 2000;
+    private const int maxDosage = 2000;
+
     public async Task<ErrorOr<Success>> Handle(ProcessTempDrugImportChunkCommand command, CancellationToken cancellationToken)
     {
         // Get the batch and check if it exists and is in progress
@@ -49,6 +59,7 @@ internal sealed class ProcessTempDrugImportChunkHandler(
         var importedIds = new List<string>();
         var skippedIds = new List<string>();
         var failedIds = new List<string>();
+        
 
         // Iterate over the rows
         foreach (ImportRowDto row in command.Rows)
@@ -70,6 +81,21 @@ internal sealed class ProcessTempDrugImportChunkHandler(
                 continue;
             }
 
+            // Guard lengths against DB constraints to prevent DbUpdateException
+            if (!IsWithinLimit(row.CommercialName, maxCommercialName) ||
+                !IsWithinLimit(row.ActiveSubstance, maxActiveSubstance) ||
+                !IsWithinLimit(row.TypeOfProduct, maxTypeOfProduct) ||
+                !IsWithinLimit(row.RouteOfAdministration, maxRouteOfAdministration) ||
+                !IsWithinLimit(row.PharmaceuticalFormulation, maxPharmaceuticalFormulation) ||
+                !IsWithinLimit(row.AtcCode, maxAtcCode) ||
+                !IsWithinLimit(row.Leaflet, maxLeaflet) ||
+                !IsWithinLimit(row.EducationalMaterials, maxEducationalMaterials) ||
+                !IsWithinLimit(row.Dosage, maxDosage))
+            {
+                failedIds.Add(productIdentifier);
+                continue;
+            }
+
             // Create the temp drug
             ErrorOr<TempDrug> tempDrugResult = TempDrug.CreateImported(
                 productIdentifier: productIdentifier,
@@ -83,6 +109,8 @@ internal sealed class ProcessTempDrugImportChunkHandler(
                 educationalMaterials: Normalize(row.EducationalMaterials),
                 dosage: Normalize(row.Dosage),
                 linkedImportId: command.BatchId);
+
+            // If the temp drug creation failed, add the product identifier to the failed ids
             if (tempDrugResult.IsError)
             {
                 failedIds.Add(productIdentifier);
@@ -108,6 +136,16 @@ internal sealed class ProcessTempDrugImportChunkHandler(
         }
 
         return value.Trim();
+    }
+
+    private static bool IsWithinLimit(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return true;
+        }
+
+        return value.Trim().Length <= maxLength;
     }
 }
 

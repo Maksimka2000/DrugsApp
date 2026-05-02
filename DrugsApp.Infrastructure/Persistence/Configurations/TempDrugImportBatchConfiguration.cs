@@ -18,6 +18,10 @@ public sealed class TempDrugImportBatchConfiguration : BaseEntityConfiguration<T
             .HasMaxLength(256)
             .IsRequired(false);
 
+        builder.Property(b => b.HangfireJobStatus)
+            .HasMaxLength(128)
+            .IsRequired(false);
+
         builder.Property(b => b.ImportedBy)
             .HasMaxLength(256)
             .IsRequired(false);
@@ -59,7 +63,15 @@ public sealed class TempDrugImportBatchConfiguration : BaseEntityConfiguration<T
             .IsRequired()
             .HasDefaultValue(0);
 
-        builder.Property(b => b.RecordsDeletedInRevert)
+        builder.Property(b => b.FailedToCreateCounter)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(b => b.RecordsDeletedInRevertCounter)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(b => b.FailedToDeleteCounter)
             .IsRequired()
             .HasDefaultValue(0);
 

@@ -1,4 +1,5 @@
 using DrugsApp.Domain.TempDrugFeature.Entities;
+using DrugsApp.Domain.TempDrugFeature.Interfaces;
 using DrugsApp.Domain.TempDrugFeature.Repositories;
 using DrugsApp.Features.TempDrugFeature.Shared;
 using ErrorOr;
@@ -9,7 +10,9 @@ namespace DrugsApp.Features.TempDrugFeature.GetImportBatch;
 /// <summary>
 /// Handles import batch details query.
 /// </summary>
-internal sealed class GetImportBatchHandler(ITempDrugImportBatchRepository _batchRepository)
+internal sealed class GetImportBatchHandler(
+    ITempDrugImportBatchRepository _batchRepository,
+    ITempDrugImportJobStatusProvider _jobStatusProvider)
     : IRequestHandler<GetImportBatchQuery, ErrorOr<ImportBatchDto>>
 {
     
@@ -27,7 +30,9 @@ internal sealed class GetImportBatchHandler(ITempDrugImportBatchRepository _batc
                 });
         }
 
-        return batch.MapToDto();
+        string? hangfireJobStatus = _jobStatusProvider.GetStatus(batch.HangfireJobId);
+
+        return batch.MapToDto(hangfireJobStatus);
     }
 }
 

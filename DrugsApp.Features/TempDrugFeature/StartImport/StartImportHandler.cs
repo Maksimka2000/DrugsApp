@@ -30,6 +30,7 @@ internal sealed class StartImportHandler(
                 });
         }
 
+        // Check if you can start the import
         if (batch.StatusOfImport != ImportBatchStatus.NotStarted)
         {
             return Error.Conflict(
@@ -42,28 +43,32 @@ internal sealed class StartImportHandler(
         }
  
         // Check if another import or revert is already in progress
-        TempDrugImportBatch? activeImport = await _batchRepository.GetActiveImportAsync(cancellationToken);
-        if (activeImport is not null)
-        {
-            return Error.Conflict(
-                description: "Another import or revert is already in progress.",
-                metadata: new()
-                {
-                    ["existingResourceId"] = activeImport.Id.ToString()
-                });
-        }
+        // TempDrugImportBatch? activeImport = await _batchRepository.GetActiveImportAsync(cancellationToken);
+        // if (activeImport is not null)
+        // {
+        //     return Error.Conflict(
+        //         description: "Another import or revert is already in progress.",
+        //         metadata: new()
+        //         {
+        //             ["existingResourceId"] = activeImport.Id.ToString()
+        //         });
+        // }
 
         // Serialize the mapping plan
         string mappingPlanJson = JsonSerializer.Serialize(command.Request.MappingPlan);
-        // Enqueue the import job. Through the HangfireTempDrugImportJobScheduler then TempDrugImportHangfireJob then TempDrugImportApplicationService then ProcessTempDrugImportChunkHandler
-        string hangfireJobId = _tempDrugImportJobScheduler.Enqueue(batch.Id);
-
-        // Chnage data in the batch about the import
-        ErrorOr<Success> startResult = batch.StartJob(hangfireJobId, mappingPlanJson, command.Request.Notes);
+        
+        // change data in the batch about the import
+        ErrorOr<Success> startResult = batch.StartJob(mappingPlanJson, command.Request.Notes);
         if (startResult.IsError)
         {
             return startResult.Errors;
         }
+        
+        // Enqueue the import job. Through the HangfireTempDrugImportJobScheduler then TempDrugImportHangfireJob then TempDrugImportApplicationService then ProcessTempDrugImportChunkHandler
+        string hangfireJobId = _tempDrugImportJobScheduler.Enqueue(batch.Id);
+
+        // set revert job id in the batch table 
+        batch.SetJobId(hangfireJobId);
 
         return batch.MapToResponse();
     }
