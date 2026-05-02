@@ -23,6 +23,11 @@ public sealed class TempDrugImportBatch : BaseEntity
     public string? HangfireJobId { get; private set; }
 
     /// <summary>
+    /// Current Hangfire job status for import or revert operation.
+    /// </summary>
+    public string? HangfireJobStatus { get; private set; }
+
+    /// <summary>
     /// Identifier of user who initiated import (null until auth is implemented).
     /// </summary>
     public string? ImportedBy { get; private set; }
@@ -83,6 +88,11 @@ public sealed class TempDrugImportBatch : BaseEntity
     public int SkippedCounter { get; private set; }
 
     /// <summary>
+    /// Number of rows that failed creation.
+    /// </summary>
+    public int FailedToCreateCounter { get; private set; }
+
+    /// <summary>
     /// Product identifiers skipped due to duplication.
     /// </summary>
     public List<string> SkippedIds { get; private set; }
@@ -95,12 +105,17 @@ public sealed class TempDrugImportBatch : BaseEntity
     /// <summary>
     /// Number of TempDrugs deleted during revert.
     /// </summary>
-    public int RecordsDeletedInRevert { get; private set; }
+    public int RecordsDeletedInRevertCounter { get; private set; }
 
     /// <summary>
     /// TempDrug ids deleted during revert.
     /// </summary>
     public List<string> RecordsDeletedInRevertIds { get; private set; }
+
+    /// <summary>
+    /// Number of TempDrugs that failed to delete during revert.
+    /// </summary>
+    public int FailedToDeleteCounter { get; private set; }
 
     /// <summary>
     /// TempDrug product identifiers that could not be deleted during revert.
@@ -171,7 +186,7 @@ public sealed class TempDrugImportBatch : BaseEntity
             TotalQuantityCount = totalQuantityCount,
             ImportedCount = 0,
             SkippedCounter = 0,
-            RecordsDeletedInRevert = 0,
+            RecordsDeletedInRevertCounter = 0,
             StatusOfImport = ImportBatchStatus.NotStarted
         };
     }
@@ -180,7 +195,6 @@ public sealed class TempDrugImportBatch : BaseEntity
     /// Starts import processing and transitions status to in-progress.
     /// </summary>
     public ErrorOr<Success> StartJob(
-        string hangfireJobId,
         string mappingPlanJson,
         string? notes)
     {
@@ -194,18 +208,12 @@ public sealed class TempDrugImportBatch : BaseEntity
                     ["currentStatus"] = StatusOfImport.ToString()
                 });
         }
-
-        if (string.IsNullOrWhiteSpace(hangfireJobId))
-        {
-            return Error.Validation(description: "HangfireJobId is required.");
-        }
-
+        
         if (string.IsNullOrWhiteSpace(mappingPlanJson))
         {
             return Error.Validation(description: "MappingPlanJson is required.");
         }
-
-        HangfireJobId = hangfireJobId.Trim();
+        
         MappingPlanJson = mappingPlanJson;
         Notes = NormalizeNullable(notes);
         ImportStartedAt = DateTime.UtcNow;
@@ -247,6 +255,7 @@ public sealed class TempDrugImportBatch : BaseEntity
         if (failedIds is not null && failedIds.Count > 0)
         {
             FailedToCreate.AddRange(failedIds.Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id.Trim()));
+            FailedToCreateCounter += failedIds.Count(id => !string.IsNullOrWhiteSpace(id));
         }
     }
 
@@ -321,7 +330,7 @@ public sealed class TempDrugImportBatch : BaseEntity
         }
 
         ImportStartedAt = DateTime.UtcNow;
-        ImportFinishedAt = null;
+        // ImportFinishedAt = null;
         StatusOfImport = ImportBatchStatus.RevertInProgress;
         return Result.Success;
     }
@@ -329,9 +338,18 @@ public sealed class TempDrugImportBatch : BaseEntity
     /// <summary>
     /// Sets job identifier for currently running revert job.
     /// </summary>
-    public void SetRevertJobId(string revertJobId)
+    public void SetJobId(string jobId)
     {
-        HangfireJobId = string.IsNullOrWhiteSpace(revertJobId) ? null : revertJobId.Trim();
+        HangfireJobId = string.IsNullOrWhiteSpace(jobId) ? null : jobId.Trim();
+        HangfireJobStatus = null;
+    }
+
+    /// <summary>
+    /// Updates persisted Hangfire job status snapshot.
+    /// </summary>
+    public void SetJobStatus(string? status)
+    {
+        HangfireJobStatus = string.IsNullOrWhiteSpace(status) ? null : status.Trim();
     }
 
     /// <summary>
@@ -344,7 +362,7 @@ public sealed class TempDrugImportBatch : BaseEntity
     {
         if (deletedCount > 0)
         {
-            RecordsDeletedInRevert += deletedCount;
+            RecordsDeletedInRevertCounter += deletedCount;
         }
 
         if (deletedProductIdentifiers is not null && deletedProductIdentifiers.Count > 0)
@@ -361,6 +379,7 @@ public sealed class TempDrugImportBatch : BaseEntity
                 failedDeleteProductIdentifiers
                     .Where(id => !string.IsNullOrWhiteSpace(id))
                     .Select(id => id.Trim()));
+            FailedToDeleteCounter += failedDeleteProductIdentifiers.Count(id => !string.IsNullOrWhiteSpace(id));
         }
     }
 

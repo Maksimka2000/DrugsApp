@@ -28,17 +28,19 @@ public sealed class HangfireSettings
     /// <summary>
     /// Polling interval for scheduled jobs.
     /// </summary>
-    public int SchedulePollingIntervalSeconds { get; init; } = 3600;
+    // public int SchedulePollingIntervalSeconds { get; init; } = 3600;
+    public int SchedulePollingIntervalSeconds { get; init; } = 30;
 
     /// <summary>
     /// Queue poll interval used by PostgreSQL storage.
     /// </summary>
-    public int QueuePollIntervalSeconds { get; init; } = 180;
+    // public int QueuePollIntervalSeconds { get; init; } = 180;
+    public int QueuePollIntervalSeconds { get; init; } = 30;
 
     /// <summary>
     /// Number of automatic retries before marking a job as failed.
     /// </summary>
-    public int RetryAttempts { get; init; } = 3;
+    public int RetryAttempts { get; init; } = 1;
 
     /// <summary>
     /// Queue names consumed by this worker.

@@ -79,7 +79,12 @@ public static class HangfireConfigurationExtensions
             return app;
         }
 
-        app.UseHangfireDashboard(settings.DashboardPath);
+        app.UseHangfireDashboard(
+            settings.DashboardPath,
+            new DashboardOptions
+            {
+                Authorization = new[] { new AllowAllDashboardFilter() }
+            });
         return app;
     }
 }

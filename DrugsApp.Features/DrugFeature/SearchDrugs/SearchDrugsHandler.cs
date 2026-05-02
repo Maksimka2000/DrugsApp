@@ -57,7 +57,7 @@ internal sealed class SearchDrugsHandler(IDrugRepository _drugRepository) : IReq
         // normalize type of drugs filter
         IReadOnlyCollection<DrugType>? selectedTypesFilter = NormalizeTypeOfDrugFilter(query.TypeOfDrugs);
         // determine sort order
-        bool ascending = query.OrderBy.Equals("ascending", System.StringComparison.OrdinalIgnoreCase);
+        bool ascending = query.OrderBy.Equals("ascending", StringComparison.OrdinalIgnoreCase);
         // get sort field
         DrugSortField sortField = SortFieldMap.GetValueOrDefault(query.SortBy.Trim(), DrugSortField.CommercialName);
         // initialize take plus one

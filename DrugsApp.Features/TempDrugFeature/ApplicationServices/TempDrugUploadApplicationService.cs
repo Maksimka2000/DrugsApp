@@ -106,7 +106,7 @@ internal sealed class TempDrugUploadApplicationService(
         stream.Position = 0;
         Guid blobFileId = await _blobService.UploadAsync(stream, contentType, cancellationToken);
 
-        // Analyze the workbook
+        // Analyze the workbook, get headers from the file 
         stream.Position = 0;
         ErrorOr<(List<string> Headers, int TotalRows)> analysisResult = AnalyzeWorkbook(stream);
         if (analysisResult.IsError)
