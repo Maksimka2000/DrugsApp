@@ -52,9 +52,9 @@ internal sealed class TempDrugRevertApplicationService(
                 return;
             }
 
-            // CompleteRevertCommand map to command 
+            // CompleteRevertCommand map to command
             CompleteRevertCommand command = CompleteRevertMapping.MapToCommand(batchId);
-            // CompleteRevertCommand call 
+            // CompleteRevertCommand call
             ErrorOr<Success> completeRevertResult = await _mediator.Send(command, cancellationToken);
             
             //

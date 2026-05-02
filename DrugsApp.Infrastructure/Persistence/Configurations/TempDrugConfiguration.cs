@@ -42,7 +42,7 @@ public sealed class TempDrugConfiguration : BaseEntityConfiguration<TempDrug>
 
 
         builder.Property(t => t.CommercialName)
-            .HasMaxLength(300);
+            .HasMaxLength(500);
 
         builder.HasIndex(t => t.CommercialName, "Index_TempDrugs_CommercialName_trgm")
             .HasMethod("GIN")
@@ -50,7 +50,7 @@ public sealed class TempDrugConfiguration : BaseEntityConfiguration<TempDrug>
 
 
         builder.Property(t => t.ActiveSubstance)
-            .HasMaxLength(500)
+            .HasMaxLength(2000)
             .IsRequired(false);
 
         builder.Property(t => t.TypeOfProduct)
@@ -62,11 +62,11 @@ public sealed class TempDrugConfiguration : BaseEntityConfiguration<TempDrug>
 
 
         builder.Property(t => t.RouteOfAdministration)
-            .HasMaxLength(300)
+            .HasMaxLength(2000)
             .IsRequired(false);
 
         builder.Property(t => t.PharmaceuticalFormulation)
-            .HasMaxLength(300)
+            .HasMaxLength(2000)
             .IsRequired(false);
 
         builder.Property(t => t.ATCCode)
@@ -82,7 +82,7 @@ public sealed class TempDrugConfiguration : BaseEntityConfiguration<TempDrug>
             .IsRequired(false);
 
         builder.Property(t => t.Dosage)
-            .HasMaxLength(500)
+            .HasMaxLength(2000)
             .IsRequired(false);
 
         builder.Property(t => t.Note)

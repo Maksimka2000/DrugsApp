@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using DrugsApp.Domain.TempDrugFeature.Entities;
+using DrugsApp.Domain.TempDrugFeature.Interfaces;
 using DrugsApp.Domain.TempDrugFeature.Repositories;
 using DrugsApp.Features.TempDrugFeature.Shared;
 using ErrorOr;
@@ -9,7 +13,9 @@ namespace DrugsApp.Features.TempDrugFeature.SearchImportBatches;
 /// <summary>
 /// Handles paged search of import batches history.
 /// </summary>
-internal sealed class SearchImportBatchesHandler(ITempDrugImportBatchRepository _batchRepository)
+internal sealed class SearchImportBatchesHandler(
+    ITempDrugImportBatchRepository _batchRepository,
+    ITempDrugImportJobStatusProvider _jobStatusProvider)
     : IRequestHandler<SearchImportBatchesQuery, ErrorOr<SearchImportBatchesResponse>>
 {
 
@@ -44,7 +50,7 @@ internal sealed class SearchImportBatchesHandler(ITempDrugImportBatchRepository 
 
         // get page
         List<TempDrugImportBatch> page = hasMore ? batches.Take(query.Take).ToList() : batches;
-        List<ImportBatchDto> items = page.MapToDtoList();
+        List<ImportBatchDto> items = page.MapToDtoList(batch => _jobStatusProvider.GetStatus(batch.HangfireJobId));
 
         // count total items
         if (query.Skip == 0)

@@ -59,7 +59,7 @@ internal sealed class TempDrugImportApplicationService(
 
             // process rows
             var rowsBuffer = new List<ImportRowDto>(ChunkSize);
-            foreach (IXLRow row in usedRange.RowsUsed().Skip(1))
+            foreach (IXLRow row in worksheet.RowsUsed().Skip(1))
             {
                 rowsBuffer.Add(MapRow(row, mappingPlan, headerIndexes));
 

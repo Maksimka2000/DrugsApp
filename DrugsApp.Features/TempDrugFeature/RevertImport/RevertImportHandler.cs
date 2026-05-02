@@ -29,29 +29,30 @@ internal sealed class RevertImportHandler(
                 });
         }
 
-        // start revert
+        // check if another import or revert is already in progress
+        // TempDrugImportBatch? activeImport = await _batchRepository.GetActiveImportAsync(cancellationToken);
+        // if (activeImport is not null && activeImport.Id != batch.Id)
+        // {
+        //     return Error.Conflict(
+        //         description: "Another import or revert is already in progress.",
+        //         metadata: new()
+        //         {
+        //             ["existingResourceId"] = activeImport.Id.ToString()
+        //         });
+        // }
+
+        // start revert status change in the batch table 
         ErrorOr<Success> startRevertResult = batch.StartRevert();
         if (startRevertResult.IsError)
         {
             return startRevertResult.Errors;
         }
-
-        // check if another import or revert is already in progress
-        TempDrugImportBatch? activeImport = await _batchRepository.GetActiveImportAsync(cancellationToken);
-        if (activeImport is not null && activeImport.Id != batch.Id)
-        {
-            return Error.Conflict(
-                description: "Another import or revert is already in progress.",
-                metadata: new()
-                {
-                    ["existingResourceId"] = activeImport.Id.ToString()
-                });
-        }
-
+        
         // enqueue revert job
-        string revertJobId = _tempDrugImportJobScheduler.EnqueueRevert(batch.Id);
+        string hangfireJobId = _tempDrugImportJobScheduler.EnqueueRevert(batch.Id);
+        
         // set revert job id in the batch table 
-        batch.SetRevertJobId(revertJobId);
+        batch.SetJobId(hangfireJobId);
 
         return batch.MapToResponse();
     }
