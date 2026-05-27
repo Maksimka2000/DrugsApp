@@ -386,6 +386,230 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("FoodGroups", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.Interaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("DefaultText")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("InteractionSeverityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StomachText")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CreatedAtUtc" }, "Index_Interactions_CreatedAtUtc");
+
+                    b.HasIndex(new[] { "InteractionSeverityId" }, "Index_Interactions_InteractionSeverityId");
+
+                    b.HasIndex(new[] { "UpdatedAtUtc" }, "Index_Interactions_UpdatedAtUtc");
+
+                    b.ToTable("Interactions", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.InteractionExpanded", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid>("InteractionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PartyIdA")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PartyIdB")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PartyTypeA")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PartyTypeB")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "PartyTypeA", "PartyIdA" }, "Index_InteractionExpanded_PartyA");
+
+                    b.HasIndex(new[] { "PartyTypeB", "PartyIdB" }, "Index_InteractionExpanded_PartyB");
+
+                    b.HasIndex(new[] { "InteractionId", "PartyTypeA", "PartyIdA", "PartyTypeB", "PartyIdB" }, "UX_InteractionExpanded_UniquePair")
+                        .IsUnique();
+
+                    b.ToTable("InteractionExpanded", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.InteractionParty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActiveSubstanceGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActiveSubstanceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid?>("FoodGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FoodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InteractionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PartyType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("SupplementGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SupplementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "ActiveSubstanceGroupId" }, "Index_InteractionParties_ActiveSubstanceGroupId");
+
+                    b.HasIndex(new[] { "ActiveSubstanceId" }, "Index_InteractionParties_ActiveSubstanceId");
+
+                    b.HasIndex(new[] { "FoodGroupId" }, "Index_InteractionParties_FoodGroupId");
+
+                    b.HasIndex(new[] { "FoodId" }, "Index_InteractionParties_FoodId");
+
+                    b.HasIndex(new[] { "InteractionId" }, "Index_InteractionParties_InteractionId");
+
+                    b.HasIndex(new[] { "SupplementGroupId" }, "Index_InteractionParties_SupplementGroupId");
+
+                    b.HasIndex(new[] { "SupplementId" }, "Index_InteractionParties_SupplementId");
+
+                    b.HasIndex(new[] { "InteractionId", "FoodId" }, "UX_InteractionParties_Food")
+                        .IsUnique()
+                        .HasFilter("\"PartyType\" = 'Food'");
+
+                    b.HasIndex(new[] { "InteractionId", "FoodGroupId" }, "UX_InteractionParties_FoodGroup")
+                        .IsUnique()
+                        .HasFilter("\"PartyType\" = 'FoodGroup'");
+
+                    b.HasIndex(new[] { "InteractionId", "ActiveSubstanceId" }, "UX_InteractionParties_Substance")
+                        .IsUnique()
+                        .HasFilter("\"PartyType\" = 'Substance'");
+
+                    b.HasIndex(new[] { "InteractionId", "ActiveSubstanceGroupId" }, "UX_InteractionParties_SubstanceGroup")
+                        .IsUnique()
+                        .HasFilter("\"PartyType\" = 'SubstanceGroup'");
+
+                    b.HasIndex(new[] { "InteractionId", "SupplementId" }, "UX_InteractionParties_Supplement")
+                        .IsUnique()
+                        .HasFilter("\"PartyType\" = 'Supplement'");
+
+                    b.HasIndex(new[] { "InteractionId", "SupplementGroupId" }, "UX_InteractionParties_SupplementGroup")
+                        .IsUnique()
+                        .HasFilter("\"PartyType\" = 'SupplementGroup'");
+
+                    b.ToTable("InteractionParties", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_InteractionParties_ExactlyOneFk", "num_nonnulls(\"ActiveSubstanceId\",\"ActiveSubstanceGroupId\",\"FoodId\",\"FoodGroupId\",\"SupplementId\",\"SupplementGroupId\") = 1");
+                        });
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.InteractionSeverity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<short>("SeverityNumber")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Name" }, "Index_InteractionSeverities_Name")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "SeverityNumber" }, "Index_InteractionSeverities_SeverityNumber")
+                        .IsUnique();
+
+                    b.ToTable("InteractionSeverities", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111110111"),
+                            CreatedAtUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Major",
+                            SeverityNumber = (short)1
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222221222"),
+                            CreatedAtUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Moderate",
+                            SeverityNumber = (short)2
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333332333"),
+                            CreatedAtUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Minor",
+                            SeverityNumber = (short)3
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444443444"),
+                            CreatedAtUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Not applicable",
+                            SeverityNumber = (short)4
+                        });
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.PharmaceuticalFormFeature.Entities.PharmaceuticalForm", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1035,6 +1259,39 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("Drug");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.Interaction", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.InteractionFeature.Entities.InteractionSeverity", "InteractionSeverity")
+                        .WithMany()
+                        .HasForeignKey("InteractionSeverityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InteractionSeverity");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.InteractionExpanded", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.InteractionFeature.Entities.Interaction", "Interaction")
+                        .WithMany("ExpandedRows")
+                        .HasForeignKey("InteractionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Interaction");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.InteractionParty", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.InteractionFeature.Entities.Interaction", "Interaction")
+                        .WithMany("Parties")
+                        .HasForeignKey("InteractionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Interaction");
+                });
+
             modelBuilder.Entity("FoodGroupFoods", b =>
                 {
                     b.HasOne("DrugsApp.Domain.FoodFeature.Entities.FoodGroup", null)
@@ -1073,6 +1330,13 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("DrugsApp.Domain.DrugFeature.Entities.Drug", b =>
                 {
                     b.Navigation("DrugForms");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.Interaction", b =>
+                {
+                    b.Navigation("ExpandedRows");
+
+                    b.Navigation("Parties");
                 });
 #pragma warning restore 612, 618
         }

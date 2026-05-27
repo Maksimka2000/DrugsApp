@@ -9,4 +9,5 @@ namespace DrugsApp.Features.FoodFeature.Shared;
 public sealed record FoodGroupDto(
     Guid Id,
     string Name,
-    IReadOnlyCollection<FoodDto> Foods);
+    IReadOnlyCollection<FoodDto> Foods,
+    string Type);

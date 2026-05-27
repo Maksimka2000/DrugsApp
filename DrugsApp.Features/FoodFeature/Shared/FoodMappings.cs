@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DrugsApp.Domain.FoodFeature.Entities;
+using DrugsApp.Domain.InteractionFeature.Enums;
 
 namespace DrugsApp.Features.FoodFeature.Shared;
 
@@ -15,7 +16,8 @@ public static class FoodMappings
     public static FoodDto MapToDto(this Food food) => new(
         Id: food.Id,
         Name: food.Name,
-        Aliases: food.Aliases.ToList());
+        Aliases: food.Aliases.ToList(),
+        Type: InteractionType.Food.ToString());
 
     /// <summary>
     /// Maps a collection of foods to DTO list.
@@ -29,7 +31,8 @@ public static class FoodMappings
     public static FoodGroupDto MapToDto(this FoodGroup foodGroup) => new(
         Id: foodGroup.Id,
         Name: foodGroup.Name,
-        Foods: foodGroup.Foods.MapToDtoList());
+        Foods: foodGroup.Foods.MapToDtoList(),
+        Type: InteractionType.FoodGroup.ToString());
 
     /// <summary>
     /// Maps a collection of food groups to DTO list.

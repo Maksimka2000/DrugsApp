@@ -2,12 +2,11 @@ using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using DrugsApp.Domain.SupplementFeature.Entities;
 
 
 namespace DrugsApp.Infrastructure.Repositories.SupplementFeature;
 
-public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISupplementGroupRepository
+public sealed class SupplementGroupRepository(DrugsAppDbContext context) : ISupplementGroupRepository
 {
     private const double SimilarityThreshold = 0.35;
 
@@ -29,10 +28,10 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISup
         return searchField switch
         {
             SupplementGroupSearchField.GroupName => query.Where(group =>
-                EF.Functions.ILike(group.Name, prefixPattern) ||
-                EF.Functions.ILike(group.Name, containsPattern) ||
-                useTrigram &&
-                EF.Functions.TrigramsSimilarity(group.Name, trimmedQuery) >= SimilarityThreshold),
+                group.Name != null && (EF.Functions.ILike(group.Name, prefixPattern) ||
+                                       EF.Functions.ILike(group.Name, containsPattern) ||
+                                       useTrigram &&
+                                       EF.Functions.TrigramsSimilarity(group.Name, trimmedQuery) >= SimilarityThreshold)),
 
             SupplementGroupSearchField.SuplementName => query.Where(group => 
                 group.Supplements.Any(supplement => 
@@ -56,7 +55,7 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISup
     {
 
         // build query
-        IQueryable<SupplementGroup> query = _context.SupplementGroups.AsNoTracking();
+        IQueryable<SupplementGroup> query = context.SupplementGroups.AsNoTracking();
 
         // apply includes
         query = ApplyIncludes(query);
@@ -80,7 +79,7 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISup
         CancellationToken cancellationToken)
     {
         // build query
-        IQueryable<SupplementGroup> query = _context.SupplementGroups.AsNoTracking();
+        IQueryable<SupplementGroup> query = context.SupplementGroups.AsNoTracking();
 
         // apply includes
         query = ApplyIncludes(query);
@@ -97,7 +96,7 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISup
         Guid id,
         CancellationToken cancellationToken)
     {
-        return await _context.SupplementGroups
+        return await context.SupplementGroups
             .Include(group => group.Supplements)
             .FirstOrDefaultAsync(group => group.Id == id, cancellationToken);
     }
@@ -106,7 +105,7 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISup
         string normalizedName,
         CancellationToken cancellationToken)
     {
-        return await _context.SupplementGroups
+        return await context.SupplementGroups
             .AsNoTracking()
             .Include(group => group.Supplements)
             .FirstOrDefaultAsync(group => group.Name == normalizedName, cancellationToken);
@@ -116,12 +115,12 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISup
         SupplementGroup group,
         CancellationToken cancellationToken)
     {
-        await _context.SupplementGroups.AddAsync(group, cancellationToken);
+        await context.SupplementGroups.AddAsync(group, cancellationToken);
     }
 
     public void Remove(SupplementGroup group)
     {
-        _context.SupplementGroups.Remove(group);
+        context.SupplementGroups.Remove(group);
     }
 
     public async Task<bool> IsInUseByInteractionsAsync(
@@ -129,7 +128,7 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext _context) : ISup
         CancellationToken cancellationToken)
     {
         // Placeholder for future interaction checks; current implementation is a simple existence guard.
-        return await _context.SupplementGroups
+        return await context.SupplementGroups
             .AsNoTracking()
             .AnyAsync(group => group.Id == supplementGroupId, cancellationToken);
     }

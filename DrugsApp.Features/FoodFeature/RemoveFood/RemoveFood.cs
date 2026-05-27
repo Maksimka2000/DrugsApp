@@ -18,11 +18,20 @@ public sealed class RemoveFoodHandler : IRequestHandler<RemoveFoodCommand, Error
 {
     private readonly IFoodRepository _foodRepository;
 
+    /// <summary>
+    /// Handles the process of removing a food item from the system.
+    /// </summary>
     public RemoveFoodHandler(IFoodRepository foodRepository)
     {
         _foodRepository = foodRepository;
     }
 
+    /// <summary>
+    /// Handles the removal of a food item.
+    /// </summary>
+    /// <param name="command">The command containing the details of the food to be removed.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>An <see cref="ErrorOr{T}"/> containing the deleted food details if successful, or an error if the operation fails.</returns>
     public async Task<ErrorOr<DeletedFoodResponse>> Handle(
         RemoveFoodCommand command,
         CancellationToken cancellationToken)

@@ -5,7 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.FoodFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Repositories;
+using DrugsApp.Domain.InteractionFeature.Enums;
 using DrugsApp.Features.FoodFeature.Shared;
+using DrugsApp.Features.InteractionFeature.ApplicationServices;
 using ErrorOr;
 using MediatR;
 
@@ -14,7 +16,11 @@ namespace DrugsApp.Features.FoodFeature.UpdateFoodGroup;
 /// <summary>
 /// Handles updating food groups with uniqueness and membership validation.
 /// </summary>
-public sealed class UpdateFoodGroupHandler(IFoodGroupRepository _foodGroupRepository, IFoodRepository _foodRepository) : IRequestHandler<UpdateFoodGroupCommand, ErrorOr<UpdatedFoodGroupResponse>>
+public sealed class UpdateFoodGroupHandler(
+    IFoodGroupRepository _foodGroupRepository,
+    IFoodRepository _foodRepository,
+    IInteractionExpandedSyncApplicationService _interactionExpandedSyncApplicationService)
+    : IRequestHandler<UpdateFoodGroupCommand, ErrorOr<UpdatedFoodGroupResponse>>
 {
 
     /// <summary>
@@ -59,6 +65,10 @@ public sealed class UpdateFoodGroupHandler(IFoodGroupRepository _foodGroupReposi
         }
 
 
+        var existingMemberIds = foodGroup.Foods
+            .Select(food => food.Id)
+            .ToHashSet();
+
         if (command.Request.Members is not null && command.Request.Members.Count > 0){
             // update the members
             List<Food> foods = await _foodRepository.GetByIdsAsync(
@@ -75,7 +85,29 @@ public sealed class UpdateFoodGroupHandler(IFoodGroupRepository _foodGroupReposi
                     });
             }
 
+            var requestedMemberIds = command.Request.Members.ToHashSet();
+
+            var addedMembers = requestedMemberIds.Except(existingMemberIds).ToList();
+            var removedMembers = existingMemberIds.Except(requestedMemberIds).ToList();
+
             foodGroup.ReplaceMembers(foods);
+
+            if (addedMembers.Count > 0 || removedMembers.Count > 0)
+            {
+                ErrorOr<Success> syncResult = await _interactionExpandedSyncApplicationService
+                    .SyncAfterGroupMembershipChangedAsync(
+                        new SyncInteractionExpandedAfterGroupMembershipChangedRequest(
+                            InteractionType.FoodGroup,
+                            foodGroup.Id,
+                            addedMembers,
+                            removedMembers),
+                        cancellationToken);
+
+                if (syncResult.IsError)
+                {
+                    return syncResult.Errors;
+                }
+            }
         }
 
         return foodGroup.MapToUpdatedResponse();

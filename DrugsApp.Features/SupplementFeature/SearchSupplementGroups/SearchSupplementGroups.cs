@@ -19,9 +19,15 @@ public sealed class SearchSupplementGroupsHandler(ISupplementGroupRepository _su
         ["group_name"] = SupplementGroupSearchField.GroupName,
         ["supplement_name"] = SupplementGroupSearchField.SuplementName
     };
-    
 
 
+    /// <summary>
+    /// Handles the search operation for supplement groups based on the provided query.
+    /// </summary>
+    /// <param name="query">The query containing search parameters such as supplement name, skip, and take.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>A result containing the search response, which includes a collection of supplement groups,
+    /// metadata about the search operation, and additional information about matched fields.</returns>
     public async Task<ErrorOr<SearchSupplementGroupsResponse>> Handle(
         SearchSupplementGroupsQuery query,
         CancellationToken cancellationToken)
@@ -71,9 +77,10 @@ public sealed class SearchSupplementGroupsHandler(ISupplementGroupRepository _su
                 if (attempt.Count > 0){
                     rows = attempt;
                     matchedFieldToken = token;
-                    matchedFailedFieldTokens.Add(token);
                     appliedSearchField = field;
                     break;
+                } else {
+                    matchedFailedFieldTokens.Add(token);
                 }
             }
         }

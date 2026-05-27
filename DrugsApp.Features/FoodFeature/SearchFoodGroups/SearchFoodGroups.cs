@@ -19,11 +19,34 @@ public sealed class SearchFoodGroupsHandler : IRequestHandler<SearchFoodGroupsQu
 {
     private readonly IFoodGroupRepository _foodGroupRepository;
 
-    public SearchFoodGroupsHandler(IFoodGroupRepository foodGroupRepository)
-    {
-        _foodGroupRepository = foodGroupRepository;
-    }
+    /// <summary>
+    /// Handles the processing of the SearchFoodGroupsQuery to search for food groups based on the provided query parameters.
+    /// </summary>
+    /// <remarks>
+    /// This handler utilizes an IFoodGroupRepository to perform primary name-based food group searches.
+    /// If no results are found during the primary search and a valid query exists, it may perform a fallback member-based search.
+    /// It also calculates whether additional records exist beyond the requested page and, optionally, retrieves the total count of matching records.
+    /// </remarks>
+    /// <param name="foodGroupRepository"></param>
+    /// <returns>
+    /// A Task that resolves to an ErrorOr<SearchFoodGroupsResponse/>, containing the paginated list of matching food groups (as DTOs),
+    /// the total count of records when applicable, and an indicator if there are more records available.
+    /// </returns>
+    public SearchFoodGroupsHandler(IFoodGroupRepository foodGroupRepository) => _foodGroupRepository = foodGroupRepository;
 
+    /// <summary>
+    /// Handles the processing of the SearchFoodGroupsQuery to search for food groups based on the provided query parameters.
+    /// </summary>
+    /// <param name="query">
+    /// Represents the search criteria, containing the food name query, the number of records to skip, and the number of records to take.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Propagates notification that the operation should be canceled.
+    /// </param>
+    /// <returns>
+    /// A Task that resolves to an ErrorOr<SearchFoodGroupsResponse/> which contains the list of matching food groups, total count,
+    /// and a flag indicating if there are more records available.
+    /// </returns>
     public async Task<ErrorOr<SearchFoodGroupsResponse>> Handle(
         SearchFoodGroupsQuery query,
         CancellationToken cancellationToken)

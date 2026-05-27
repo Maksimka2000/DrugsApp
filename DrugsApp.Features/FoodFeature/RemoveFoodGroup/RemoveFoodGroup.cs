@@ -14,15 +14,14 @@ namespace DrugsApp.Features.FoodFeature.RemoveFoodGroup;
 /// <summary>
 /// Handles deletion of food groups with optional reference checks.
 /// </summary>
-public sealed class RemoveFoodGroupHandler : IRequestHandler<RemoveFoodGroupCommand, ErrorOr<DeletedFoodGroupResponse>>
+public sealed class RemoveFoodGroupHandler(IFoodGroupRepository _foodGroupRepository) : IRequestHandler<RemoveFoodGroupCommand, ErrorOr<DeletedFoodGroupResponse>>
 {
-    private readonly IFoodGroupRepository _foodGroupRepository;
-
-    public RemoveFoodGroupHandler(IFoodGroupRepository foodGroupRepository)
-    {
-        _foodGroupRepository = foodGroupRepository;
-    }
-
+    /// <summary>
+    /// Handles the execution of the RemoveFoodGroupCommand to remove a specific food group.
+    /// </summary>
+    /// <param name="command">The command containing the ID of the food group to be removed.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>Returns a result encapsulating either the details of the deleted food group or an error.</returns>
     public async Task<ErrorOr<DeletedFoodGroupResponse>> Handle(
         RemoveFoodGroupCommand command,
         CancellationToken cancellationToken)

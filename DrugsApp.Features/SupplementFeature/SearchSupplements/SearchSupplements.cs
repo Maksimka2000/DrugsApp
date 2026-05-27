@@ -12,7 +12,15 @@ namespace DrugsApp.Features.SupplementFeature.SearchSupplements;
 /// </summary>
 public sealed class SearchSupplementsHandler(ISupplementRepository _supplementRepository) : IRequestHandler<SearchSupplementsQuery, ErrorOr<SearchSupplementsResponse>>
 {
-
+    /// <summary>
+    /// Handles the search request for supplements by name or aliases with support for pagination.
+    /// </summary>
+    /// <param name="query">The search query containing supplement name/aliases, pagination details such as skip and take.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation if needed.</param>
+    /// <returns>
+    /// Returns an <see cref="ErrorOr{SearchSupplementsResponse}"/> containing a collection of matched supplements,
+    /// optional total count for the first batch, and an indicator if more items are available.
+    /// </returns>
     public async Task<ErrorOr<SearchSupplementsResponse>> Handle(
         SearchSupplementsQuery query,
         CancellationToken cancellationToken)

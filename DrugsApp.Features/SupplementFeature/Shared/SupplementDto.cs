@@ -6,4 +6,5 @@ namespace DrugsApp.Features.SupplementFeature.Shared;
 public sealed record SupplementDto(
     Guid Id,
     string Name,
-    IReadOnlyCollection<string> Aliases);
+    IReadOnlyCollection<string> Aliases,
+    string Type);

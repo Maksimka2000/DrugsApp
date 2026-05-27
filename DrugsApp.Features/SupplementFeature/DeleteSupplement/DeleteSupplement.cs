@@ -12,7 +12,14 @@ namespace DrugsApp.Features.SupplementFeature.DeleteSupplement;
 /// </summary>
 public sealed class DeleteSupplementHandler(ISupplementRepository _supplementRepository) : IRequestHandler<DeleteSupplementCommand, ErrorOr<DeleteSupplementResponse>>
 {
-
+    /// <summary>
+    /// Handles the deletion process for a supplement, ensuring proper validation and repository interaction.
+    /// </summary>
+    /// <param name="command">The command containing the details of the supplement to be deleted.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// An ErrorOr result containing either the deletion response or an error if the supplement was not found.
+    /// </returns>
     public async Task<ErrorOr<DeleteSupplementResponse>> Handle(
         DeleteSupplementCommand command,
         CancellationToken cancellationToken)

@@ -16,12 +16,24 @@ namespace DrugsApp.Features.FoodFeature.SearchFoods;
 /// </summary>
 public sealed class SearchFoodsHandler(IFoodRepository _foodRepository) : IRequestHandler<SearchFoodsQuery, ErrorOr<SearchFoodsResponse>>
 {
-
+    /// <summary>
+    /// Processes the given query to search for foods based on the specified parameters,
+    /// retrieves the matching results from the repository, and returns the search response.
+    /// </summary>
+    /// <param name="query">
+    /// The query containing the search text, number of items to skip, and number of items to take.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token to monitor for cancellation requests.
+    /// </param>
+    /// <returns>
+    /// An <c>ErrorOr&lt;SearchFoodsResponse&gt;</c> object containing the search results,
+    /// total count (if applicable), and a flag indicating whether more results are available.
+    /// </returns>
     public async Task<ErrorOr<SearchFoodsResponse>> Handle(
         SearchFoodsQuery query,
         CancellationToken cancellationToken)
     {
-
         string? normalizedSearchText = string.IsNullOrWhiteSpace(query.SearchText)
             ? null
             : query.SearchText!.Trim();
