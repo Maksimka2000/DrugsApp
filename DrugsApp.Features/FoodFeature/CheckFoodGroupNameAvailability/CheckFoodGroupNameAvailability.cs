@@ -16,11 +16,22 @@ public sealed class CheckFoodGroupNameAvailabilityHandler : IRequestHandler<Chec
 {
     private readonly IFoodGroupRepository _foodGroupRepository;
 
+    /// <summary>
+    /// Handles the processing of checking the availability of a food group name.
+    /// </summary>
+    /// <param name="foodGroupRepository"></param>
+    /// <returns>A response indicating whether the food group name is available, including any conflicting resource ID if applicable.</returns>
     public CheckFoodGroupNameAvailabilityHandler(IFoodGroupRepository foodGroupRepository)
     {
         _foodGroupRepository = foodGroupRepository;
     }
 
+    /// <summary>
+    /// Handles the processing of checking the availability of a food group name.
+    /// </summary>
+    /// <param name="query">The query containing the food group name to be checked and an optional ID to exclude.</param>
+    /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
+    /// <returns>A response indicating whether the food group name is available and any conflicting resource ID, if applicable.</returns>
     public async Task<ErrorOr<CheckFoodGroupNameAvailabilityResponse>> Handle(
         CheckFoodGroupNameAvailabilityQuery query,
         CancellationToken cancellationToken)

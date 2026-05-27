@@ -7,9 +7,11 @@ using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.ActiveSubstanceFeature.Repositories;
 using DrugsApp.Domain.ActiveSubstanceGroupFeature.Entities;
 using DrugsApp.Domain.ActiveSubstanceGroupFeature.Repositories;
+using DrugsApp.Domain.InteractionFeature.Enums;
 using DrugsApp.Features.ActiveSubstanceGroupFeature.Shared;
 using ErrorOr;
 using DrugsApp.Features.ActiveSubstanceFeature.Shared;
+using DrugsApp.Features.InteractionFeature.ApplicationServices;
 using MediatR;
 
 namespace DrugsApp.Features.ActiveSubstanceGroupFeature.UpdateActiveSubstanceGroup;
@@ -19,7 +21,8 @@ namespace DrugsApp.Features.ActiveSubstanceGroupFeature.UpdateActiveSubstanceGro
 /// </summary>
 internal sealed class UpdateActiveSubstanceGroupHandler(
     IActiveSubstanceGroupRepository _activeSubstanceGroupRepository,
-    IActiveSubstanceRepository _activeSubstanceRepository)
+    IActiveSubstanceRepository _activeSubstanceRepository,
+    IInteractionExpandedSyncApplicationService _interactionExpandedSyncApplicationService)
     : IRequestHandler<UpdateActiveSubstanceGroupCommand, ErrorOr<UpdatedActiveSubstanceGroupResponse>>
 {
     /// <summary>
@@ -72,6 +75,10 @@ internal sealed class UpdateActiveSubstanceGroupHandler(
             }
         }
 
+        var existingMemberIds = group.ActiveSubstances
+            .Select(activeSubstance => activeSubstance.Id)
+            .ToHashSet();
+
         if (command.Request.ActiveSubstanceIds is not null)
         {
             IReadOnlyCollection<Guid> memberIds = command.Request.ActiveSubstanceIds.Distinct().ToList();
@@ -111,6 +118,27 @@ internal sealed class UpdateActiveSubstanceGroupHandler(
             }
 
             group.ReplaceMembers(members);
+
+            var requestedMemberIds = memberIds.ToHashSet();
+            var addedMembers = requestedMemberIds.Except(existingMemberIds).ToList();
+            var removedMembers = existingMemberIds.Except(requestedMemberIds).ToList();
+
+            if (addedMembers.Count > 0 || removedMembers.Count > 0)
+            {
+                ErrorOr<Success> syncResult = await _interactionExpandedSyncApplicationService
+                    .SyncAfterGroupMembershipChangedAsync(
+                        new SyncInteractionExpandedAfterGroupMembershipChangedRequest(
+                            InteractionType.SubstanceGroup,
+                            group.Id,
+                            addedMembers,
+                            removedMembers),
+                        cancellationToken);
+
+                if (syncResult.IsError)
+                {
+                    return syncResult.Errors;
+                }
+            }
         }
 
         UpdatedActiveSubstanceGroupResponse response = group.MapToResponse();

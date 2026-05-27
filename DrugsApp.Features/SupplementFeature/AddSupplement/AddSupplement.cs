@@ -13,7 +13,15 @@ namespace DrugsApp.Features.SupplementFeature.AddSupplement;
 /// </summary>
 public sealed class AddSupplementHandler(ISupplementRepository _supplementRepository) : IRequestHandler<AddSupplementCommand, ErrorOr<CreatedSupplementResponse>>
 {
-
+    /// <summary>
+    /// Handles the creation of a supplement, including performing uniqueness checks.
+    /// </summary>
+    /// <param name="command">The command containing the data required to add the supplement.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// An <see cref="ErrorOr{T}"/> containing either the created supplement response
+    /// or an error if validation fails (e.g., supplement name already exists).
+    /// </returns>
     public async Task<ErrorOr<CreatedSupplementResponse>> Handle(
         AddSupplementCommand command,
         CancellationToken cancellationToken)

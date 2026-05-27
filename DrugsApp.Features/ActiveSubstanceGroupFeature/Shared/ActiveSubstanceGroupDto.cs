@@ -10,4 +10,5 @@ namespace DrugsApp.Features.ActiveSubstanceGroupFeature.Shared;
 public sealed record ActiveSubstanceGroupDto(
     Guid Id,
     string Name,
-    IReadOnlyCollection<ActiveSubstanceDto> Members);
+    IReadOnlyCollection<ActiveSubstanceDto> Members,
+    string Type);

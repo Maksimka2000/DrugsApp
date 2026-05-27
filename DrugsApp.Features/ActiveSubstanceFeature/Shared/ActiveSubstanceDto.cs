@@ -8,6 +8,7 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.Shared;
 public sealed record ActiveSubstanceDto(
     Guid Id,
     string ActiveSubstanceName,
-    OralMedicationIntakeGuidelinesDto? OralMedicationIntakeGuidelines);
+    OralMedicationIntakeGuidelinesDto? OralMedicationIntakeGuidelines,
+    string Type);
 
 

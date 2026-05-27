@@ -4,6 +4,7 @@ using DrugsApp.Features.DrugFeature.ApplicationServices;
 using DrugsApp.Features.Common.Behaviors;
 using DrugsApp.Features.TempDrugFeature.ApplicationServices;
 using DrugsApp.Features.VetDrugFeature.ApplicationServices;
+using DrugsApp.Features.InteractionFeature.ApplicationServices;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -37,6 +38,8 @@ public static class DependencyInjection
         services.AddScoped<IDrugReviewCanonicalizationService, DrugReviewCanonicalizationService>();
         services.AddScoped<IVetDrugCanonicalizationService, VetDrugCanonicalizationService>();
         services.AddScoped<IDrugSimilarityDomainService, DrugSimilarityDomainService>();
+        services.AddScoped<IInteractionWriteApplicationService, InteractionWriteApplicationService>();
+        services.AddScoped<IInteractionExpandedSyncApplicationService, InteractionExpandedSyncApplicationService>();
 
         return services;
     }
