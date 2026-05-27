@@ -16,11 +16,20 @@ public sealed class CheckFoodNameAvailabilityHandler : IRequestHandler<CheckFood
 {
     private readonly IFoodRepository _foodRepository;
 
+    /// <summary>
+    /// Handles the process of checking the availability of a food name in the repository.
+    /// </summary>
     public CheckFoodNameAvailabilityHandler(IFoodRepository foodRepository)
     {
         _foodRepository = foodRepository;
     }
 
+    /// <summary>
+    /// Handles the process of checking the availability of a food name in the repository.
+    /// </summary>
+    /// <param name="query">The query containing the food name to check and an optional ID to exclude from the check.</param>
+    /// <param name="cancellationToken">A token to observe for cancellation requests.</param>
+    /// <returns>A response indicating whether the food name is available, and if not, the conflicting resource ID.</returns>
     public async Task<ErrorOr<CheckFoodNameAvailabilityResponse>> Handle(
         CheckFoodNameAvailabilityQuery query,
         CancellationToken cancellationToken)

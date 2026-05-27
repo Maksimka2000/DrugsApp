@@ -56,14 +56,13 @@ public sealed class TempDrugImportBatchRepository(DrugsAppDbContext context) : I
     private static IQueryable<TempDrugImportBatch> ApplySort(
         IQueryable<TempDrugImportBatch> query,
         TempDrugImportBatchSortField sortField,
-        bool ascending)
-    {
-        return (sortField, ascending) switch
+        bool ascending) =>
+        (sortField, ascending) switch
         {
             (TempDrugImportBatchSortField.CreatedAtUtc, true) => query.OrderBy(batch => batch.CreatedAtUtc).ThenBy(batch => batch.Id),
             (TempDrugImportBatchSortField.CreatedAtUtc, false) => query.OrderByDescending(batch => batch.CreatedAtUtc).ThenBy(batch => batch.Id),
+            _ => throw new ArgumentOutOfRangeException()
         };
-    }
 
     public async Task<TempDrugImportBatch?> GetActiveImportAsync(CancellationToken cancellationToken)
     {

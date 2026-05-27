@@ -12,7 +12,12 @@ namespace DrugsApp.Features.SupplementFeature.DeleteSupplementGroup;
 /// </summary>
 public sealed class DeleteSupplementGroupHandler(ISupplementGroupRepository _supplementGroupRepository) : IRequestHandler<DeleteSupplementGroupCommand, ErrorOr<DeleteSupplementGroupResponse>>
 {
-
+    /// <summary>
+    /// Handles the request to delete a supplement group.
+    /// </summary>
+    /// <param name="command">The command containing the identifier of the supplement group to be deleted.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A response indicating the result of the deletion operation or an error if the operation fails.</returns>
     public async Task<ErrorOr<DeleteSupplementGroupResponse>> Handle(
         DeleteSupplementGroupCommand command,
         CancellationToken cancellationToken)

@@ -28,11 +28,24 @@ public sealed class AddFoodHandler : IRequestHandler<AddFoodCommand, ErrorOr<Cre
 {
     private readonly IFoodRepository _foodRepository;
 
+    /// <summary>
+    /// Handles the creation of new food items, ensuring that the food is unique within the repository
+    /// and properly persisted to storage.
+    /// </summary>
     public AddFoodHandler(IFoodRepository foodRepository)
     {
         _foodRepository = foodRepository;
     }
 
+    /// <summary>
+    /// Handles the process of creating a new food item, ensuring its uniqueness within the repository.
+    /// </summary>
+    /// <param name="command">The command object containing the food creation request details.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// A result containing either the created food details in a response object,
+    /// or an error indicating why the food could not be created.
+    /// </returns>
     public async Task<ErrorOr<CreatedFoodResponse>> Handle(
         AddFoodCommand command,
         CancellationToken cancellationToken)

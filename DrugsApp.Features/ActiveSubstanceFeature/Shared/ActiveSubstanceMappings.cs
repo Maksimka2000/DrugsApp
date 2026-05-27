@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
+using DrugsApp.Domain.InteractionFeature.Enums;
 
 namespace DrugsApp.Features.ActiveSubstanceFeature.Shared;
 
@@ -15,7 +16,8 @@ public static class ActiveSubstanceMappings
     public static ActiveSubstanceDto MapToDto(this ActiveSubstance activeSubstance) => new(
         Id: activeSubstance.Id,
         ActiveSubstanceName: activeSubstance.ActiveSubstanceName,
-        OralMedicationIntakeGuidelines: activeSubstance.OralMedicationIntakeGuidelines?.MapToDto());
+        OralMedicationIntakeGuidelines: activeSubstance.OralMedicationIntakeGuidelines?.MapToDto(),
+        Type: InteractionType.Substance.ToString());
 
     /// <summary>
     /// Maps a collection of ActiveSubstance entities to a list of DTOs.

@@ -103,11 +103,12 @@ internal sealed class SearchDrugsHandler(IDrugRepository _drugRepository) : IReq
                     take: takePlusOne,
                     cancellationToken: cancellationToken);
 
+                matchedFieldTokens.Add(token);  
+                
                 if (attempt.Count > 0)
                 {
                     drugs = attempt;
                     matchedFieldToken = token;
-                    matchedFieldTokens.Add(token);
                     appliedSearchField = field;
                     break;
                 }

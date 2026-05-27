@@ -4,6 +4,7 @@ using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Entities;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 using DrugsApp.Domain.RouteOfAdministrationFeature.Entities;
+using DrugsApp.Domain.InteractionFeature.Entities;
 using DrugsApp.Domain.TempDrugFeature.Entities;
 using DrugsApp.Domain.TestFeature.Entities;
 using DrugsApp.Domain.VetDrugFeature.Entities;
@@ -29,6 +30,10 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<DefaultMappingForColumnsAttribute> DefaultMappingForColumnsAttributes { get; set; } = null!;
     public DbSet<Supplement> Supplements { get; set; } = null!;
     public DbSet<SupplementGroup> SupplementGroups { get; set; } = null!;
+    public DbSet<Interaction> Interactions { get; set; } = null!;
+    public DbSet<InteractionParty> InteractionParties { get; set; } = null!;
+    public DbSet<InteractionExpanded> InteractionExpandedRows { get; set; } = null!;
+    public DbSet<InteractionSeverity> InteractionSeverities { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

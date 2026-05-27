@@ -12,7 +12,12 @@ namespace DrugsApp.Features.SupplementFeature.CheckSupplementGroupNameAvailabili
 /// </summary>
 public sealed class CheckSupplementGroupNameAvailabilityHandler(ISupplementGroupRepository _supplementGroupRepository) : IRequestHandler<CheckSupplementGroupNameAvailabilityQuery, ErrorOr<CheckSupplementGroupNameAvailabilityResponse>>
 {
-
+    /// <summary>
+    /// Handles checking the availability of a supplement group name.
+    /// </summary>
+    /// <param name="query">The request containing the name to check and an optional ID to exclude from the search.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A response indicating whether the name is available and, if unavailable, the ID of the existing supplement group.</returns>
     public async Task<ErrorOr<CheckSupplementGroupNameAvailabilityResponse>> Handle(
         CheckSupplementGroupNameAvailabilityQuery query,
         CancellationToken cancellationToken)

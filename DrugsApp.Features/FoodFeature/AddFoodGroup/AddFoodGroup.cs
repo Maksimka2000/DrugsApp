@@ -21,6 +21,17 @@ public sealed class AddFoodGroupHandler : IRequestHandler<AddFoodGroupCommand, E
     private readonly IFoodGroupRepository _foodGroupRepository;
     private readonly IFoodRepository _foodRepository;
 
+    /// <summary>
+    /// Handles the execution of the <see cref="AddFoodGroupCommand"/> to create a new food group.
+    /// Performs validation to ensure the food group is unique, the referenced food items exist,
+    /// and all required data is provided.
+    /// </summary>
+    /// <param name="foodGroupRepository"></param>
+    /// <param name="foodRepository"></param>
+    /// <returns>
+    /// An <see cref="ErrorOr{T}"/> result containing the response with the created food group
+    /// if the operation is successful, or a list of errors if the operation fails.
+    /// </returns>
     public AddFoodGroupHandler(
         IFoodGroupRepository foodGroupRepository,
         IFoodRepository foodRepository)
@@ -29,6 +40,16 @@ public sealed class AddFoodGroupHandler : IRequestHandler<AddFoodGroupCommand, E
         _foodRepository = foodRepository;
     }
 
+    /// <summary>
+    /// Handles the execution of the <see cref="AddFoodGroupCommand"/> to create and manage a food group.
+    /// Validates input, checks for conflicts, and ensures all referenced food items are valid.
+    /// </summary>
+    /// <param name="command">The command containing the details of the food group to be added, including its name and members.</param>
+    /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <returns>
+    /// An <see cref="ErrorOr{T}"/> result containing the created food group response if the operation succeeds,
+    /// or a list of errors describing any issues encountered during execution.
+    /// </returns>
     public async Task<ErrorOr<CreatedFoodGroupResponse>> Handle(
         AddFoodGroupCommand command,
         CancellationToken cancellationToken)
