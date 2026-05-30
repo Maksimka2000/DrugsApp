@@ -28,6 +28,16 @@ public sealed class ActiveSubstance : BaseEntity
     /// </summary>
     public IReadOnlyCollection<Drug> Drugs => _drugs;
 
+    /// <summary>
+    /// Marker indicating whether the substance has an alcohol interaction.
+    /// </summary>
+    public bool HasAlcoholInteraction { get; private set; }
+
+    /// <summary>
+    /// Optional override text for alcohol interaction specific guidance.
+    /// </summary>
+    public ActiveSubstanceAlcoholInteractionOverride? AlcoholInteractionOverride { get; private set; }
+
 
 
 
@@ -45,7 +55,8 @@ public sealed class ActiveSubstance : BaseEntity
     /// <returns>A new <see cref="ActiveSubstance"/> instance.</returns>
     public static ActiveSubstance Create(string activeSubstanceName) => new()
     {
-        ActiveSubstanceName = activeSubstanceName.Trim()
+        ActiveSubstanceName = activeSubstanceName.Trim(),
+        HasAlcoholInteraction = false
     };
 
     /// <summary>
@@ -96,6 +107,58 @@ public sealed class ActiveSubstance : BaseEntity
             liquidInstructions: liquidInstructions,
             recommendedMorning: recommendedMorning,
             recommendedEvening: recommendedEvening);
+    }
+
+    /// <summary>
+    /// Updates the alcohol interaction marker.
+    /// </summary>
+    /// <param name="hasAlcoholInteraction">Indicates whether alcohol interaction is present.</param>
+    public void SetHasAlcoholInteraction(bool hasAlcoholInteraction)
+    {
+        HasAlcoholInteraction = hasAlcoholInteraction;
+    }
+
+    /// <summary>
+    /// Creates or updates the alcohol interaction override text and enforces the alcohol marker.
+    /// </summary>
+    /// <param name="alcoholSpecialText">Override text describing alcohol interaction specifics.</param>
+    public void UpsertAlcoholInteractionOverride(string alcoholSpecialText)
+    {
+        string normalizedText = NormalizeRequiredText(alcoholSpecialText);
+
+        if (string.IsNullOrEmpty(normalizedText))
+        {
+            return;
+        }
+
+        HasAlcoholInteraction = true;
+
+        if (AlcoholInteractionOverride is null)
+        {
+            AlcoholInteractionOverride = ActiveSubstanceAlcoholInteractionOverride.Create(
+                Id,
+                normalizedText);
+
+            return;
+        }
+
+        AlcoholInteractionOverride.UpdateAlcoholSpecialText(normalizedText);
+    }
+
+    /// <summary>
+    /// Removes the alcohol interaction override text.
+    /// </summary>
+    public void ClearAlcoholInteractionOverride()
+    {
+        AlcoholInteractionOverride = null;
+    }
+
+    private static string NormalizeRequiredText(string value)
+    {
+        string trimmed = value.Trim();
+        return string.IsNullOrEmpty(trimmed)
+            ? string.Empty
+            : trimmed;
     }
 }
 

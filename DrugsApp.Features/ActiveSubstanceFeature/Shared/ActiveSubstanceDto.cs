@@ -9,6 +9,8 @@ public sealed record ActiveSubstanceDto(
     Guid Id,
     string ActiveSubstanceName,
     OralMedicationIntakeGuidelinesDto? OralMedicationIntakeGuidelines,
+    bool HasAlcoholInteraction,
+    string? AlcoholSpecialText,
     string Type);
 
 

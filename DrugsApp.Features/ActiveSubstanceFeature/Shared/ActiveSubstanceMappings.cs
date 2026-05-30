@@ -17,6 +17,8 @@ public static class ActiveSubstanceMappings
         Id: activeSubstance.Id,
         ActiveSubstanceName: activeSubstance.ActiveSubstanceName,
         OralMedicationIntakeGuidelines: activeSubstance.OralMedicationIntakeGuidelines?.MapToDto(),
+        HasAlcoholInteraction: activeSubstance.HasAlcoholInteraction,
+        AlcoholSpecialText: activeSubstance.AlcoholInteractionOverride?.AlcoholSpecialText,
         Type: InteractionType.Substance.ToString());
 
     /// <summary>

@@ -15,6 +15,12 @@ public sealed class UpdateActiveSubstanceRequestValidator : AbstractValidator<Up
             .MaximumLength(200)
             .WithMessage("Active substance name must not exceed 200 characters."));
 
+        When(
+            x => !string.IsNullOrWhiteSpace(x.AlcoholSpecialText) && x.ClearAlcoholSpecialText != true,
+            () => RuleFor(x => x.AlcoholSpecialText)
+                .MaximumLength(2000)
+                .WithMessage("Alcohol special text must not exceed 2000 characters."));
+
         When(x => x.FoodIntakeType is not null, () => RuleFor(x => x.FoodIntakeType)
             .IsInEnum()
             .WithMessage("Invalid food intake type value."));

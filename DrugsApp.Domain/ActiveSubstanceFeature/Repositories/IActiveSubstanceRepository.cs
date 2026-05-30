@@ -10,12 +10,14 @@ public interface IActiveSubstanceRepository
 {
     Task<List<ActiveSubstance>> SearchAsync(
         string? nameFilter,
+        bool? alcohol,
         int skip,
         int take,
         CancellationToken cancellationToken);
 
     Task<int> CountAsync(
         string? nameFilter,
+        bool? alcohol,
         CancellationToken cancellationToken);
 
     Task<ActiveSubstance?> GetByIdAsync(Guid id, CancellationToken cancellationToken);

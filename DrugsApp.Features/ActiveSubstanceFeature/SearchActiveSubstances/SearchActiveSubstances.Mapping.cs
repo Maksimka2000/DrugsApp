@@ -12,6 +12,7 @@ public static class SearchActiveSubstancesMapping
     /// </summary>
     public static SearchActiveSubstancesQuery MapToQuery(this SearchActiveSubstancesRequest request) => new(
         ActiveSubstanceName: request.ActiveSubstanceName,
+        Alcohol: request.Alcohol,
         Skip: request.Skip,
         Take: request.Take);
 
