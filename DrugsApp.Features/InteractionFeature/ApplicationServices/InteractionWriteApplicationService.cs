@@ -138,7 +138,15 @@ internal sealed class InteractionWriteApplicationService(IInteractionRepository 
 
         return pairs.Distinct().ToList();
     }
-
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="typeA"></param>
+    /// <param name="idA"></param>
+    /// <param name="typeB"></param>
+    /// <param name="idB"></param>
+    /// <returns></returns>
     private static InteractionAtomicPair CanonicalizePair(
         ShortInteractionType typeA,
         Guid idA,

@@ -20,6 +20,15 @@ public static class AddActiveSubstanceMapping
     {
         var activeSubstance = ActiveSubstance.Create(command.Request.ActiveSubstanceName);
 
+        if (!string.IsNullOrWhiteSpace(command.Request.AlcoholSpecialText))
+        {
+            activeSubstance.UpsertAlcoholInteractionOverride(command.Request.AlcoholSpecialText);
+        }
+        else if (command.Request.HasAlcoholInteraction == true)
+        {
+            activeSubstance.SetHasAlcoholInteraction(true);
+        }
+
         if (command.Request.OralMedicationIntakeGuidelines is not null)
         {
             AddOralMedicationIntakeGuidelinesRequest request = command.Request.OralMedicationIntakeGuidelines;
@@ -46,6 +55,8 @@ public static class AddActiveSubstanceMapping
     public static CreatedActiveSubstanceResponse MapToResponse(this ActiveSubstance activeSubstance) => new(
         Id: activeSubstance.Id,
         ActiveSubstanceName: activeSubstance.ActiveSubstanceName,
+        HasAlcoholInteraction: activeSubstance.HasAlcoholInteraction,
+        AlcoholSpecialText: activeSubstance.AlcoholInteractionOverride?.AlcoholSpecialText,
         OralMedicationIntakeGuidelines: activeSubstance.OralMedicationIntakeGuidelines?.MapToDto());
 }
 

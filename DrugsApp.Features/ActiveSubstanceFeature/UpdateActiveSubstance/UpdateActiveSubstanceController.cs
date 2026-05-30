@@ -18,6 +18,9 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.UpdateActiveSubstance;
 /// </summary>
 public sealed record UpdateActiveSubstanceRequest(
     string? ActiveSubstanceName,
+    bool? HasAlcoholInteraction,
+    string? AlcoholSpecialText,
+    bool? ClearAlcoholSpecialText,
     FoodIntakeType? FoodIntakeType,
     int? WaitBeforeMinutes,
     bool? ClearWaitBeforeMinutes,
@@ -44,6 +47,8 @@ public sealed record UpdateActiveSubstanceRequest(
 public sealed record UpdatedActiveSubstanceResponse(
     Guid Id,
     string ActiveSubstanceName,
+    bool HasAlcoholInteraction,
+    string? AlcoholSpecialText,
     OralMedicationIntakeGuidelinesDto? OralMedicationIntakeGuidelines);
 
 /// <summary>

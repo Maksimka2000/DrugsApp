@@ -19,6 +19,8 @@ namespace DrugsApp.Features.ActiveSubstanceFeature.AddActiveSubstance;
 /// </summary>
 public sealed record AddActiveSubstanceRequest(
     string ActiveSubstanceName,
+    bool? HasAlcoholInteraction,
+    string? AlcoholSpecialText,
     AddOralMedicationIntakeGuidelinesRequest? OralMedicationIntakeGuidelines);
 
 /// <summary>
@@ -27,6 +29,8 @@ public sealed record AddActiveSubstanceRequest(
 public sealed record CreatedActiveSubstanceResponse(
     Guid Id,
     string ActiveSubstanceName,
+    bool HasAlcoholInteraction,
+    string? AlcoholSpecialText,
     OralMedicationIntakeGuidelinesDto? OralMedicationIntakeGuidelines);
 
 /// <summary>

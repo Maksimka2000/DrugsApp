@@ -40,6 +40,7 @@ internal sealed class SearchActiveSubstancesHandler(IActiveSubstanceRepository _
         // search active substances
         List<ActiveSubstance> activeSubstances = await _activeSubstanceRepository.SearchAsync(
             normalizedActiveSubstanceName,
+            query.Alcohol,
             query.Skip,
             takePlusOne,
             cancellationToken);
@@ -60,6 +61,7 @@ internal sealed class SearchActiveSubstancesHandler(IActiveSubstanceRepository _
         {
             totalCount = await _activeSubstanceRepository.CountAsync(
                 normalizedActiveSubstanceName,
+                query.Alcohol,
                 cancellationToken);
         }
 

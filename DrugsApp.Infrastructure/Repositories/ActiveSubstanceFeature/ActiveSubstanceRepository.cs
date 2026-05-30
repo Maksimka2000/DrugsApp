@@ -25,6 +25,7 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
     {
         return await _context.ActiveSubstances
             .Include(a => a.OralMedicationIntakeGuidelines)
+            .Include(a => a.AlcoholInteractionOverride)
             .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
@@ -64,6 +65,7 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
 
     public async Task<List<ActiveSubstance>> SearchAsync(
         string? searchQuery,
+        bool? alcohol,
         int skip,
         int take,
         CancellationToken cancellationToken)
@@ -72,6 +74,7 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
         IQueryable<ActiveSubstance> query = _context.ActiveSubstances.AsNoTracking();
 
         // apply filters
+        query = ApplyAlcoholFilter(query, alcohol);
 
         // apply search 
         query = ApplySearchFilter(query, searchQuery);
@@ -91,12 +94,14 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
 
     public async Task<int> CountAsync(
         string? searchQuery,
+        bool? alcohol,
         CancellationToken cancellationToken)
     {
         // build query
         IQueryable<ActiveSubstance> query = _context.ActiveSubstances.AsNoTracking();
 
         // apply filters
+        query = ApplyAlcoholFilter(query, alcohol);
 
         // apply search filter
         query = ApplySearchFilter(query, searchQuery);
@@ -128,10 +133,26 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
     }
 
     private static IQueryable<ActiveSubstance> ApplyIncludes(IQueryable<ActiveSubstance> query) =>
-        query.Include(a => a.OralMedicationIntakeGuidelines);
+        query
+            .Include(a => a.OralMedicationIntakeGuidelines)
+            .Include(a => a.AlcoholInteractionOverride);
 
     private static IQueryable<ActiveSubstance> ApplySort(IQueryable<ActiveSubstance> query) =>
         query.OrderByDescending(a => a.ActiveSubstanceName);
+
+    private static IQueryable<ActiveSubstance> ApplyAlcoholFilter(
+        IQueryable<ActiveSubstance> query,
+        bool? alcohol)
+    {
+        if (alcohol is not true)
+        {
+            return query;
+        }
+
+        return query.Where(a =>
+            a.HasAlcoholInteraction ||
+            a.AlcoholInteractionOverride != null);
+    }
 
 }
 
