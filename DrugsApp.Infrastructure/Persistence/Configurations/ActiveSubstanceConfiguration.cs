@@ -20,6 +20,10 @@ public sealed class ActiveSubstanceConfiguration : BaseEntityConfiguration<Activ
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(a => a.HasAlcoholInteraction)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasIndex(a => a.ActiveSubstanceName, "Index_ActiveSubstances_ActiveSubstanceName")
             .IsUnique();
 
@@ -27,9 +31,16 @@ public sealed class ActiveSubstanceConfiguration : BaseEntityConfiguration<Activ
             .HasMethod("GIN")
             .HasOperators("gin_trgm_ops");
 
+        builder.HasIndex(a => a.HasAlcoholInteraction, "Index_ActiveSubstances_HasAlcoholInteraction");
+
         builder.HasOne(a => a.OralMedicationIntakeGuidelines)
             .WithOne(g => g.ActiveSubstance)
             .HasForeignKey<OralMedicationIntakeGuidelines>(g => g.ActiveSubstanceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(a => a.AlcoholInteractionOverride)
+            .WithOne(o => o.ActiveSubstance)
+            .HasForeignKey<ActiveSubstanceAlcoholInteractionOverride>(o => o.ActiveSubstanceId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

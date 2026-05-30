@@ -65,6 +65,56 @@ internal sealed class UpdateActiveSubstanceHandler(IActiveSubstanceRepository _a
             }
         }
 
+        bool guidelinesUpdateRequested =
+            command.Request.FoodIntakeType is not null ||
+            command.Request.WaitBeforeMinutes is not null ||
+            command.Request.ClearWaitBeforeMinutes == true ||
+            command.Request.WaitAfterMinutes is not null ||
+            command.Request.ClearWaitAfterMinutes == true ||
+            !string.IsNullOrWhiteSpace(command.Request.MealNotes) ||
+            command.Request.ClearMealNotes == true ||
+            !string.IsNullOrWhiteSpace(command.Request.AvoidFoodDrug) ||
+            command.Request.ClearAvoidFoodDrug == true ||
+            !string.IsNullOrWhiteSpace(command.Request.AvoidFoodTherapy) ||
+            command.Request.ClearAvoidFoodTherapy == true ||
+            !string.IsNullOrWhiteSpace(command.Request.LiquidNotes) ||
+            command.Request.ClearLiquidNotes == true ||
+            command.Request.LiquidInstructions is not null ||
+            command.Request.ClearLiquidInstructions == true ||
+            command.Request.RecommendedMorning is not null ||
+            command.Request.ClearRecommendedMorning == true ||
+            command.Request.RecommendedEvening is not null ||
+            command.Request.ClearRecommendedEvening == true;
+
+        if (guidelinesUpdateRequested && activeSubstance.OralMedicationIntakeGuidelines is null)
+        {
+            return Error.Conflict(
+                description: "Oral medication intake guidelines do not exist. Use the add guidelines endpoint first.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["conflictReason"] = "guidelinesMissing",
+                    ["resourceId"] = activeSubstance.Id.ToString()
+                });
+        }
+
+        if (command.Request.HasAlcoholInteraction == false)
+        {
+            activeSubstance.SetHasAlcoholInteraction(false);
+            activeSubstance.ClearAlcoholInteractionOverride();
+        }
+        else if (command.Request.ClearAlcoholSpecialText == true)
+        {
+            activeSubstance.ClearAlcoholInteractionOverride();
+        }
+        else if (!string.IsNullOrWhiteSpace(command.Request.AlcoholSpecialText))
+        {
+            activeSubstance.UpsertAlcoholInteractionOverride(command.Request.AlcoholSpecialText);
+        }
+        else if (command.Request.HasAlcoholInteraction == true)
+        {
+            activeSubstance.SetHasAlcoholInteraction(true);
+        }
+
 
         if (activeSubstance.OralMedicationIntakeGuidelines is not null)
         {

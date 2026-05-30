@@ -12,6 +12,7 @@ using DrugsApp.Domain.TestFeature.Repositories;
 using DrugsApp.Domain.TempDrugFeature.Repositories;
 using DrugsApp.Domain.VetDrugFeature.Repositories;
 using DrugsApp.Domain.SupplementFeature.Repositories;
+using DrugsApp.Domain.SystemTextFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
 using DrugsApp.Infrastructure.Repositories.ActiveSubstanceFeature;
@@ -25,6 +26,7 @@ using DrugsApp.Infrastructure.Repositories.TestFeature;
 using DrugsApp.Infrastructure.Repositories.TempDrugFeature;
 using DrugsApp.Infrastructure.Repositories.VetDrugFeature;
 using DrugsApp.Infrastructure.Repositories.SupplementFeature;
+using DrugsApp.Infrastructure.Repositories.SystemTextFeature;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<IDefaultMappingForColumnsAttributeRepository, DefaultMappingForColumnsAttributeRepository>();
         services.AddScoped<ISupplementRepository, SupplementRepository>();
         services.AddScoped<ISupplementGroupRepository, SupplementGroupRepository>();
+        services.AddScoped<ISystemTextRepository, SystemTextRepository>();
         services.AddHttpClient("ImportDownload", client =>
         {
             client.Timeout = TimeSpan.FromMinutes(5);

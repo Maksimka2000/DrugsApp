@@ -102,9 +102,7 @@ internal sealed class InteractionExpandedSyncApplicationService(
                 continue;
             }
 
-            List<InteractionAtomicPair> removedPairs = BuildPairs(
-                interactionId,
-                groupAtomicType,
+            List<InteractionAtomicPair> removedPairs = BuildPairs(groupAtomicType,
                 request.RemovedMemberIds,
                 otherAtomicType,
                 otherAtomicIds);
@@ -117,9 +115,7 @@ internal sealed class InteractionExpandedSyncApplicationService(
                     cancellationToken);
             }
 
-            List<InteractionAtomicPair> addedPairs = BuildPairs(
-                interactionId,
-                groupAtomicType,
+            List<InteractionAtomicPair> addedPairs = BuildPairs(groupAtomicType,
                 request.AddedMemberIds,
                 otherAtomicType,
                 otherAtomicIds);
@@ -191,9 +187,7 @@ internal sealed class InteractionExpandedSyncApplicationService(
         return group?.Supplements.Select(member => member.Id).ToList() ?? new List<Guid>();
     }
 
-    private static List<InteractionAtomicPair> BuildPairs(
-        Guid interactionId,
-        ShortInteractionType leftType,
+    private static List<InteractionAtomicPair> BuildPairs(ShortInteractionType leftType,
         IReadOnlyCollection<Guid> leftIds,
         ShortInteractionType rightType,
         IReadOnlyCollection<Guid> rightIds)

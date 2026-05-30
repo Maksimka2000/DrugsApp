@@ -101,6 +101,11 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreatedAtUtc");
 
+                    b.Property<bool>("HasAlcoholInteraction")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("UpdatedAtUtc");
@@ -115,7 +120,37 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "ActiveSubstanceName" }, "Index_ActiveSubstances_ActiveSubstanceName_trgm"), "GIN");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "ActiveSubstanceName" }, "Index_ActiveSubstances_ActiveSubstanceName_trgm"), new[] { "gin_trgm_ops" });
 
+                    b.HasIndex(new[] { "HasAlcoholInteraction" }, "Index_ActiveSubstances_HasAlcoholInteraction");
+
                     b.ToTable("ActiveSubstances", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstanceAlcoholInteractionOverride", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActiveSubstanceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AlcoholSpecialText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "ActiveSubstanceId" }, "Index_ActiveSubstanceAlcoholInteractionOverrides_ActiveSubstanceId")
+                        .IsUnique();
+
+                    b.ToTable("ActiveSubstanceAlcoholInteractionOverrides", (string)null);
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.OralMedicationIntakeGuidelines", b =>
@@ -742,6 +777,45 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("SupplementGroups", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.SystemTextFeature.Entities.SystemText", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("SystemTexts", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("f6c3b9ba-0c43-4f6a-9f42-1c6d7f2b6d1f"),
+                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Key = "activeSubstance.alcohol.defaultText",
+                            Value = "Default alcohol interaction text."
+                        });
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.TempDrugFeature.Entities.DefaultMappingForColumnsAttribute", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1237,6 +1311,17 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstanceAlcoholInteractionOverride", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", "ActiveSubstance")
+                        .WithOne("AlcoholInteractionOverride")
+                        .HasForeignKey("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstanceAlcoholInteractionOverride", "ActiveSubstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ActiveSubstance");
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.OralMedicationIntakeGuidelines", b =>
                 {
                     b.HasOne("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", "ActiveSubstance")
@@ -1324,6 +1409,8 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("DrugsApp.Domain.ActiveSubstanceFeature.Entities.ActiveSubstance", b =>
                 {
+                    b.Navigation("AlcoholInteractionOverride");
+
                     b.Navigation("OralMedicationIntakeGuidelines");
                 });
 

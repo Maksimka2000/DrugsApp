@@ -24,6 +24,8 @@ public static class UpdateActiveSubstanceMapping
     public static UpdatedActiveSubstanceResponse MapToUpdatedResponse(this ActiveSubstance activeSubstance) => new(
         Id: activeSubstance.Id,
         ActiveSubstanceName: activeSubstance.ActiveSubstanceName,
+        HasAlcoholInteraction: activeSubstance.HasAlcoholInteraction,
+        AlcoholSpecialText: activeSubstance.AlcoholInteractionOverride?.AlcoholSpecialText,
         OralMedicationIntakeGuidelines: activeSubstance.OralMedicationIntakeGuidelines?.MapToDto());
 }
 

@@ -9,6 +9,7 @@ using DrugsApp.Domain.TempDrugFeature.Entities;
 using DrugsApp.Domain.TestFeature.Entities;
 using DrugsApp.Domain.VetDrugFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Entities;
+using DrugsApp.Domain.SystemTextFeature.Entities;
 using Microsoft.EntityFrameworkCore;
 namespace DrugsApp.Infrastructure.Persistence;
 
@@ -24,6 +25,7 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<FoodGroup> FoodGroups { get; set; } = null!;
     public DbSet<ActiveSubstance> ActiveSubstances { get; set; } = null!;
     public DbSet<OralMedicationIntakeGuidelines> OralMedicationIntakeGuidelines { get; set; } = null!;
+    public DbSet<ActiveSubstanceAlcoholInteractionOverride> ActiveSubstanceAlcoholInteractionOverrides { get; set; } = null!;
     public DbSet<ActiveSubstanceGroup> ActiveSubstanceGroups { get; set; } = null!;
     public DbSet<TempDrug> TempDrugs { get; set; } = null!;
     public DbSet<TempDrugImportBatch> TempDrugImportBatches { get; set; } = null!;
@@ -34,6 +36,7 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<InteractionParty> InteractionParties { get; set; } = null!;
     public DbSet<InteractionExpanded> InteractionExpandedRows { get; set; } = null!;
     public DbSet<InteractionSeverity> InteractionSeverities { get; set; } = null!;
+    public DbSet<SystemText> SystemTexts { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
