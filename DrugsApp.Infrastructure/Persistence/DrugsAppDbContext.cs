@@ -10,6 +10,7 @@ using DrugsApp.Domain.TestFeature.Entities;
 using DrugsApp.Domain.VetDrugFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SystemTextFeature.Entities;
+using DrugsApp.Domain.SupportFeature.Entities;
 using Microsoft.EntityFrameworkCore;
 namespace DrugsApp.Infrastructure.Persistence;
 
@@ -37,6 +38,7 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<InteractionExpanded> InteractionExpandedRows { get; set; } = null!;
     public DbSet<InteractionSeverity> InteractionSeverities { get; set; } = null!;
     public DbSet<SystemText> SystemTexts { get; set; } = null!;
+    public DbSet<FaqEntry> FaqEntries { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
