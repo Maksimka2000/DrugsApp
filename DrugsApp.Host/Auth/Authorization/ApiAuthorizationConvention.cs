@@ -1,4 +1,5 @@
 using System.Linq;
+using DrugsApp.Domain.AuthFeature;
 using DrugsApp.Domain.AuthFeature.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -45,10 +46,14 @@ namespace DrugsApp.Host.Auth.Authorization;
 
 public sealed class ApiAuthorizationConvention : IApplicationModelConvention
 {
-    private static readonly HashSet<string> CatalogReadNamespaces = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> ClientCatalogReadNamespaces = new(StringComparer.Ordinal)
     {
         "DrugsApp.Features.DrugFeature.SearchDrugs",
         "DrugsApp.Features.DrugFeature.RetrieveDrug",
+    };
+
+    private static readonly HashSet<string> CatalogReadNamespaces = new(StringComparer.Ordinal)
+    {
         "DrugsApp.Features.VetDrugFeature.SearchVetDrugs",
         "DrugsApp.Features.VetDrugFeature.RetrieveVetDrug",
         "DrugsApp.Features.ActiveSubstanceFeature.SearchActiveSubstances",
@@ -225,6 +230,16 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
             return;
         }
 
+        if (ClientCatalogReadNamespaces.Contains(controllerNamespace))
+        {
+            RequireAnyPermissionOrClientRole(
+                controller,
+                Permission.ManageCatalog,
+                Permission.ManageReviews,
+                Permission.ManageInteractions);
+            return;
+        }
+
         if (CatalogReadNamespaces.Contains(controllerNamespace))
         {
             RequireAnyPermission(
@@ -254,6 +269,17 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
     private static void RequireAnyPermission(ControllerModel controller, params Permission[] permissions)
     {
         controller.Filters.Add(new AuthorizeFilter([new HasAnyPermissionAttribute(permissions)]));
+    }
+
+    private static void RequireAnyPermissionOrClientRole(ControllerModel controller, params Permission[] permissions)
+    {
+        string[] orderedPermissionNames = permissions
+            .Select(permission => permission.ToString())
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+
+        string policy = "AnyPermissionOrClient:" + AuthRoles.Client + "|" + string.Join('|', orderedPermissionNames);
+        controller.Filters.Add(new AuthorizeFilter(policy));
     }
 }
 

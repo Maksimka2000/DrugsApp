@@ -1373,6 +1373,99 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("PharmaceuticalForms", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid>("DrugFormId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DrugId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("HistoryReason")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DrugFormId");
+
+                    b.HasIndex("DrugId");
+
+                    b.HasIndex("Status", "EndDate")
+                        .HasDatabaseName("IX_client_regular_drugs_status_end_date_live")
+                        .HasFilter("\"Status\" IN ('Scheduled', 'Active')");
+
+                    b.HasIndex("UserId", "ArchivedAtUtc")
+                        .HasDatabaseName("IX_client_regular_drugs_user_id_archived_at_utc")
+                        .HasFilter("\"Status\" = 'Expired'");
+
+                    b.HasIndex("UserId", "DrugId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_regular_drugs_user_id_drug_id_live")
+                        .HasFilter("\"Status\" IN ('Scheduled', 'Active')");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("IX_client_regular_drugs_user_id_status");
+
+                    b.ToTable("client_regular_drugs", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrugIntakeTime", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<TimeOnly>("IntakeTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("RegularDrugId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegularDrugId", "IntakeTime")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_regular_drug_intake_times_regular_drug_id_intake_time");
+
+                    b.ToTable("client_regular_drug_intake_times", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.RouteOfAdministrationFeature.Entities.RouteOfAdministration", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2516,6 +2609,36 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("SystemAnnouncement");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.DrugForm", "DrugForm")
+                        .WithMany()
+                        .HasForeignKey("DrugFormId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", "Drug")
+                        .WithMany()
+                        .HasForeignKey("DrugId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Drug");
+
+                    b.Navigation("DrugForm");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrugIntakeTime", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", "RegularDrug")
+                        .WithMany("IntakeTimes")
+                        .HasForeignKey("RegularDrugId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RegularDrug");
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.ClientReproductiveHealthProfile", b =>
                 {
                     b.HasOne("DrugsApp.Domain.UserProfileFeature.Entities.UserProfile", null)
@@ -2637,6 +2760,11 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("ExpandedRows");
 
                     b.Navigation("Parties");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", b =>
+                {
+                    b.Navigation("IntakeTimes");
                 });
 #pragma warning restore 612, 618
         }

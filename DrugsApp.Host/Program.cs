@@ -8,6 +8,7 @@ using DrugsApp.Host.Auth.Swagger;
 using DrugsApp.Host.Exceptions;
 using DrugsApp.Host.Hangfire;
 using DrugsApp.Host.Hangfire.NotificationsFeature;
+using DrugsApp.Host.Hangfire.RegularDrugsFeature;
 using Hangfire;
 using DrugsApp.Infrastructure;
 using DrugsApp.Infrastructure.Extensions;
@@ -34,6 +35,8 @@ builder.Services.AddFeatures();
 builder.Services.AddHangfireProcessing(builder.Configuration);
 builder.Services.Configure<WeeklyHealthDataReminderJobSettings>(
     builder.Configuration.GetSection(WeeklyHealthDataReminderJobSettings.SectionName));
+builder.Services.Configure<RegularDrugExpirationJobSettings>(
+    builder.Configuration.GetSection(RegularDrugExpirationJobSettings.SectionName));
 builder.Services.AddScoped<ITempDrugImportJobScheduler, HangfireTempDrugImportJobScheduler>();
 builder.Services.AddScoped<ITempDrugImportJobStatusProvider, HangfireTempDrugImportJobStatusProvider>();
 
@@ -80,6 +83,7 @@ builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizat
 // they enforce the policies that PermissionAuthorizationPolicyProvider creates.
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AnyPermissionAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, AnyPermissionOrClientRoleAuthorizationHandler>();
 
 // CORS
 string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
@@ -141,6 +145,17 @@ if (weeklyHealthReminderSettings.Enabled)
         "weekly-health-data-reminder",
         job => job.ExecuteAsync(CancellationToken.None),
         weeklyHealthReminderSettings.CronExpression);
+}
+
+RegularDrugExpirationJobSettings regularDrugExpirationSettings = app.Services
+    .GetRequiredService<IOptions<RegularDrugExpirationJobSettings>>()
+    .Value;
+if (regularDrugExpirationSettings.Enabled)
+{
+    RecurringJob.AddOrUpdate<RegularDrugExpirationHangfireJob>(
+        "regular-drug-expiration",
+        job => job.ExecuteAsync(CancellationToken.None),
+        regularDrugExpirationSettings.CronExpression);
 }
 
 await app.RunAsync();
