@@ -20,6 +20,7 @@ services:
       - drugsapp-cache
       - drugsapp-seq
       - drugsapp-blobstorage
+      - drugsapp-mail
   
   
   # PostgreSQL Database Service
@@ -77,6 +78,14 @@ services:
     ports:
       - "10000:10000"
     command: "azurite-blob --blobHost 0.0.0.0 --location /data"
+
+  # Papercut SMTP (local email inbox)
+  drugsapp-mail:
+    image: changemakerstudiosus/papercut-smtp:latest
+    container_name: drugsapp-mail
+    ports:
+      - "37408:8080" # Web UI
+      - "2525:2525"  # SMTP
 
 
 volumes:

@@ -52,6 +52,18 @@ public static class ErrorOrExtensions
                 "ConflinctError",
                 firstError.Description,
                 NormalizeExtensionMembers(firstError.Metadata)),
+            ErrorType.Unauthorized => BuildProblemResult(
+                httpContext,
+                StatusCodes.Status401Unauthorized,
+                "UnauthorizedError",
+                firstError.Description,
+                NormalizeExtensionMembers(firstError.Metadata)),
+            ErrorType.Forbidden => BuildProblemResult(
+                httpContext,
+                StatusCodes.Status403Forbidden,
+                "ForbiddenError",
+                firstError.Description,
+                NormalizeExtensionMembers(firstError.Metadata)),
             _ => BuildProblemResult(
                 httpContext,
                 StatusCodes.Status500InternalServerError,
