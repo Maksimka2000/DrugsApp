@@ -1,5 +1,6 @@
 using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.ActiveSubstanceGroupFeature.Entities;
+using DrugsApp.Domain.AuthFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Entities;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
@@ -11,10 +12,13 @@ using DrugsApp.Domain.VetDrugFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SystemTextFeature.Entities;
 using DrugsApp.Domain.SupportFeature.Entities;
+using DrugsApp.Infrastructure.Persistence.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace DrugsApp.Infrastructure.Persistence;
 
-public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> options) : DbContext(options)
+public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> options)
+    : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
 {
     public DbSet<Test> Tests { get; set; } = null!;
     public DbSet<VetDrug> VetDrugs { get; set; } = null!;
@@ -39,6 +43,7 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<InteractionSeverity> InteractionSeverities { get; set; } = null!;
     public DbSet<SystemText> SystemTexts { get; set; } = null!;
     public DbSet<FaqEntry> FaqEntries { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -76,14 +76,19 @@ public class UnitOfWork : IUnitOfWork
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
+        if (_transaction is null)
+        {
+            return;
+        }
+
         try
         {
-            await _transaction!.RollbackAsync(cancellationToken);
+            await _transaction.RollbackAsync(cancellationToken);
             // Logger add if needed: Add logger with type (LogWarning)
         }
         finally
         {
-            _transaction?.Dispose();
+            _transaction.Dispose();
             _transaction = null;
         }
     }
