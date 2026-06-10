@@ -1,5 +1,4 @@
 using System;
-using DrugsApp.Features.MealTimeManagementFeature.Shared;
 using FluentValidation;
 
 namespace DrugsApp.Features.MealTimeManagementFeature.CheckMealTimeAvailability;
@@ -19,13 +18,6 @@ public sealed class CheckMealTimeAvailabilityRequestValidator
                 .WithMessage("Meal name must not be whitespace.")
                 .MaximumLength(128)
                 .WithMessage("Meal name must not exceed 128 characters.");
-        });
-
-        When(request => !string.IsNullOrWhiteSpace(request.IntakeTime), () =>
-        {
-            RuleFor(request => request.IntakeTime)
-                .Must(value => MealTimeMappings.TryParseIntakeTime(value!, out _))
-                .WithMessage("Intake time must be a valid HH:mm value.");
         });
 
         When(request => request.ExcludeId is not null, () =>

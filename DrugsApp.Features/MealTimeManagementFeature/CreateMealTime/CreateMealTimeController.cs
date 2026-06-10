@@ -19,7 +19,7 @@ namespace DrugsApp.Features.MealTimeManagementFeature.CreateMealTime;
 /// <summary>
 /// Request model for creating a meal time.
 /// </summary>
-public sealed record CreateMealTimeRequest(string MealName, string IntakeTime);
+public sealed record CreateMealTimeRequest(string MealName, TimeOnly IntakeTime);
 
 /// <summary>
 /// Command for creating a meal time.

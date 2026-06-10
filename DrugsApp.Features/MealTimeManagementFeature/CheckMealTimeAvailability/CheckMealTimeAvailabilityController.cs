@@ -20,7 +20,7 @@ namespace DrugsApp.Features.MealTimeManagementFeature.CheckMealTimeAvailability;
 /// </summary>
 public sealed record CheckMealTimeAvailabilityRequest(
     string? MealName,
-    string? IntakeTime,
+    TimeOnly? IntakeTime,
     Guid? ExcludeId);
 
 /// <summary>
@@ -58,7 +58,7 @@ public sealed class CheckMealTimeAvailabilityController(
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<MealTimeAvailabilityResponse>> Check(
         [FromQuery(Name = "meal_name")] string? mealName,
-        [FromQuery(Name = "intake_time")] string? intakeTime,
+        [FromQuery(Name = "intake_time")] TimeOnly? intakeTime,
         [FromQuery(Name = "exclude_id")] Guid? excludeId,
         CancellationToken cancellationToken = default)
     {

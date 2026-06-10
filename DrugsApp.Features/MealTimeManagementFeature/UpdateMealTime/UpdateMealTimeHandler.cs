@@ -66,9 +66,9 @@ internal sealed class UpdateMealTimeHandler(
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(command.Request.IntakeTime))
+        if (command.Request.IntakeTime is not null)
         {
-            MealTimeMappings.TryParseIntakeTime(command.Request.IntakeTime, out TimeOnly intakeTime);
+            TimeOnly intakeTime = command.Request.IntakeTime.Value;
 
             bool hasDuplicateTime = await _mealTimeRepository.ExistsWithIntakeTimeAsync(
                 command.UserId,
