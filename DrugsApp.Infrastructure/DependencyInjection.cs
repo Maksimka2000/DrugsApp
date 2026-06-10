@@ -24,6 +24,7 @@ using DrugsApp.Domain.DrugProblemsFeature.Repositories;
 using DrugsApp.Domain.MealTimeManagementFeature.Repositories;
 using DrugsApp.Domain.NotificationsFeature.Interfaces;
 using DrugsApp.Domain.NotificationsFeature.Repositories;
+using DrugsApp.Domain.RegularDrugsFeature.Interfaces;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
 using DrugsApp.Infrastructure.ExternalServices.Email;
@@ -47,6 +48,7 @@ using DrugsApp.Infrastructure.Repositories.AllergiesFeature;
 using DrugsApp.Infrastructure.Repositories.DrugProblemsFeature;
 using DrugsApp.Infrastructure.Repositories.MealTimeManagementFeature;
 using DrugsApp.Infrastructure.Repositories.NotificationsFeature;
+using DrugsApp.Infrastructure.Repositories.RegularDrugsFeature;
 using DrugsApp.Infrastructure.Services.NotificationsFeature;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using DrugsApp.Infrastructure.Services.AuthFeature;
@@ -130,6 +132,7 @@ public static class DependencyInjection
         services.AddScoped<IClientMealTimeRepository, ClientMealTimeRepository>();
         services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
         services.AddScoped<ISystemAnnouncementRepository, SystemAnnouncementRepository>();
+        services.AddScoped<IClientRegularDrugRepository, ClientRegularDrugRepository>();
         services.AddScoped<IUserSecurityStatusReadService, UserSecurityStatusReadService>();
         services.AddScoped<IPatientSupervisionNotificationReadService, PatientSupervisionNotificationReadService>();
 

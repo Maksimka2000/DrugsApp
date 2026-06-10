@@ -18,6 +18,7 @@ using DrugsApp.Domain.SupportFeature.Entities;
 using DrugsApp.Domain.MealTimeManagementFeature.Entities;
 using DrugsApp.Domain.NotificationsFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Entities;
+using DrugsApp.Domain.RegularDrugsFeature.Entities;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,8 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<ClientMealTime> ClientMealTimes { get; set; } = null!;
     public DbSet<SystemAnnouncement> SystemAnnouncements { get; set; } = null!;
     public DbSet<UserNotification> UserNotifications { get; set; } = null!;
+    public DbSet<ClientRegularDrug> ClientRegularDrugs { get; set; } = null!;
+    public DbSet<ClientRegularDrugIntakeTime> ClientRegularDrugIntakeTimes { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
