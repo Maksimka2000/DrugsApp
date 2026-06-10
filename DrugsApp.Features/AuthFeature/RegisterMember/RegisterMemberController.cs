@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.AuthFeature.Interfaces;
 using DrugsApp.Features.AuthFeature.ConfirmEmail;
+using DrugsApp.Features.UserProfileFeature.Shared;
 using DrugsApp.Features.Common.Extensions;
 using ErrorOr;
 using FluentValidation;
@@ -15,7 +16,12 @@ namespace DrugsApp.Features.AuthFeature.RegisterMember;
 
 public sealed record RegisterMemberRequest(
     string Email,
-    string Password);
+    string Password,
+    string ConfirmPassword,
+    string FirstName,
+    string LastName,
+    DateOnly DateOfBirth,
+    string Gender);
 
 public sealed record RegisterMemberResponse(
     Guid UserId,

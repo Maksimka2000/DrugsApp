@@ -246,6 +246,44 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("ActiveSubstanceGroups", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.AuthFeature.Entities.PendingEmailChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NewEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAtUtc");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("pending_email_changes", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.AuthFeature.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -390,6 +428,95 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("DrugForms", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.DrugProblemsFeature.Entities.DrugProblem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CustomDrugName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid?>("DrugId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProblemNote")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DrugId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_DrugProblems_UserId");
+
+                    b.HasIndex("UserId", "CustomDrugName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DrugProblems_UserId_CustomDrugName")
+                        .HasFilter("\"CustomDrugName\" IS NOT NULL");
+
+                    b.HasIndex("UserId", "DrugId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DrugProblems_UserId_DrugId")
+                        .HasFilter("\"DrugId\" IS NOT NULL");
+
+                    b.HasIndex("UserId", "CreatedAtUtc", "Id")
+                        .HasDatabaseName("IX_DrugProblems_UserId_CreatedAtUtc_Id");
+
+                    b.ToTable("DrugProblems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_DrugProblems_SourceXor", "(CASE WHEN \"DrugId\" IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN \"CustomDrugName\" IS NOT NULL THEN 1 ELSE 0 END) = 1");
+                        });
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.DrugProblemsFeature.Entities.DrugProblemType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("ProblemTypeName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProblemTypeName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DrugProblemTypes_ProblemTypeName_Lower");
+
+                    b.HasIndex("ProblemTypeName", "Id")
+                        .HasDatabaseName("IX_DrugProblemTypes_ProblemTypeName_Id");
+
+                    b.ToTable("DrugProblemTypes", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.FoodFeature.Entities.Food", b =>
                 {
                     b.Property<Guid>("Id")
@@ -459,6 +586,104 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Name" }, "Index_FoodGroups_Name_trgm"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("FoodGroups", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.HealthConditionFeature.Entities.HealthCondition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("HealthConditionName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedHealthConditionName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedHealthConditionName")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "NormalizedHealthConditionName" }, "IX_HealthConditions_NormalizedHealthConditionName_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "NormalizedHealthConditionName" }, "IX_HealthConditions_NormalizedHealthConditionName_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "NormalizedHealthConditionName" }, "IX_HealthConditions_NormalizedHealthConditionName_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.ToTable("HealthConditions", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.HealthConditionFeature.Entities.UserHealthCondition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CustomHealthConditionName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid?>("HealthConditionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NormalizedCustomHealthConditionName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HealthConditionId");
+
+                    b.HasIndex("NormalizedCustomHealthConditionName")
+                        .HasDatabaseName("IX_UserHealthConditions_NormalizedCustomHealthConditionName_trgm")
+                        .HasFilter("\"Source\" = 'Custom'");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("NormalizedCustomHealthConditionName"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("NormalizedCustomHealthConditionName"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "UserId", "HealthConditionId" }, "IX_UserHealthConditions_UserId_HealthConditionId_Database")
+                        .IsUnique()
+                        .HasFilter("\"Source\" = 'Database'");
+
+                    b.HasIndex(new[] { "UserId", "NormalizedCustomHealthConditionName" }, "IX_UserHealthConditions_UserId_NormalizedCustomHealthConditionName_Custom")
+                        .IsUnique()
+                        .HasFilter("\"Source\" = 'Custom'");
+
+                    b.ToTable("UserHealthConditions", (string)null);
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.Interaction", b =>
@@ -1272,6 +1497,134 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("Tests", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.ClientReproductiveHealthProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContraceptionMethodCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<bool>("CurrentlyPregnant")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Menopause")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("PlanningToGetPregnant")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("client_reproductive_health_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.HealthcareProviderProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateTime?>("OnboardingCompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OtherProfessionLabel")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ProfessionCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("WorkplaceLabel")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("healthcare_provider_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.UserProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ProfilePhotoStorageKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("user_profiles", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.VetDrugFeature.Entities.VetDrug", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1612,6 +1965,15 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("ActiveSubstance");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.AuthFeature.Entities.PendingEmailChange", b =>
+                {
+                    b.HasOne("DrugsApp.Infrastructure.Persistence.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.DrugFeature.Entities.DrugForm", b =>
                 {
                     b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", "Drug")
@@ -1621,6 +1983,26 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Drug");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.DrugProblemsFeature.Entities.DrugProblem", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", "Drug")
+                        .WithMany()
+                        .HasForeignKey("DrugId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Drug");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.HealthConditionFeature.Entities.UserHealthCondition", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.HealthConditionFeature.Entities.HealthCondition", "HealthCondition")
+                        .WithMany("UserHealthConditions")
+                        .HasForeignKey("HealthConditionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("HealthCondition");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.Interaction", b =>
@@ -1654,6 +2036,24 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Interaction");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.ClientReproductiveHealthProfile", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.UserProfileFeature.Entities.UserProfile", null)
+                        .WithOne()
+                        .HasForeignKey("DrugsApp.Domain.UserProfileFeature.Entities.ClientReproductiveHealthProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.HealthcareProviderProfile", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.UserProfileFeature.Entities.UserProfile", null)
+                        .WithOne()
+                        .HasForeignKey("DrugsApp.Domain.UserProfileFeature.Entities.HealthcareProviderProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FoodGroupFoods", b =>
@@ -1747,6 +2147,11 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("DrugsApp.Domain.DrugFeature.Entities.Drug", b =>
                 {
                     b.Navigation("DrugForms");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.HealthConditionFeature.Entities.HealthCondition", b =>
+                {
+                    b.Navigation("UserHealthConditions");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.InteractionFeature.Entities.Interaction", b =>

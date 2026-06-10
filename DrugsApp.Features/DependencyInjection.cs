@@ -5,6 +5,7 @@ using DrugsApp.Features.Common.Behaviors;
 using DrugsApp.Features.TempDrugFeature.ApplicationServices;
 using DrugsApp.Features.VetDrugFeature.ApplicationServices;
 using DrugsApp.Features.InteractionFeature.ApplicationServices;
+using DrugsApp.Features.UserProfileFeature.ApplicationServices;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,6 +41,9 @@ public static class DependencyInjection
         services.AddScoped<IDrugSimilarityDomainService, DrugSimilarityDomainService>();
         services.AddScoped<IInteractionWriteApplicationService, InteractionWriteApplicationService>();
         services.AddScoped<IInteractionExpandedSyncApplicationService, InteractionExpandedSyncApplicationService>();
+        services.AddScoped<IReproductiveHealthProfileApplicationService, ReproductiveHealthProfileApplicationService>();
+        services.AddScoped<IHealthcareProviderProfileApplicationService, HealthcareProviderProfileApplicationService>();
+        services.AddScoped<IHealthcareProviderTeardownService, HealthcareProviderTeardownService>();
 
         return services;
     }

@@ -16,7 +16,10 @@ using DrugsApp.Domain.TempDrugFeature.Repositories;
 using DrugsApp.Domain.VetDrugFeature.Repositories;
 using DrugsApp.Domain.SupplementFeature.Repositories;
 using DrugsApp.Domain.SupportFeature.Repositories;
+using DrugsApp.Domain.UserProfileFeature.Repositories;
 using DrugsApp.Domain.SystemTextFeature.Repositories;
+using DrugsApp.Domain.HealthConditionFeature.Repositories;
+using DrugsApp.Domain.DrugProblemsFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
 using DrugsApp.Infrastructure.ExternalServices.Email;
@@ -34,6 +37,9 @@ using DrugsApp.Infrastructure.Repositories.VetDrugFeature;
 using DrugsApp.Infrastructure.Repositories.SupplementFeature;
 using DrugsApp.Infrastructure.Repositories.SupportFeature;
 using DrugsApp.Infrastructure.Repositories.SystemTextFeature;
+using DrugsApp.Infrastructure.Repositories.UserProfileFeature;
+using DrugsApp.Infrastructure.Repositories.HealthConditionFeature;
+using DrugsApp.Infrastructure.Repositories.DrugProblemsFeature;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using DrugsApp.Infrastructure.Services.AuthFeature;
 using Microsoft.AspNetCore.Identity;
@@ -100,6 +106,14 @@ public static class DependencyInjection
         services.AddScoped<IFaqEntryRepository, FaqEntryRepository>();
         services.AddScoped<ISystemTextRepository, SystemTextRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+        services.AddScoped<IClientReproductiveHealthProfileRepository, ClientReproductiveHealthProfileRepository>();
+        services.AddScoped<IHealthcareProviderProfileRepository, HealthcareProviderProfileRepository>();
+        services.AddScoped<IPendingEmailChangeRepository, PendingEmailChangeRepository>();
+        services.AddScoped<IHealthConditionRepository, HealthConditionRepository>();
+        services.AddScoped<IUserHealthConditionRepository, UserHealthConditionRepository>();
+        services.AddScoped<IDrugProblemRepository, DrugProblemRepository>();
+        services.AddScoped<IDrugProblemTypeRepository, DrugProblemTypeRepository>();
 
 
         // Register Email External services here
