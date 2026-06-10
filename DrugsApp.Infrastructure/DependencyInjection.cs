@@ -21,6 +21,7 @@ using DrugsApp.Domain.SystemTextFeature.Repositories;
 using DrugsApp.Domain.HealthConditionFeature.Repositories;
 using DrugsApp.Domain.AllergiesFeature.Repositories;
 using DrugsApp.Domain.DrugProblemsFeature.Repositories;
+using DrugsApp.Domain.MealTimeManagementFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
 using DrugsApp.Infrastructure.ExternalServices.Email;
@@ -42,6 +43,7 @@ using DrugsApp.Infrastructure.Repositories.UserProfileFeature;
 using DrugsApp.Infrastructure.Repositories.HealthConditionFeature;
 using DrugsApp.Infrastructure.Repositories.AllergiesFeature;
 using DrugsApp.Infrastructure.Repositories.DrugProblemsFeature;
+using DrugsApp.Infrastructure.Repositories.MealTimeManagementFeature;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using DrugsApp.Infrastructure.Services.AuthFeature;
 using Microsoft.AspNetCore.Identity;
@@ -121,6 +123,7 @@ public static class DependencyInjection
         services.AddScoped<IClientSupplementAllergyRepository, ClientSupplementAllergyRepository>();
         services.AddScoped<IClientFoodAllergyRepository, ClientFoodAllergyRepository>();
         services.AddScoped<IClientOtherAllergyRepository, ClientOtherAllergyRepository>();
+        services.AddScoped<IClientMealTimeRepository, ClientMealTimeRepository>();
 
 
         // Register Email External services here

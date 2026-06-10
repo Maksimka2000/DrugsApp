@@ -15,6 +15,7 @@ using DrugsApp.Domain.VetDrugFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SystemTextFeature.Entities;
 using DrugsApp.Domain.SupportFeature.Entities;
+using DrugsApp.Domain.MealTimeManagementFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -61,6 +62,7 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<ClientSupplementAllergy> ClientSupplementAllergies { get; set; } = null!;
     public DbSet<ClientFoodAllergy> ClientFoodAllergies { get; set; } = null!;
     public DbSet<ClientOtherAllergy> ClientOtherAllergies { get; set; } = null!;
+    public DbSet<ClientMealTime> ClientMealTimes { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
