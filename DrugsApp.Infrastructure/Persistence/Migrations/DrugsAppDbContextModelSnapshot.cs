@@ -1199,6 +1199,149 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("ClientMealTimes", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.NotificationsFeature.Entities.SystemAnnouncement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ActiveFromUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ActiveToUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AudienceScopeCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BodyText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("DeepLinkPath")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("PrimaryTagCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SummaryText")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActiveFromUtc", "ActiveToUtc")
+                        .HasDatabaseName("IX_SystemAnnouncements_ActiveFromUtc_ActiveToUtc");
+
+                    b.ToTable("SystemAnnouncements", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.NotificationsFeature.Entities.UserNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActionState")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AudienceScopeCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BodyText")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("DeepLinkPath")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PrimaryTagCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReadAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RelatedAggregateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RelatedAggregateType")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool>("RequiresAction")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SourceEventKey")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("SummaryText")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("SystemAnnouncementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TypeCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemAnnouncementId");
+
+                    b.HasIndex("UserId", "SourceEventKey")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserNotifications_UserId_SourceEventKey");
+
+                    b.HasIndex("UserId", "AudienceScopeCode", "CreatedAtUtc")
+                        .HasDatabaseName("IX_UserNotifications_UserId_AudienceScopeCode_CreatedAtUtc");
+
+                    b.HasIndex("UserId", "IsRead", "CreatedAtUtc", "Id")
+                        .HasDatabaseName("IX_UserNotifications_UserId_IsRead_CreatedAtUtc_Id");
+
+                    b.ToTable("UserNotifications", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.PharmaceuticalFormFeature.Entities.PharmaceuticalForm", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2355,6 +2498,22 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Interaction");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.NotificationsFeature.Entities.UserNotification", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.NotificationsFeature.Entities.SystemAnnouncement", "SystemAnnouncement")
+                        .WithMany()
+                        .HasForeignKey("SystemAnnouncementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DrugsApp.Infrastructure.Persistence.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SystemAnnouncement");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.ClientReproductiveHealthProfile", b =>
