@@ -11,4 +11,10 @@ public interface IEmailVerificationSender
         string email,
         string confirmationToken,
         CancellationToken cancellationToken);
+
+    Task SendEmailChangeConfirmationAsync(
+        Guid userId,
+        string newEmail,
+        string confirmationToken,
+        CancellationToken cancellationToken);
 }

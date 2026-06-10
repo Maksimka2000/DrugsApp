@@ -37,4 +37,31 @@ public sealed class EmailVerificationSender(
             .Body(htmlBody, isHtml: true)
             .SendAsync(cancellationToken);
     }
+
+    public async Task SendEmailChangeConfirmationAsync(
+        Guid userId,
+        string newEmail,
+        string confirmationToken,
+        CancellationToken cancellationToken)
+    {
+        EmailSettings settings = _emailSettings.Value;
+
+        string clientBaseUrl = settings.ClientBaseUrl.TrimEnd('/');
+
+        string confirmUrl =
+            $"{clientBaseUrl}/account/confirm-email-change?userId={userId:D}&token={confirmationToken}";
+
+        string htmlBody =
+            $"""
+             <p>To confirm your new login email, click this link:</p>
+             <p><a href="{confirmUrl}">Confirm email change</a></p>
+             """;
+
+        await _emailFactory
+            .Create()
+            .To(newEmail)
+            .Subject("Confirm your new email")
+            .Body(htmlBody, isHtml: true)
+            .SendAsync(cancellationToken);
+    }
 }

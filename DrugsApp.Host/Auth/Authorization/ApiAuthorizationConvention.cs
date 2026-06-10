@@ -129,6 +129,14 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         "DrugsApp.Features.TempDrugFeature.UpdateDrugFormLinksFromTempDrugReview"
     };
 
+    private static readonly HashSet<string> DrugProblemTypeManageNamespaces = new(StringComparer.Ordinal)
+    {
+        "DrugsApp.Features.DrugProblemsFeature.CreateDrugProblemType",
+        "DrugsApp.Features.DrugProblemsFeature.UpdateDrugProblemType",
+        "DrugsApp.Features.DrugProblemsFeature.DeleteDrugProblemType",
+        "DrugsApp.Features.DrugProblemsFeature.CheckDrugProblemTypeNameAvailability"
+    };
+
     public void Apply(ApplicationModel application)
     {
         foreach (ControllerModel controller in application.Controllers)
@@ -199,6 +207,12 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         if (ReviewNamespaces.Contains(controllerNamespace))
         {
             RequirePermission(controller, Permission.ManageReviews);
+            return;
+        }
+
+        if (DrugProblemTypeManageNamespaces.Contains(controllerNamespace))
+        {
+            RequirePermission(controller, Permission.ManageOther);
             return;
         }
 
