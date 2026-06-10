@@ -1,8 +1,11 @@
 using System;
+using System.Net;
+using System.Net.Mail;
 using Azure.Storage.Blobs;
 using DrugsApp.Domain.Common;
 using DrugsApp.Domain.ActiveSubstanceFeature.Repositories;
 using DrugsApp.Domain.ActiveSubstanceGroupFeature.Repositories;
+using DrugsApp.Domain.AuthFeature.Interfaces;
 using DrugsApp.Domain.DrugFeature.Repositories;
 using DrugsApp.Domain.FoodFeature.Repositories;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Repositories;
@@ -16,8 +19,10 @@ using DrugsApp.Domain.SupportFeature.Repositories;
 using DrugsApp.Domain.SystemTextFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
+using DrugsApp.Infrastructure.ExternalServices.Email;
 using DrugsApp.Infrastructure.Repositories.ActiveSubstanceFeature;
 using DrugsApp.Infrastructure.Repositories.ActiveSubstanceGroupFeature;
+using DrugsApp.Infrastructure.Repositories.AuthFeature;
 using DrugsApp.Infrastructure.Repositories.DrugFeature;
 using DrugsApp.Infrastructure.Repositories.FoodFeature;
 using DrugsApp.Infrastructure.Repositories.PharmaceuticalFormFeature;
@@ -29,6 +34,9 @@ using DrugsApp.Infrastructure.Repositories.VetDrugFeature;
 using DrugsApp.Infrastructure.Repositories.SupplementFeature;
 using DrugsApp.Infrastructure.Repositories.SupportFeature;
 using DrugsApp.Infrastructure.Repositories.SystemTextFeature;
+using DrugsApp.Infrastructure.Persistence.Identity;
+using DrugsApp.Infrastructure.Services.AuthFeature;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,6 +58,23 @@ public static class DependencyInjection
         // regis cache registration
         string? redisConnection = configuration.GetConnectionString("Redis");
         services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
+
+        // 
+        services.AddIdentityCore<ApplicationUser>(options =>
+        {
+            options.User.RequireUniqueEmail = true;
+            options.SignIn.RequireConfirmedEmail = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+        })
+            .AddRoles<ApplicationRole>()
+            .AddDefaultTokenProviders();
+
+        services.AddScoped<IUserStore<ApplicationUser>, ApplicationUserStore>();
+        services.AddScoped<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
 
         // Register UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -74,10 +99,37 @@ public static class DependencyInjection
         services.AddScoped<ISupplementGroupRepository, SupplementGroupRepository>();
         services.AddScoped<IFaqEntryRepository, FaqEntryRepository>();
         services.AddScoped<ISystemTextRepository, SystemTextRepository>();
-        services.AddHttpClient("ImportDownload", client =>
-        {
-            client.Timeout = TimeSpan.FromMinutes(5);
-        });
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+
+
+        // Register Email External services here
+        services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+        EmailSettings emailSettings = configuration.GetSection(EmailSettings.SectionName).Get<EmailSettings>() ?? new();
+        services
+            .AddFluentEmail(emailSettings.SenderEmail, emailSettings.SenderName)
+            .AddSmtpSender(() =>
+            {
+                var client = new SmtpClient(emailSettings.SmtpHost, emailSettings.SmtpPort);
+
+                if (!string.IsNullOrWhiteSpace(emailSettings.SmtpUsername) &&
+                    !string.IsNullOrWhiteSpace(emailSettings.SmtpPassword))
+                {
+                    client.Credentials = new NetworkCredential(
+                        emailSettings.SmtpUsername,
+                        emailSettings.SmtpPassword);
+                    client.EnableSsl = true;
+                }
+
+                return client;
+            });
+
+        services.AddScoped<IEmailVerificationSender, EmailVerificationSender>();
+        services.Configure<SuperAdminSettings>(configuration.GetSection(SuperAdminSettings.SectionName));
+        services.AddScoped<IIdentityAuthenticationService, IdentityAuthenticationService>();
+        services.AddScoped<IUserPermissionService, UserPermissionServiceDb>();
+        services.Decorate<IUserPermissionService, UserPermissionServiceCached>();
+        services.AddScoped<IdentityAuthorizationDataSeeder>();
+        services.AddHttpClient("ImportDownload", client => client.Timeout = TimeSpan.FromMinutes(5));
 
         // Register BLOB AZURE External services here
         string? blobConnection = configuration.GetConnectionString("BlobStorage");

@@ -4,6 +4,9 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="FluentEmail.Core" />
+    <PackageReference Include="FluentEmail.Smtp" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
@@ -20,6 +23,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DrugsApp.Domain\DrugsApp.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>
