@@ -1164,7 +1164,7 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnName("CreatedAtUtc");
 
                     b.Property<TimeOnly>("IntakeTime")
-                        .HasColumnType("time without time zone");
+                        .HasColumnType("time");
 
                     b.Property<string>("MealName")
                         .IsRequired()
