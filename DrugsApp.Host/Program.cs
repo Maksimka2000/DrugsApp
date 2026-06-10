@@ -9,6 +9,8 @@ using DrugsApp.Host.Exceptions;
 using DrugsApp.Host.Hangfire;
 using DrugsApp.Host.Hangfire.NotificationsFeature;
 using DrugsApp.Host.Hangfire.RegularDrugsFeature;
+using DrugsApp.Host.Hangfire.RegularFoodFeature;
+using DrugsApp.Host.Hangfire.RegularSupplementsFeature;
 using Hangfire;
 using DrugsApp.Infrastructure;
 using DrugsApp.Infrastructure.Extensions;
@@ -37,6 +39,10 @@ builder.Services.Configure<WeeklyHealthDataReminderJobSettings>(
     builder.Configuration.GetSection(WeeklyHealthDataReminderJobSettings.SectionName));
 builder.Services.Configure<RegularDrugExpirationJobSettings>(
     builder.Configuration.GetSection(RegularDrugExpirationJobSettings.SectionName));
+builder.Services.Configure<RegularFoodExpirationJobSettings>(
+    builder.Configuration.GetSection(RegularFoodExpirationJobSettings.SectionName));
+builder.Services.Configure<RegularSupplementExpirationJobSettings>(
+    builder.Configuration.GetSection(RegularSupplementExpirationJobSettings.SectionName));
 builder.Services.AddScoped<ITempDrugImportJobScheduler, HangfireTempDrugImportJobScheduler>();
 builder.Services.AddScoped<ITempDrugImportJobStatusProvider, HangfireTempDrugImportJobStatusProvider>();
 
@@ -156,6 +162,28 @@ if (regularDrugExpirationSettings.Enabled)
         "regular-drug-expiration",
         job => job.ExecuteAsync(CancellationToken.None),
         regularDrugExpirationSettings.CronExpression);
+}
+
+RegularFoodExpirationJobSettings regularFoodExpirationSettings = app.Services
+    .GetRequiredService<IOptions<RegularFoodExpirationJobSettings>>()
+    .Value;
+if (regularFoodExpirationSettings.Enabled)
+{
+    RecurringJob.AddOrUpdate<RegularFoodExpirationHangfireJob>(
+        "regular-food-expiration",
+        job => job.ExecuteAsync(CancellationToken.None),
+        regularFoodExpirationSettings.CronExpression);
+}
+
+RegularSupplementExpirationJobSettings regularSupplementExpirationSettings = app.Services
+    .GetRequiredService<IOptions<RegularSupplementExpirationJobSettings>>()
+    .Value;
+if (regularSupplementExpirationSettings.Enabled)
+{
+    RecurringJob.AddOrUpdate<RegularSupplementExpirationHangfireJob>(
+        "regular-supplement-expiration",
+        job => job.ExecuteAsync(CancellationToken.None),
+        regularSupplementExpirationSettings.CronExpression);
 }
 
 await app.RunAsync();
