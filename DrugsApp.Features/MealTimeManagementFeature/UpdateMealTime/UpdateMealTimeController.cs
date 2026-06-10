@@ -18,7 +18,7 @@ namespace DrugsApp.Features.MealTimeManagementFeature.UpdateMealTime;
 /// <summary>
 /// Request model for partially updating a meal time.
 /// </summary>
-public sealed record UpdateMealTimeRequest(string? MealName, string? IntakeTime);
+public sealed record UpdateMealTimeRequest(string? MealName, TimeOnly? IntakeTime);
 
 /// <summary>
 /// Command for updating a meal time.

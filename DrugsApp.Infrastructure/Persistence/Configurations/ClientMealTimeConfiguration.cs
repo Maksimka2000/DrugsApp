@@ -24,6 +24,7 @@ public sealed class ClientMealTimeConfiguration : BaseEntityConfiguration<Client
             .IsRequired();
 
         builder.Property(x => x.IntakeTime)
+            .HasColumnType("time")
             .IsRequired();
 
         builder.HasIndex(x => x.UserId)

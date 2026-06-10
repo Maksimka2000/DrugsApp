@@ -9,7 +9,7 @@ namespace DrugsApp.Features.MealTimeManagementFeature.Shared;
 public sealed record MealTimeListItemDto(
     Guid Id,
     string MealName,
-    string IntakeTime,
+    TimeOnly IntakeTime,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc);
 
@@ -19,7 +19,7 @@ public sealed record MealTimeListItemDto(
 public sealed record MealTimeDto(
     Guid Id,
     string MealName,
-    string IntakeTime,
+    TimeOnly IntakeTime,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc);
 
