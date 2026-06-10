@@ -1466,6 +1466,271 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("client_regular_drug_intake_times", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.RegularFoodFeature.Entities.ClientRegularFood", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("FoodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("HistoryReason")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodId");
+
+                    b.HasIndex("UserId", "ArchivedAtUtc")
+                        .HasDatabaseName("IX_client_regular_foods_user_id_archived_at_utc")
+                        .HasFilter("\"Status\" = 'Expired'");
+
+                    b.HasIndex("UserId", "FoodId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_regular_foods_user_id_food_id_live")
+                        .HasFilter("\"Status\" IN ('Scheduled', 'Active')");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("IX_client_regular_foods_user_id_status");
+
+                    b.HasIndex("UserId", "Status", "EndDate")
+                        .HasDatabaseName("IX_client_regular_foods_user_id_status_end_date")
+                        .HasFilter("\"Status\" IN ('Scheduled', 'Active')");
+
+                    b.ToTable("client_regular_foods", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularFoodFeature.Entities.ClientRegularFoodIntakeTime", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<TimeOnly>("IntakeTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("RegularFoodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegularFoodId", "IntakeTime")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_regular_food_intake_times_regular_food_id_intake_time");
+
+                    b.ToTable("client_regular_food_intake_times", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientOwnSupplement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_own_supplements_user_id_normalized_name");
+
+                    b.HasIndex("UserId", "NormalizedName", "Id")
+                        .HasDatabaseName("IX_client_own_supplements_user_id_normalized_name_id");
+
+                    b.ToTable("client_own_supplements", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientOwnSupplementItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid>("OwnSupplementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SupplementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupplementId");
+
+                    b.HasIndex("OwnSupplementId", "SortOrder")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_own_supplement_items_own_supplement_id_sort_order");
+
+                    b.HasIndex("OwnSupplementId", "SupplementId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_own_supplement_items_own_supplement_id_supplement_id");
+
+                    b.ToTable("client_own_supplement_items", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("HistoryReason")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("OwnSupplementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("SupplementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnSupplementId");
+
+                    b.HasIndex("SupplementId");
+
+                    b.HasIndex("Status", "EndDate")
+                        .HasDatabaseName("IX_client_regular_supplements_status_end_date")
+                        .HasFilter("\"Status\" IN ('Scheduled', 'Active') AND \"EndDate\" IS NOT NULL");
+
+                    b.HasIndex("UserId", "ArchivedAtUtc")
+                        .HasDatabaseName("IX_client_regular_supplements_user_id_archived_at_utc")
+                        .HasFilter("\"Status\" = 'Expired'");
+
+                    b.HasIndex("UserId", "OwnSupplementId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_regular_supplements_user_id_own_supplement_id_live")
+                        .HasFilter("\"Status\" IN ('Scheduled', 'Active') AND \"Source\" = 'Own'");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("IX_client_regular_supplements_user_id_status");
+
+                    b.HasIndex("UserId", "SupplementId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_regular_supplements_user_id_supplement_id_live")
+                        .HasFilter("\"Status\" IN ('Scheduled', 'Active') AND \"Source\" = 'Database'");
+
+                    b.ToTable("client_regular_supplements", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplementIntakeTime", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<TimeOnly>("IntakeTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("RegularSupplementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegularSupplementId", "IntakeTime")
+                        .IsUnique()
+                        .HasDatabaseName("UX_client_regular_supplement_intake_times_regular_supplement_id_intake_time");
+
+                    b.ToTable("client_regular_supplement_intake_times", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.RouteOfAdministrationFeature.Entities.RouteOfAdministration", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2639,6 +2904,75 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("RegularDrug");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.RegularFoodFeature.Entities.ClientRegularFood", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.FoodFeature.Entities.Food", "Food")
+                        .WithMany()
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Food");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularFoodFeature.Entities.ClientRegularFoodIntakeTime", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.RegularFoodFeature.Entities.ClientRegularFood", "RegularFood")
+                        .WithMany("IntakeTimes")
+                        .HasForeignKey("RegularFoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RegularFood");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientOwnSupplementItem", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientOwnSupplement", "OwnSupplement")
+                        .WithMany("Items")
+                        .HasForeignKey("OwnSupplementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrugsApp.Domain.SupplementFeature.Entities.Supplement", "Supplement")
+                        .WithMany()
+                        .HasForeignKey("SupplementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OwnSupplement");
+
+                    b.Navigation("Supplement");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplement", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientOwnSupplement", "OwnSupplement")
+                        .WithMany()
+                        .HasForeignKey("OwnSupplementId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DrugsApp.Domain.SupplementFeature.Entities.Supplement", "Supplement")
+                        .WithMany()
+                        .HasForeignKey("SupplementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("OwnSupplement");
+
+                    b.Navigation("Supplement");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplementIntakeTime", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplement", "RegularSupplement")
+                        .WithMany("IntakeTimes")
+                        .HasForeignKey("RegularSupplementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RegularSupplement");
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.ClientReproductiveHealthProfile", b =>
                 {
                     b.HasOne("DrugsApp.Domain.UserProfileFeature.Entities.UserProfile", null)
@@ -2763,6 +3097,21 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", b =>
+                {
+                    b.Navigation("IntakeTimes");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularFoodFeature.Entities.ClientRegularFood", b =>
+                {
+                    b.Navigation("IntakeTimes");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientOwnSupplement", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplement", b =>
                 {
                     b.Navigation("IntakeTimes");
                 });
