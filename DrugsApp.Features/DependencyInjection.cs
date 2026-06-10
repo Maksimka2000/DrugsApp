@@ -6,6 +6,8 @@ using DrugsApp.Features.TempDrugFeature.ApplicationServices;
 using DrugsApp.Features.VetDrugFeature.ApplicationServices;
 using DrugsApp.Features.InteractionFeature.ApplicationServices;
 using DrugsApp.Features.MealTimeManagementFeature.ApplicationServices;
+using DrugsApp.Features.NotificationsFeature.ApplicationServices;
+using DrugsApp.Domain.NotificationsFeature.Interfaces;
 using DrugsApp.Features.UserProfileFeature.ApplicationServices;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +48,8 @@ public static class DependencyInjection
         services.AddScoped<IHealthcareProviderProfileApplicationService, HealthcareProviderProfileApplicationService>();
         services.AddScoped<IHealthcareProviderTeardownService, HealthcareProviderTeardownService>();
         services.AddScoped<IClientMealTimeNormalizationService, ClientMealTimeNormalizationService>();
+        services.AddScoped<INotificationProjectionService, NotificationProjectionApplicationService>();
+        services.AddScoped<INotificationDetailHydrationApplicationService, NotificationDetailHydrationApplicationService>();
 
         return services;
     }

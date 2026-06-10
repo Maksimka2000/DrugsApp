@@ -23,7 +23,7 @@ public sealed class HangfireSettings
     /// <summary>
     /// Number of Hangfire workers in this host process.
     /// </summary>
-    public int WorkerCount { get; init; } = 1;
+    public int WorkerCount { get; init; } = 2;
 
     /// <summary>
     /// Polling interval for scheduled jobs.
@@ -45,5 +45,10 @@ public sealed class HangfireSettings
     /// <summary>
     /// Queue names consumed by this worker.
     /// </summary>
-    public string[] Queues { get; init; } = ["default"];
+    public string[] Queues { get; init; } =
+    [
+        HangfireQueues.Notifications,
+        HangfireQueues.Imports,
+        HangfireQueues.Default
+    ];
 }
