@@ -246,6 +246,250 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("ActiveSubstanceGroups", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientAllergySummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("CarriesAllergyMedication")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("InsectVenomAllergyStatus")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("LatexAllergyStatus")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("PollenDustMitesAllergyStatus")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("SevereReactionStatus")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_ClientAllergySummaries_UserId")
+                        .IsUnique();
+
+                    b.ToTable("ClientAllergySummaries", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientDrugAllergy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CustomDrugName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("CustomDrugNameNormalized")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid?>("DrugId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DrugId");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_ClientDrugAllergies_UserId");
+
+                    b.HasIndex(new[] { "UserId", "CustomDrugNameNormalized" }, "IX_ClientDrugAllergies_UserId_CustomDrugNameNormalized_Custom")
+                        .IsUnique()
+                        .HasFilter("\"CustomDrugNameNormalized\" IS NOT NULL");
+
+                    b.HasIndex(new[] { "UserId", "DrugId" }, "IX_ClientDrugAllergies_UserId_DrugId_Database")
+                        .IsUnique()
+                        .HasFilter("\"DrugId\" IS NOT NULL");
+
+                    b.HasIndex(new[] { "UserId", "Source", "Id" }, "IX_ClientDrugAllergies_UserId_Source_Id");
+
+                    b.ToTable("ClientDrugAllergies", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientFoodAllergy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CustomFoodName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("CustomFoodNameNormalized")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid?>("FoodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodId");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_ClientFoodAllergies_UserId");
+
+                    b.HasIndex(new[] { "UserId", "CustomFoodNameNormalized" }, "IX_ClientFoodAllergies_UserId_CustomFoodNameNormalized_Custom")
+                        .IsUnique()
+                        .HasFilter("\"CustomFoodNameNormalized\" IS NOT NULL");
+
+                    b.HasIndex(new[] { "UserId", "FoodId" }, "IX_ClientFoodAllergies_UserId_FoodId_Database")
+                        .IsUnique()
+                        .HasFilter("\"FoodId\" IS NOT NULL");
+
+                    b.ToTable("ClientFoodAllergies", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientOtherAllergy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AllergyName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("AllergyNameNormalized")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_ClientOtherAllergies_UserId");
+
+                    b.HasIndex(new[] { "UserId", "AllergyNameNormalized" }, "IX_ClientOtherAllergies_UserId_AllergyNameNormalized")
+                        .IsUnique();
+
+                    b.ToTable("ClientOtherAllergies", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientSupplementAllergy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CustomSupplementName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("CustomSupplementNameNormalized")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("SupplementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupplementId");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_ClientSupplementAllergies_UserId");
+
+                    b.HasIndex(new[] { "UserId", "CustomSupplementNameNormalized" }, "IX_ClientSupplementAllergies_UserId_CustomSupplementNameNormalized_Custom")
+                        .IsUnique()
+                        .HasFilter("\"CustomSupplementNameNormalized\" IS NOT NULL");
+
+                    b.HasIndex(new[] { "UserId", "SupplementId" }, "IX_ClientSupplementAllergies_UserId_SupplementId_Database")
+                        .IsUnique()
+                        .HasFilter("\"SupplementId\" IS NOT NULL");
+
+                    b.ToTable("ClientSupplementAllergies", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.AuthFeature.Entities.PendingEmailChange", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1963,6 +2207,36 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("ActiveSubstance");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientDrugAllergy", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", "Drug")
+                        .WithMany()
+                        .HasForeignKey("DrugId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Drug");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientFoodAllergy", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.FoodFeature.Entities.Food", "Food")
+                        .WithMany()
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Food");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientSupplementAllergy", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.SupplementFeature.Entities.Supplement", "Supplement")
+                        .WithMany()
+                        .HasForeignKey("SupplementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Supplement");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.AuthFeature.Entities.PendingEmailChange", b =>

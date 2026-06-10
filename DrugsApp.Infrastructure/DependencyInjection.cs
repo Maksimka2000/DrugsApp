@@ -19,6 +19,7 @@ using DrugsApp.Domain.SupportFeature.Repositories;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
 using DrugsApp.Domain.SystemTextFeature.Repositories;
 using DrugsApp.Domain.HealthConditionFeature.Repositories;
+using DrugsApp.Domain.AllergiesFeature.Repositories;
 using DrugsApp.Domain.DrugProblemsFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
@@ -39,6 +40,7 @@ using DrugsApp.Infrastructure.Repositories.SupportFeature;
 using DrugsApp.Infrastructure.Repositories.SystemTextFeature;
 using DrugsApp.Infrastructure.Repositories.UserProfileFeature;
 using DrugsApp.Infrastructure.Repositories.HealthConditionFeature;
+using DrugsApp.Infrastructure.Repositories.AllergiesFeature;
 using DrugsApp.Infrastructure.Repositories.DrugProblemsFeature;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using DrugsApp.Infrastructure.Services.AuthFeature;
@@ -114,6 +116,11 @@ public static class DependencyInjection
         services.AddScoped<IUserHealthConditionRepository, UserHealthConditionRepository>();
         services.AddScoped<IDrugProblemRepository, DrugProblemRepository>();
         services.AddScoped<IDrugProblemTypeRepository, DrugProblemTypeRepository>();
+        services.AddScoped<IClientAllergySummaryRepository, ClientAllergySummaryRepository>();
+        services.AddScoped<IClientDrugAllergyRepository, ClientDrugAllergyRepository>();
+        services.AddScoped<IClientSupplementAllergyRepository, ClientSupplementAllergyRepository>();
+        services.AddScoped<IClientFoodAllergyRepository, ClientFoodAllergyRepository>();
+        services.AddScoped<IClientOtherAllergyRepository, ClientOtherAllergyRepository>();
 
 
         // Register Email External services here
