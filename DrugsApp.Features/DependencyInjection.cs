@@ -8,6 +8,8 @@ using DrugsApp.Features.InteractionFeature.ApplicationServices;
 using DrugsApp.Features.MealTimeManagementFeature.ApplicationServices;
 using DrugsApp.Features.NotificationsFeature.ApplicationServices;
 using DrugsApp.Features.RegularDrugsFeature.ApplicationServices;
+using DrugsApp.Features.RegularFoodFeature.ApplicationServices;
+using DrugsApp.Features.RegularSupplementsFeature.ApplicationServices;
 using DrugsApp.Domain.NotificationsFeature.Interfaces;
 using DrugsApp.Features.UserProfileFeature.ApplicationServices;
 using FluentValidation;
@@ -52,6 +54,9 @@ public static class DependencyInjection
         services.AddScoped<INotificationProjectionService, NotificationProjectionApplicationService>();
         services.AddScoped<INotificationDetailHydrationApplicationService, NotificationDetailHydrationApplicationService>();
         services.AddScoped<IRegularDrugsApplicationService, RegularDrugsApplicationService>();
+        services.AddScoped<IRegularFoodExpirationApplicationService, RegularFoodExpirationApplicationService>();
+        services.AddScoped<IRegularSupplementExpirationApplicationService, RegularSupplementExpirationApplicationService>();
+        services.AddScoped<IClientOwnSupplementDeletionApplicationService, ClientOwnSupplementDeletionApplicationService>();
 
         return services;
     }

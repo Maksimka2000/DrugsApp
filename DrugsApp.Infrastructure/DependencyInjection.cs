@@ -25,6 +25,8 @@ using DrugsApp.Domain.MealTimeManagementFeature.Repositories;
 using DrugsApp.Domain.NotificationsFeature.Interfaces;
 using DrugsApp.Domain.NotificationsFeature.Repositories;
 using DrugsApp.Domain.RegularDrugsFeature.Interfaces;
+using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
+using DrugsApp.Domain.RegularFoodFeature.Interfaces;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
 using DrugsApp.Infrastructure.ExternalServices.Email;
@@ -49,6 +51,8 @@ using DrugsApp.Infrastructure.Repositories.DrugProblemsFeature;
 using DrugsApp.Infrastructure.Repositories.MealTimeManagementFeature;
 using DrugsApp.Infrastructure.Repositories.NotificationsFeature;
 using DrugsApp.Infrastructure.Repositories.RegularDrugsFeature;
+using DrugsApp.Infrastructure.Repositories.RegularSupplementsFeature;
+using DrugsApp.Infrastructure.Repositories.RegularFoodFeature;
 using DrugsApp.Infrastructure.Services.NotificationsFeature;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using DrugsApp.Infrastructure.Services.AuthFeature;
@@ -133,6 +137,9 @@ public static class DependencyInjection
         services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
         services.AddScoped<ISystemAnnouncementRepository, SystemAnnouncementRepository>();
         services.AddScoped<IClientRegularDrugRepository, ClientRegularDrugRepository>();
+        services.AddScoped<IClientRegularSupplementRepository, ClientRegularSupplementRepository>();
+        services.AddScoped<IClientOwnSupplementRepository, ClientOwnSupplementRepository>();
+        services.AddScoped<IClientRegularFoodRepository, ClientRegularFoodRepository>();
         services.AddScoped<IUserSecurityStatusReadService, UserSecurityStatusReadService>();
         services.AddScoped<IPatientSupervisionNotificationReadService, PatientSupervisionNotificationReadService>();
 
