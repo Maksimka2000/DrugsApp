@@ -1154,6 +1154,51 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.MealTimeManagementFeature.Entities.ClientMealTime", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<TimeOnly>("IntakeTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("MealName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("NormalizedMealName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_ClientMealTimes_UserId");
+
+                    b.HasIndex("UserId", "IntakeTime")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ClientMealTimes_UserId_IntakeTime");
+
+                    b.HasIndex("UserId", "NormalizedMealName")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ClientMealTimes_UserId_NormalizedMealName");
+
+                    b.ToTable("ClientMealTimes", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.PharmaceuticalFormFeature.Entities.PharmaceuticalForm", b =>
                 {
                     b.Property<Guid>("Id")
