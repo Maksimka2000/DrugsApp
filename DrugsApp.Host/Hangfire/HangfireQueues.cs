@@ -11,6 +11,11 @@ public static class HangfireQueues
     public const string Notifications = "notifications";
 
     /// <summary>
+    /// Regular intake schedule expiration jobs.
+    /// </summary>
+    public const string RegularIntakes = "regular-intakes";
+
+    /// <summary>
     /// Temp-drug import and revert jobs.
     /// </summary>
     public const string Imports = "imports";

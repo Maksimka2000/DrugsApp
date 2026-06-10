@@ -48,6 +48,7 @@ public sealed class HangfireSettings
     public string[] Queues { get; init; } =
     [
         HangfireQueues.Notifications,
+        HangfireQueues.RegularIntakes,
         HangfireQueues.Imports,
         HangfireQueues.Default
     ];
