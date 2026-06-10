@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.AuthFeature.Interfaces;
+using DrugsApp.Domain.UserProfileFeature.Enums;
 using ErrorOr;
 using MediatR;
 
@@ -17,6 +18,11 @@ internal sealed class RegisterMemberHandler(
         ErrorOr<AuthRegistrationResult> result = await _identityAuthenticationService.RegisterAsync(
             command.Request.Email,
             command.Request.Password,
+            new UserProfilePersonalData(
+                FirstName: command.Request.FirstName,
+                LastName: command.Request.LastName,
+                DateOfBirth: command.Request.DateOfBirth,
+                Gender: Enum.Parse<ProfileGender>(command.Request.Gender, ignoreCase: true)),
             cancellationToken);
 
         if (result.IsError)

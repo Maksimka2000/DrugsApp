@@ -20,12 +20,10 @@ public static class SwaggerJwtConfigurationExtensions
                 Description = "Provide a JWT bearer token."
             });
 
-            options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+            // Swashbuckle 10 requires the document-scoped reference so Swagger UI sends Authorization.
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                {
-                    new OpenApiSecuritySchemeReference("Bearer", hostDocument: null!, externalResource: null!),
-                    []
-                }
+                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
             });
         });
 

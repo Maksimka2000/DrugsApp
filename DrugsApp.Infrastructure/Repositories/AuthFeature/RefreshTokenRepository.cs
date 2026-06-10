@@ -23,4 +23,18 @@ public sealed class RefreshTokenRepository(DrugsAppDbContext _context) : IRefres
                 refreshToken => refreshToken.Token == normalizedToken,
                 cancellationToken);
     }
+
+    public async Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        List<RefreshToken> tokens = await _context.RefreshTokens
+            .Where(refreshToken => refreshToken.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        if (tokens.Count == 0)
+        {
+            return;
+        }
+
+        _context.RefreshTokens.RemoveRange(tokens);
+    }
 }

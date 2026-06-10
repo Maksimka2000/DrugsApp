@@ -3,6 +3,8 @@ using DrugsApp.Domain.ActiveSubstanceGroupFeature.Entities;
 using DrugsApp.Domain.AuthFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Entities;
+using DrugsApp.Domain.HealthConditionFeature.Entities;
+using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 using DrugsApp.Domain.RouteOfAdministrationFeature.Entities;
 using DrugsApp.Domain.InteractionFeature.Entities;
@@ -12,6 +14,7 @@ using DrugsApp.Domain.VetDrugFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SystemTextFeature.Entities;
 using DrugsApp.Domain.SupportFeature.Entities;
+using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +47,14 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<SystemText> SystemTexts { get; set; } = null!;
     public DbSet<FaqEntry> FaqEntries { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<UserProfile> UserProfiles { get; set; } = null!;
+    public DbSet<ClientReproductiveHealthProfile> ClientReproductiveHealthProfiles { get; set; } = null!;
+    public DbSet<HealthcareProviderProfile> HealthcareProviderProfiles { get; set; } = null!;
+    public DbSet<PendingEmailChange> PendingEmailChanges { get; set; } = null!;
+    public DbSet<HealthCondition> HealthConditions { get; set; } = null!;
+    public DbSet<UserHealthCondition> UserHealthConditions { get; set; } = null!;
+    public DbSet<DrugProblem> DrugProblems { get; set; } = null!;
+    public DbSet<DrugProblemType> DrugProblemTypes { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
