@@ -3,6 +3,7 @@ using DrugsApp.Domain.ActiveSubstanceGroupFeature.Entities;
 using DrugsApp.Domain.AuthFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Entities;
+using DrugsApp.Domain.AllergiesFeature.Entities;
 using DrugsApp.Domain.HealthConditionFeature.Entities;
 using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
@@ -55,6 +56,11 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<UserHealthCondition> UserHealthConditions { get; set; } = null!;
     public DbSet<DrugProblem> DrugProblems { get; set; } = null!;
     public DbSet<DrugProblemType> DrugProblemTypes { get; set; } = null!;
+    public DbSet<ClientAllergySummary> ClientAllergySummaries { get; set; } = null!;
+    public DbSet<ClientDrugAllergy> ClientDrugAllergies { get; set; } = null!;
+    public DbSet<ClientSupplementAllergy> ClientSupplementAllergies { get; set; } = null!;
+    public DbSet<ClientFoodAllergy> ClientFoodAllergies { get; set; } = null!;
+    public DbSet<ClientOtherAllergy> ClientOtherAllergies { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
