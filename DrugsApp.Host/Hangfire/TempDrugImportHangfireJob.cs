@@ -1,4 +1,5 @@
 using DrugsApp.Features.TempDrugFeature.ApplicationServices;
+using Hangfire;
 
 namespace DrugsApp.Host.Hangfire;
 
@@ -11,6 +12,7 @@ public sealed class TempDrugImportHangfireJob(IServiceScopeFactory _serviceScope
     /// <summary>
     /// Executes import workflow for selected batch.
     /// </summary>
+    [Queue(HangfireQueues.Imports)]
     public async Task ExecuteImportAsync(Guid batchId, CancellationToken cancellationToken)
     {
         using IServiceScope scope = _serviceScopeFactory.CreateScope();
@@ -21,6 +23,7 @@ public sealed class TempDrugImportHangfireJob(IServiceScopeFactory _serviceScope
     /// <summary>
     /// Executes revert workflow for selected batch.
     /// </summary>
+    [Queue(HangfireQueues.Imports)]
     public async Task ExecuteRevertAsync(Guid batchId, CancellationToken cancellationToken)
     {
         using IServiceScope scope = _serviceScopeFactory.CreateScope();

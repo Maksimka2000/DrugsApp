@@ -7,6 +7,8 @@ using DrugsApp.Host.Auth.Jwt;
 using DrugsApp.Host.Auth.Swagger;
 using DrugsApp.Host.Exceptions;
 using DrugsApp.Host.Hangfire;
+using DrugsApp.Host.Hangfire.NotificationsFeature;
+using Hangfire;
 using DrugsApp.Infrastructure;
 using DrugsApp.Infrastructure.Extensions;
 using DrugsApp.Infrastructure.Extensions.Middleware;
@@ -15,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
@@ -29,6 +32,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFeatures();
 // Register Hangfire (Storage, retries, worker server)
 builder.Services.AddHangfireProcessing(builder.Configuration);
+builder.Services.Configure<WeeklyHealthDataReminderJobSettings>(
+    builder.Configuration.GetSection(WeeklyHealthDataReminderJobSettings.SectionName));
 builder.Services.AddScoped<ITempDrugImportJobScheduler, HangfireTempDrugImportJobScheduler>();
 builder.Services.AddScoped<ITempDrugImportJobStatusProvider, HangfireTempDrugImportJobStatusProvider>();
 
@@ -126,6 +131,17 @@ app.UseAuthentication();
 // Authorization
 app.UseAuthorization();
 app.MapControllers();
+
+WeeklyHealthDataReminderJobSettings weeklyHealthReminderSettings = app.Services
+    .GetRequiredService<IOptions<WeeklyHealthDataReminderJobSettings>>()
+    .Value;
+if (weeklyHealthReminderSettings.Enabled)
+{
+    RecurringJob.AddOrUpdate<WeeklyHealthDataReminderHangfireJob>(
+        "weekly-health-data-reminder",
+        job => job.ExecuteAsync(CancellationToken.None),
+        weeklyHealthReminderSettings.CronExpression);
+}
 
 await app.RunAsync();
 
