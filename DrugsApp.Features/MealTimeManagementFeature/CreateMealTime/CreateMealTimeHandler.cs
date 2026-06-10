@@ -21,8 +21,7 @@ internal sealed class CreateMealTimeHandler(
         CreateMealTimeCommand command,
         CancellationToken cancellationToken)
     {
-        MealTimeMappings.TryParseIntakeTime(command.Request.IntakeTime, out TimeOnly intakeTime);
-
+        TimeOnly intakeTime = command.Request.IntakeTime;
         string normalizedMealName = _normalizationService.NormalizeMealName(command.Request.MealName);
 
         bool hasDuplicateName = await _mealTimeRepository.ExistsWithNormalizedMealNameAsync(
