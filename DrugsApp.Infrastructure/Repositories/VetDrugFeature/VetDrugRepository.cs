@@ -12,6 +12,8 @@ namespace DrugsApp.Infrastructure.Repositories.VetDrugFeature;
 
 public sealed class VetDrugRepository(DrugsAppDbContext context) : IVetDrugRepository
 {
+    private const double SimilarityThreshold = 0.35;
+
     private readonly DrugsAppDbContext _context = context;
 
     public async Task<List<VetDrug>> SearchAsync(
@@ -59,6 +61,60 @@ public sealed class VetDrugRepository(DrugsAppDbContext context) : IVetDrugRepos
     public async Task AddAsync(VetDrug vetDrug, CancellationToken cancellationToken)
     {
         await _context.VetDrugs.AddAsync(vetDrug, cancellationToken);
+    }
+
+    public async Task<List<VetDrug>> SearchByCommercialNameAsync(
+        string searchQuery,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        string trimmedQuery = searchQuery.Trim();
+        string prefixPattern = $"{trimmedQuery}%";
+        string containsPattern = $"%{trimmedQuery}%";
+        bool useTrigram = trimmedQuery.Length >= 3;
+
+        IQueryable<VetDrug> query = _context.VetDrugs
+            .AsNoTracking()
+            .Where(vetDrug =>
+                EF.Functions.ILike(vetDrug.CommercialName, prefixPattern) ||
+                EF.Functions.ILike(vetDrug.CommercialName, containsPattern) ||
+                useTrigram &&
+                EF.Functions.TrigramsSimilarity(vetDrug.CommercialName, trimmedQuery) >= SimilarityThreshold);
+
+        query = query
+            .OrderByDescending(vetDrug => EF.Functions.ILike(vetDrug.CommercialName, prefixPattern))
+            .ThenByDescending(vetDrug => EF.Functions.ILike(vetDrug.CommercialName, containsPattern))
+            .ThenByDescending(vetDrug =>
+                useTrigram
+                    ? EF.Functions.TrigramsSimilarity(vetDrug.CommercialName, trimmedQuery)
+                    : 0)
+            .ThenBy(vetDrug => vetDrug.CommercialName)
+            .ThenBy(vetDrug => vetDrug.Id);
+
+        return await query
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountByCommercialNameAsync(
+        string searchQuery,
+        CancellationToken cancellationToken)
+    {
+        string trimmedQuery = searchQuery.Trim();
+        string prefixPattern = $"{trimmedQuery}%";
+        string containsPattern = $"%{trimmedQuery}%";
+        bool useTrigram = trimmedQuery.Length >= 3;
+
+        return await _context.VetDrugs
+            .AsNoTracking()
+            .Where(vetDrug =>
+                EF.Functions.ILike(vetDrug.CommercialName, prefixPattern) ||
+                EF.Functions.ILike(vetDrug.CommercialName, containsPattern) ||
+                useTrigram &&
+                EF.Functions.TrigramsSimilarity(vetDrug.CommercialName, trimmedQuery) >= SimilarityThreshold)
+            .CountAsync(cancellationToken);
     }
 }
 

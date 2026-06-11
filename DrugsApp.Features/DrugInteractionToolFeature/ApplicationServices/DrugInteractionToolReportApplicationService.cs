@@ -1568,7 +1568,8 @@ public sealed class DrugInteractionToolReportApplicationService(
         var databaseRows = problems
             .Where(problem => problem.Source == DrugProblemSource.Database && problem.Drug is not null)
             .Select(problem => new ProblematicDrugRowReadModel(
-                DrugDisplayLine: problem.Drug!.CommercialName,
+                DrugId: problem.Drug!.Id,
+                DrugDisplayLine: problem.Drug.CommercialName,
                 UserNote: problem.ProblemNote,
                 DisplayLine: $"{problem.Drug.CommercialName} | {problem.ProblemNote}"))
             .ToList();

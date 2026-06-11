@@ -354,6 +354,7 @@ public sealed record HealthConditionsGroupReadModel(
 /// Database problematic drug row [description].
 /// </summary>
 public sealed record ProblematicDrugRowReadModel(
+    Guid DrugId,
     string DrugDisplayLine,
     string? UserNote,
     string DisplayLine);
