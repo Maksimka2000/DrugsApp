@@ -1,4 +1,3 @@
-using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Features.DrugToolFeature.ApplicationServices;
 
@@ -6,11 +5,6 @@ namespace DrugsApp.Features.DrugToolFeature.Shared;
 
 internal static class DrugToolMappings
 {
-    internal const string ThisDrugLabel = "THIS DRUG";
-    internal const string AlcoholHeadline = "THIS DRUG IS INTERACTED WITH ALCOHOL SEE DETAILS";
-    internal const string OralGuidanceHeadline =
-        "RECOMMENDATIONS ON THE INTAKE TIME: THE DRUG YOU ARE TAKING HAS SOME RECOMMENDATION ON INTAKE TIME";
-
     internal static string MapScopeToApi(DrugToolInteractionScope scope) =>
         scope switch
         {
@@ -21,8 +15,9 @@ internal static class DrugToolMappings
     internal static string MapSubsectionToApi(DrugToolInteractionSubsectionCode code) =>
         code switch
         {
-            DrugToolInteractionSubsectionCode.UserMatches => "user_matches",
-            _ => "catalog_remainder"
+            DrugToolInteractionSubsectionCode.UserData => "userdata",
+            DrugToolInteractionSubsectionCode.AllOther => "all other",
+            _ => "all"
         };
 
     internal static GetDrugToolDetailResponse MapToResponse(DrugToolDetailBuildResult result) =>
@@ -33,12 +28,9 @@ internal static class DrugToolMappings
             result.TypeOfDrug,
             result.SelectedDrugFormId,
             result.SelectedDrugFormSummary,
-            result.DrugDisplayLine,
             result.ActiveSubstances,
-            result.AvailableDrugForms,
             MapScopeToApi(result.InteractionScope),
             ["all", "user_only"],
-            result.UserMealTimes,
             result.AlcoholSection,
             result.DrugSection,
             result.FoodSection,
@@ -63,23 +55,6 @@ internal static class DrugToolMappings
             Leaflet: form.Leaflet,
             EducationMaterials: form.EducationMaterials);
 
-    internal static string BuildDrugDisplayLine(Drug drug, DrugForm form)
-    {
-        string substanceNames = string.Join(
-            ", ",
-            drug.ActiveSubstances
-                .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(substance => substance.Id)
-                .Select(substance => substance.ActiveSubstanceName));
-
-        string formulation = form.PharmaceuticalForms
-            .OrderBy(pf => pf.FormulationName, StringComparer.OrdinalIgnoreCase)
-            .Select(pf => pf.FormulationName)
-            .FirstOrDefault() ?? string.Empty;
-
-        return $"{drug.CommercialName} ({substanceNames}), {formulation}, {form.Dosage ?? string.Empty}";
-    }
-
     internal static string BuildFormLabel(DrugForm form)
     {
         string formulation = form.PharmaceuticalForms
@@ -90,48 +65,39 @@ internal static class DrugToolMappings
         return $"{formulation} {form.Dosage ?? string.Empty}".Trim();
     }
 
-    internal static string? FormatOralGuidanceText(OralMedicationIntakeGuidelines? guidelines)
+    internal static string BuildDrugSummaryText(Drug drug, DrugForm form)
     {
-        if (guidelines is null)
+        var parts = new List<string> { drug.CommercialName };
+
+        string activeSubstanceSegment = string.Join(
+            ", ",
+            drug.ActiveSubstances
+                .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(substance => substance.Id)
+                .Select(substance => substance.ActiveSubstanceName));
+
+        parts.Add(activeSubstanceSegment);
+
+        string formulation = form.PharmaceuticalForms
+            .OrderBy(pf => pf.FormulationName, StringComparer.OrdinalIgnoreCase)
+            .Select(pf => pf.FormulationName)
+            .FirstOrDefault() ?? string.Empty;
+        parts.Add(formulation);
+        parts.Add(form.Dosage ?? string.Empty);
+
+        if (drug.TypeOfDrug is DrugType.Special or DrugType.Ophthalmic)
         {
-            return null;
+            parts.Add(drug.TypeOfDrug.ToString());
         }
 
-        List<string> segments =
-        [
-            $"food intake: {guidelines.FoodIntakeType}"
-        ];
-
-        if (guidelines.WaitBeforeMinutes is not null)
+        if (drug.TypeOfProduct.Equals("Weterynaryjny", StringComparison.OrdinalIgnoreCase))
         {
-            segments.Add($"wait before meal: {guidelines.WaitBeforeMinutes} min");
+            parts.Add(drug.TypeOfProduct);
         }
 
-        if (guidelines.WaitAfterMinutes is not null)
-        {
-            segments.Add($"wait after meal: {guidelines.WaitAfterMinutes} min");
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.MealNotes))
-        {
-            segments.Add(guidelines.MealNotes.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.AvoidFoodDrug))
-        {
-            segments.Add($"avoid with drug: {guidelines.AvoidFoodDrug.Trim()}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.AvoidFoodTherapy))
-        {
-            segments.Add($"avoid during therapy: {guidelines.AvoidFoodTherapy.Trim()}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.LiquidNotes))
-        {
-            segments.Add(guidelines.LiquidNotes.Trim());
-        }
-
-        return string.Join("; ", segments);
+        return string.Join(" | ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
     }
+
+    internal static IReadOnlyCollection<T>? WrapSubsection<T>(T? subsection) =>
+        subsection is null ? null : [subsection];
 }
