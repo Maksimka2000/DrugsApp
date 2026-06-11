@@ -413,4 +413,103 @@ public sealed class InteractionRepository : IInteractionRepository
             .OrderBy(interaction => interaction.Id)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<InteractionExpandedProjection>> ListExpandedByLeftActiveSubstanceIdsAsync(
+        InteractionKind interactionKind,
+        IReadOnlyCollection<Guid> leftActiveSubstanceIds,
+        CancellationToken cancellationToken)
+    {
+        if (leftActiveSubstanceIds.Count == 0)
+        {
+            return new List<InteractionExpandedProjection>();
+        }
+
+        List<Guid> leftIds = leftActiveSubstanceIds.ToList();
+
+        List<InteractionExpandedProjection> forwardRows = await BuildExpandedProjectionQueryAsync(
+            interactionKind,
+            expanded => expanded.PartyTypeA == ShortInteractionType.Substance && leftIds.Contains(expanded.PartyIdA),
+            useReverseMapping: false,
+            cancellationToken);
+
+        if (interactionKind != InteractionKind.Substance)
+        {
+            return OrderExpandedProjections(forwardRows);
+        }
+
+        List<InteractionExpandedProjection> reverseRows = await BuildExpandedProjectionQueryAsync(
+            interactionKind,
+            expanded => expanded.PartyTypeB == ShortInteractionType.Substance && leftIds.Contains(expanded.PartyIdB),
+            useReverseMapping: true,
+            cancellationToken);
+
+        return OrderExpandedProjections(
+            forwardRows
+                .Concat(reverseRows)
+                .GroupBy(row => row.ExpandedRowId)
+                .Select(group => group.First())
+                .ToList());
+    }
+
+    private async Task<List<InteractionExpandedProjection>> BuildExpandedProjectionQueryAsync(
+        InteractionKind interactionKind,
+        Expression<Func<InteractionExpanded, bool>> expandedFilter,
+        bool useReverseMapping,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<InteractionExpanded> expandedQuery = _context.InteractionExpandedRows
+            .AsNoTracking()
+            .Where(expandedFilter);
+
+        IQueryable<Interaction> interactionQuery = ApplyInteractionKindFilter(
+            _context.Interactions.AsNoTracking(),
+            interactionKind);
+
+        if (!useReverseMapping)
+        {
+            return await (
+                from expanded in expandedQuery
+                join interaction in interactionQuery on expanded.InteractionId equals interaction.Id
+                join severity in _context.InteractionSeverities.AsNoTracking()
+                    on interaction.InteractionSeverityId equals severity.Id
+                select new InteractionExpandedProjection(
+                    expanded.Id,
+                    expanded.InteractionId,
+                    expanded.PartyTypeA,
+                    expanded.PartyIdA,
+                    expanded.PartyTypeB,
+                    expanded.PartyIdB,
+                    interaction.DefaultText,
+                    interaction.StomachText,
+                    severity.Name,
+                    severity.SeverityNumber))
+                .ToListAsync(cancellationToken);
+        }
+
+        return await (
+            from expanded in expandedQuery
+            join interaction in interactionQuery on expanded.InteractionId equals interaction.Id
+            join severity in _context.InteractionSeverities.AsNoTracking()
+                on interaction.InteractionSeverityId equals severity.Id
+            select new InteractionExpandedProjection(
+                expanded.Id,
+                expanded.InteractionId,
+                expanded.PartyTypeB,
+                expanded.PartyIdB,
+                expanded.PartyTypeA,
+                expanded.PartyIdA,
+                interaction.DefaultText,
+                interaction.StomachText,
+                severity.Name,
+                severity.SeverityNumber))
+            .ToListAsync(cancellationToken);
+    }
+
+    private static List<InteractionExpandedProjection> OrderExpandedProjections(
+        List<InteractionExpandedProjection> rows) =>
+        rows
+            .OrderByDescending(row => row.SeverityNumber)
+            .ThenBy(row => row.LeftPartyId)
+            .ThenBy(row => row.RightPartyId)
+            .ToList();
 }

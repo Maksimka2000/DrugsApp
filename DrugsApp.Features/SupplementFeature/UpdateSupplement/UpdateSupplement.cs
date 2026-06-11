@@ -50,7 +50,7 @@ public sealed class UpdateSupplementHandler(ISupplementRepository _supplementRep
         }
 
         // update the aliases if provided
-        if (command.Request.Aliases is not null && command.Request.Aliases.Count > 0)
+        if (command.Request.Aliases is not null)
         {
             supplement.UpdateAliases(command.Request.Aliases);
         }
