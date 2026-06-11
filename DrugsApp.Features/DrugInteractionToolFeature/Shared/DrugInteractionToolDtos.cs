@@ -1,3 +1,5 @@
+using DrugsApp.Domain.DrugFeature.Entities;
+
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
 
 /// <summary>
@@ -10,29 +12,44 @@ public sealed record ReportSubsectionReadModel<TRow>(
     IReadOnlyCollection<TRow> Rows);
 
 /// <summary>
-/// Active substance line embedded in a drug header [description].
+/// Slim drug reference used in selected-drug lists, comparisons, and duplication sections [description].
 /// </summary>
-public sealed record ActiveSubstanceInDrugReadModel(
-    Guid ActiveSubstanceId,
-    string Name,
-    bool IsOralInSelectedForm,
-    string? OralGuidanceText);
+public sealed record DrugTargetSummaryReadModel(
+    Guid DrugId,
+    Guid SelectedDrugFormId,
+    string DrugSummaryText,
+    bool IsOral);
 
 /// <summary>
-/// Shared drug header summary for selected and compared drugs [description].
+/// Selected form summary embedded in per-drug report headers [description].
 /// </summary>
-public sealed record SelectedDrugSummaryReadModel(
-    Guid DrugFormId,
-    Guid DrugId,
-    string CommercialName,
-    IReadOnlyCollection<ActiveSubstanceInDrugReadModel> ActiveSubstances,
+public sealed record SelectedDrugFormSummaryReadModel(
     string FormulationName,
     string Dosage,
     bool IsOral,
-    string? TypeOfDrug,
-    string? TypeOfProduct,
-    SelectedDrugSource? Source,
-    string DisplayLine);
+    IReadOnlyCollection<string> RoutesOfAdministration,
+    IReadOnlyCollection<string> PharmaceuticalForms,
+    string? Leaflet,
+    string? EducationMaterials);
+
+/// <summary>
+/// Active substance reference embedded in per-drug report headers [description].
+/// </summary>
+public sealed record ActiveSubstanceRefReadModel(
+    Guid Id,
+    string Name);
+
+/// <summary>
+/// Expanded per-drug header for specific drug report blocks [description].
+/// </summary>
+public sealed record SpecificDrugDetailReadModel(
+    Guid DrugId,
+    string CommercialName,
+    string TypeOfProduct,
+    DrugType TypeOfDrug,
+    Guid SelectedDrugFormId,
+    SelectedDrugFormSummaryReadModel SelectedDrugFormSummary,
+    IReadOnlyCollection<ActiveSubstanceRefReadModel> ActiveSubstances);
 
 /// <summary>
 /// Public tool settings snapshot (CASE TWO) [description].
@@ -72,8 +89,8 @@ public sealed record SubstancePairInteractionRowReadModel(
 /// </summary>
 public sealed record ComparedDrugInteractionGroupReadModel(
     string GroupTitle,
-    SelectedDrugSummaryReadModel CurrentDrug,
-    SelectedDrugSummaryReadModel ComparedDrug,
+    DrugTargetSummaryReadModel CurrentDrug,
+    DrugTargetSummaryReadModel ComparedDrug,
     int RecordCount,
     IReadOnlyCollection<SubstancePairInteractionRowReadModel> PairRows);
 
@@ -101,14 +118,13 @@ public sealed record AlcoholInteractionSectionReadModel(
     IReadOnlyCollection<AlcoholInteractionRowReadModel> Rows);
 
 /// <summary>
-/// Food or supplement interaction row [description].
+/// Food interaction row [description].
 /// </summary>
 public sealed record FoodInteractionRowReadModel(
     Guid ActiveSubstanceId,
     string ActiveSubstanceName,
-    InteractionPartyKind PartyKind,
-    Guid PartyId,
-    string DisplayName,
+    Guid FoodId,
+    string FoodName,
     Guid InteractionId,
     string DefaultText,
     string? StomachText,
@@ -122,9 +138,8 @@ public sealed record FoodInteractionRowReadModel(
 public sealed record SupplementInteractionRowReadModel(
     Guid ActiveSubstanceId,
     string ActiveSubstanceName,
-    InteractionPartyKind PartyKind,
-    Guid PartyId,
-    string DisplayName,
+    Guid SupplementId,
+    string SupplementName,
     Guid InteractionId,
     string DefaultText,
     string? StomachText,
@@ -205,6 +220,7 @@ public sealed record SpecificDrugDirectAllergyRowReadModel(
 /// Active substance overlap allergy row on a specific drug [description].
 /// </summary>
 public sealed record ActiveSubstanceAllergyOverlapRowReadModel(
+    Guid ActiveSubstanceId,
     string ActiveSubstanceName,
     string SourceAllergyDrugDisplay,
     string? UserNote,
@@ -224,7 +240,7 @@ public sealed record SpecificDrugAllergiesSectionReadModel(
 /// Public per-drug report block (CASE TWO) [description].
 /// </summary>
 public sealed record PublicSpecificDrugReportReadModel(
-    SelectedDrugSummaryReadModel Drug,
+    SpecificDrugDetailReadModel Drug,
     AlcoholInteractionSectionReadModel Alcohol,
     DrugInteractionSectionReadModel Drugs,
     PublicFoodInteractionSectionReadModel? Foods,
@@ -234,7 +250,7 @@ public sealed record PublicSpecificDrugReportReadModel(
 /// Registered per-drug report block (CASE ONE) [description].
 /// </summary>
 public sealed record RegisteredSpecificDrugReportReadModel(
-    SelectedDrugSummaryReadModel Drug,
+    SpecificDrugDetailReadModel Drug,
     SpecificDrugProblemsSectionReadModel? Problems,
     SpecificDrugAllergiesSectionReadModel? Allergies,
     AlcoholInteractionSectionReadModel Alcohol,
@@ -247,8 +263,8 @@ public sealed record RegisteredSpecificDrugReportReadModel(
 /// </summary>
 public sealed record GlobalDrugPairGroupReadModel(
     string GroupTitle,
-    SelectedDrugSummaryReadModel LeftDrug,
-    SelectedDrugSummaryReadModel RightDrug,
+    DrugTargetSummaryReadModel LeftDrug,
+    DrugTargetSummaryReadModel RightDrug,
     int RecordCount,
     IReadOnlyCollection<SubstancePairInteractionRowReadModel> PairRows);
 
@@ -266,9 +282,23 @@ public sealed record AllDrugsInteractionsSectionReadModel(
 public sealed record ExactDuplicationRowReadModel(
     Guid ActiveSubstanceId,
     string ActiveSubstanceName,
-    IReadOnlyCollection<SelectedDrugSummaryReadModel> AffectedDrugs,
+    IReadOnlyCollection<DrugTargetSummaryReadModel> AffectedDrugs,
     string DisplayLine,
     DuplicationKind DuplicationKind);
+
+/// <summary>
+/// Active substance member of a duplication group [description].
+/// </summary>
+public sealed record GroupActiveSubstanceReadModel(
+    Guid SubstanceId,
+    string SubstanceName);
+
+/// <summary>
+/// Active substance from a group that appears in selected drugs [description].
+/// </summary>
+public sealed record AffectedActiveSubstanceReadModel(
+    Guid AffectedSubstanceId,
+    string AffectedSubstanceName);
 
 /// <summary>
 /// Active substance group duplication row [description].
@@ -276,7 +306,9 @@ public sealed record ExactDuplicationRowReadModel(
 public sealed record GroupDuplicationRowReadModel(
     Guid ActiveSubstanceGroupId,
     string GroupName,
-    IReadOnlyCollection<SelectedDrugSummaryReadModel> AffectedDrugs,
+    IReadOnlyCollection<GroupActiveSubstanceReadModel> GroupActiveSubstances,
+    IReadOnlyCollection<AffectedActiveSubstanceReadModel> AffectedActiveSubstances,
+    IReadOnlyCollection<DrugTargetSummaryReadModel> AffectedDrugs,
     string DisplayLine,
     DuplicationKind DuplicationKind);
 
@@ -345,6 +377,7 @@ public sealed record ProblematicDrugsGroupReadModel(
 /// Drug allergy database row [description].
 /// </summary>
 public sealed record DrugAllergyRowReadModel(
+    Guid DrugId,
     string DrugDisplayLine,
     string? UserNote,
     string DisplayLine);
@@ -358,26 +391,56 @@ public sealed record CustomDrugAllergyRowReadModel(
     string DisplayLine);
 
 /// <summary>
-/// Catalog allergy row for food or supplement [description].
+/// Catalog supplement allergy row [description].
 /// </summary>
-public sealed record CatalogAllergyRowReadModel(
+public sealed record SupplementCatalogAllergyRowReadModel(
+    Guid SupplementId,
     string Name,
     IReadOnlyCollection<string> AliasNames,
     string? UserNote,
     string DisplayLine);
 
 /// <summary>
-/// Custom catalog allergy row [description].
+/// Custom supplement allergy row [description].
 /// </summary>
-public sealed record CustomCatalogAllergyRowReadModel(
+public sealed record CustomSupplementAllergyRowReadModel(
     string Name,
     string? UserNote,
     string DisplayLine);
 
 /// <summary>
-/// Taken-now overlap with allergy row [description].
+/// Catalog food allergy row [description].
 /// </summary>
-public sealed record TakenNowAllergyOverlapRowReadModel(
+public sealed record FoodCatalogAllergyRowReadModel(
+    Guid FoodId,
+    string Name,
+    IReadOnlyCollection<string> AliasNames,
+    string? UserNote,
+    string DisplayLine);
+
+/// <summary>
+/// Custom food allergy row [description].
+/// </summary>
+public sealed record CustomFoodAllergyRowReadModel(
+    string Name,
+    string? UserNote,
+    string DisplayLine);
+
+/// <summary>
+/// Taken-now supplement overlap with allergy row [description].
+/// </summary>
+public sealed record SupplementTakenNowAllergyOverlapRowReadModel(
+    Guid RegularSupplementId,
+    string RegularIntakeName,
+    IReadOnlyCollection<string> AliasNames,
+    string? AllergyNote,
+    string DisplayLine);
+
+/// <summary>
+/// Taken-now food overlap with allergy row [description].
+/// </summary>
+public sealed record FoodTakenNowAllergyOverlapRowReadModel(
+    Guid RegularFoodId,
     string RegularIntakeName,
     IReadOnlyCollection<string> AliasNames,
     string? AllergyNote,
@@ -394,17 +457,17 @@ public sealed record AllergyDrugSubgroupReadModel(
 /// Supplement allergy subgroup [description].
 /// </summary>
 public sealed record AllergySupplementSubgroupReadModel(
-    ReportSubsectionReadModel<CatalogAllergyRowReadModel> FromDatabase,
-    ReportSubsectionReadModel<CustomCatalogAllergyRowReadModel> Custom,
-    ReportSubsectionReadModel<TakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
+    ReportSubsectionReadModel<SupplementCatalogAllergyRowReadModel> FromDatabase,
+    ReportSubsectionReadModel<CustomSupplementAllergyRowReadModel> Custom,
+    ReportSubsectionReadModel<SupplementTakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
 
 /// <summary>
 /// Food allergy subgroup [description].
 /// </summary>
 public sealed record AllergyFoodSubgroupReadModel(
-    ReportSubsectionReadModel<CatalogAllergyRowReadModel> FromDatabase,
-    ReportSubsectionReadModel<CustomCatalogAllergyRowReadModel> Custom,
-    ReportSubsectionReadModel<TakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
+    ReportSubsectionReadModel<FoodCatalogAllergyRowReadModel> FromDatabase,
+    ReportSubsectionReadModel<CustomFoodAllergyRowReadModel> Custom,
+    ReportSubsectionReadModel<FoodTakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
 
 /// <summary>
 /// Other allergy catalog row [description].
@@ -452,7 +515,7 @@ public sealed record UserInfoSectionReadModel(
 /// </summary>
 public sealed record PublicDrugInteractionToolReportReadModel(
     PublicDrugInteractionToolSettingsSnapshotReadModel SettingsSnapshot,
-    IReadOnlyCollection<SelectedDrugSummaryReadModel> SelectedDrugs,
+    IReadOnlyCollection<DrugTargetSummaryReadModel> SelectedDrugs,
     IReadOnlyCollection<PublicSpecificDrugReportReadModel> SpecificDrugReports,
     AllDrugsInteractionsSectionReadModel? AllDrugsInteractionsSection,
     DrugDuplicationSectionReadModel DrugDuplicationSection);
@@ -463,7 +526,7 @@ public sealed record PublicDrugInteractionToolReportReadModel(
 public sealed record RegisteredDrugInteractionToolReportReadModel(
     RegisteredDrugInteractionToolSettingsSnapshotReadModel SettingsSnapshot,
     UserInfoSectionReadModel? UserInfoSection,
-    IReadOnlyCollection<SelectedDrugSummaryReadModel> SelectedDrugs,
+    IReadOnlyCollection<DrugTargetSummaryReadModel> SelectedDrugs,
     IReadOnlyCollection<RegisteredSpecificDrugReportReadModel> SpecificDrugReports,
     AllDrugsInteractionsSectionReadModel? AllDrugsInteractionsSection,
     DrugDuplicationSectionReadModel DrugDuplicationSection);

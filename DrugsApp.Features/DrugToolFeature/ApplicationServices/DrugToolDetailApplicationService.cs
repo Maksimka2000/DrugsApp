@@ -7,8 +7,6 @@ using DrugsApp.Domain.FoodFeature.Repositories;
 using DrugsApp.Domain.InteractionFeature.Entities;
 using DrugsApp.Domain.InteractionFeature.Enums;
 using DrugsApp.Domain.InteractionFeature.Repositories;
-using DrugsApp.Domain.MealTimeManagementFeature.Entities;
-using DrugsApp.Domain.MealTimeManagementFeature.Repositories;
 using DrugsApp.Domain.RegularDrugsFeature.Entities;
 using DrugsApp.Domain.RegularDrugsFeature.Interfaces;
 using DrugsApp.Domain.RegularFoodFeature.Entities;
@@ -33,7 +31,6 @@ internal sealed class DrugToolDetailApplicationService(
     IClientRegularFoodRepository _clientRegularFoodRepository,
     IClientRegularSupplementRepository _clientRegularSupplementRepository,
     IClientOwnSupplementRepository _clientOwnSupplementRepository,
-    IClientMealTimeRepository _clientMealTimeRepository,
     IFoodRepository _foodRepository,
     IFoodGroupRepository _foodGroupRepository,
     ISupplementRepository _supplementRepository,
@@ -80,35 +77,9 @@ internal sealed class DrugToolDetailApplicationService(
         IReadOnlyCollection<DrugToolActiveSubstanceDto> activeSubstanceDtos = drug.ActiveSubstances
             .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(substance => substance.Id)
-            .Select(substance =>
-            {
-                activeSubstanceById.TryGetValue(substance.Id, out ActiveSubstance? loaded);
-                return new DrugToolActiveSubstanceDto(
-                    substance.Id,
-                    substance.ActiveSubstanceName,
-                    loaded is null ? null : DrugToolMappings.FormatOralGuidanceText(loaded.OralMedicationIntakeGuidelines));
-            })
-            .ToList();
-
-        IReadOnlyCollection<DrugToolAvailableDrugFormDto> availableForms = drug.DrugForms
-            .OrderBy(form => DrugToolMappings.BuildFormLabel(form), StringComparer.OrdinalIgnoreCase)
-            .ThenBy(form => form.Id)
-            .Select(form => new DrugToolAvailableDrugFormDto(
-                form.Id,
-                DrugToolMappings.BuildFormLabel(form),
-                form.IsOral,
-                form.Dosage ?? string.Empty,
-                form.PharmaceuticalForms
-                    .OrderBy(pf => pf.FormulationName, StringComparer.OrdinalIgnoreCase)
-                    .Select(pf => pf.FormulationName)
-                    .FirstOrDefault() ?? string.Empty))
-            .ToList();
-
-        List<ClientMealTime> mealTimes = await _clientMealTimeRepository.ListByUserAsync(userId, cancellationToken);
-        IReadOnlyCollection<DrugToolUserMealTimeDto> userMealTimeDtos = mealTimes
-            .OrderBy(meal => meal.IntakeTime)
-            .ThenBy(meal => meal.MealName, StringComparer.OrdinalIgnoreCase)
-            .Select(meal => new DrugToolUserMealTimeDto(meal.MealName, meal.IntakeTime.ToString("HH:mm")))
+            .Select(substance => new DrugToolActiveSubstanceDto(
+                substance.Id,
+                substance.ActiveSubstanceName))
             .ToList();
 
         DrugToolAlcoholSectionDto alcoholSection = await BuildAlcoholSectionAsync(
@@ -130,18 +101,14 @@ internal sealed class DrugToolDetailApplicationService(
             cancellationToken);
 
         DrugToolFoodInteractionSectionDto foodSection = await BuildFoodSectionAsync(
-            drug,
             selectedForm,
             activeSubstanceIds,
             substanceNameById,
             interactionScope,
             userContext,
-            userMealTimeDtos,
-            activeSubstanceById,
             cancellationToken);
 
         DrugToolSupplementInteractionSectionDto supplementSection = await BuildSupplementSectionAsync(
-            drug,
             selectedForm,
             activeSubstanceIds,
             substanceNameById,
@@ -156,11 +123,8 @@ internal sealed class DrugToolDetailApplicationService(
             drug.TypeOfDrug,
             selectedForm.Id,
             DrugToolMappings.MapFormSummary(selectedForm),
-            DrugToolMappings.BuildDrugDisplayLine(drug, selectedForm),
             activeSubstanceDtos,
-            availableForms,
             interactionScope,
-            userMealTimeDtos,
             alcoholSection,
             drugSection,
             foodSection,
@@ -236,7 +200,7 @@ internal sealed class DrugToolDetailApplicationService(
 
         return new DrugToolAlcoholSectionDto(
             rows.Count,
-            rows.Count > 0 ? DrugToolMappings.AlcoholHeadline : string.Empty,
+            rows.Count > 0 ? DrugToolHeadlines.AlcoholSection : string.Empty,
             rows);
     }
 
@@ -257,7 +221,7 @@ internal sealed class DrugToolDetailApplicationService(
 
         if (projections.Count == 0)
         {
-            return new DrugToolDrugInteractionSectionDto(0, []);
+            return new DrugToolDrugInteractionSectionDto(string.Empty, null, null);
         }
 
         var rightSubstanceIds = projections
@@ -286,7 +250,7 @@ internal sealed class DrugToolDetailApplicationService(
             allSubstanceNames[id] = name;
         }
 
-        List<DrugToolDrugInteractionGroupDto> allGroups = new();
+        List<DrugSectionRowBuild> allRows = new();
 
         foreach (Drug targetDrug in targetDrugById.Values)
         {
@@ -300,382 +264,86 @@ internal sealed class DrugToolDetailApplicationService(
                 continue;
             }
 
-            bool isCurrentDrug = targetDrug.Id == drug.Id;
             Guid targetFormId = ResolveTargetDrugFormId(targetDrug, userContext);
             DrugForm targetForm = targetDrug.DrugForms.First(form => form.Id == targetFormId);
             bool includeStomachText = selectedForm.IsOral && targetForm.IsOral;
 
             var pairs = relevantPairs
                 .Select(row => new DrugToolDrugInteractionPairDto(
+                    row.LeftPartyId,
                     leftSubstanceNameById[row.LeftPartyId],
+                    row.RightPartyId,
                     allSubstanceNames[row.RightPartyId],
                     row.DefaultText ?? string.Empty,
                     includeStomachText ? row.StomachText : null,
-                    row.SeverityName,
-                    targetFormId,
-                    targetForm.IsOral))
-                .OrderBy(pair => pair.LeftActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(pair => pair.RightActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+                    row.SeverityName))
+                .OrderBy(pair => pair.ThisActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(pair => pair.TargetActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
                 .ThenByDescending(pair => pair.Severity)
                 .ToList();
 
             bool isUserMatch = IsDrugUserMatch(targetDrug.Id, targetSubstanceIds, userContext);
 
-            allGroups.Add(new DrugToolDrugInteractionGroupDto(
-                targetDrug.Id,
-                isCurrentDrug ? DrugToolMappings.ThisDrugLabel : targetDrug.CommercialName,
-                isCurrentDrug
-                    ? DrugToolMappings.ThisDrugLabel
-                    : DrugToolMappings.BuildDrugDisplayLine(targetDrug, targetForm),
-                isCurrentDrug,
+            allRows.Add(new DrugSectionRowBuild(
+                targetDrug,
+                targetForm,
                 isUserMatch,
-                MapTargetForms(targetDrug),
                 pairs));
         }
 
-        return BuildDrugSubsections(allGroups, interactionScope);
+        return BuildDrugSection(allRows, interactionScope);
     }
 
-    private static DrugToolDrugInteractionSectionDto BuildDrugSubsections(
-        List<DrugToolDrugInteractionGroupDto> allGroups,
+    private static DrugToolDrugInteractionSectionDto BuildDrugSection(
+        List<DrugSectionRowBuild> allRows,
         DrugToolInteractionScope interactionScope)
     {
-        var orderedGroups = allGroups
-            .OrderByDescending(group => group.IsUserMatch)
-            .ThenBy(group => group.TargetDisplayLine, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (interactionScope == DrugToolInteractionScope.UserOnly)
+        if (allRows.Count == 0)
         {
-            orderedGroups = orderedGroups
-                .Where(group => group.IsUserMatch)
-                .ToList();
+            return new DrugToolDrugInteractionSectionDto(string.Empty, null, null);
         }
 
-        List<DrugToolInteractionSubsectionDto> subsections = new();
-
-        var userMatches = orderedGroups
-            .Where(group => group.IsUserMatch)
-            .ToList();
-
-        if (userMatches.Count > 0)
-        {
-            subsections.Add(new DrugToolInteractionSubsectionDto(
-                DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.UserMatches),
-                userMatches.Count,
-                userMatches));
-        }
-
-        if (interactionScope == DrugToolInteractionScope.All)
-        {
-            var remainder = orderedGroups
-                .Where(group => !group.IsUserMatch)
+        List<DrugToolDrugInteractionRowDto> MapRows(IEnumerable<DrugSectionRowBuild> rows) =>
+            rows
+                .OrderBy(row => DrugToolMappings.BuildDrugSummaryText(row.TargetDrug, row.TargetForm), StringComparer.OrdinalIgnoreCase)
+                .Select(row => new DrugToolDrugInteractionRowDto(
+                    new DrugToolDrugTargetSummaryDto(
+                        row.TargetDrug.Id,
+                        row.TargetForm.Id,
+                        DrugToolMappings.BuildDrugSummaryText(row.TargetDrug, row.TargetForm),
+                        row.TargetForm.IsOral),
+                    row.Pairs.Count,
+                    row.Pairs))
                 .ToList();
 
-            if (remainder.Count > 0)
-            {
-                subsections.Add(new DrugToolInteractionSubsectionDto(
-                    DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.CatalogRemainder),
-                    remainder.Count,
-                    remainder));
-            }
-        }
-
-        return new DrugToolDrugInteractionSectionDto(orderedGroups.Count, subsections);
-    }
-
-    private async Task<DrugToolFoodInteractionSectionDto> BuildFoodSectionAsync(
-        Drug drug,
-        DrugForm selectedForm,
-        IReadOnlyCollection<Guid> leftSubstanceIds,
-        IReadOnlyDictionary<Guid, string> substanceNameById,
-        DrugToolInteractionScope interactionScope,
-        UserContext userContext,
-        IReadOnlyCollection<DrugToolUserMealTimeDto> userMealTimes,
-        IReadOnlyDictionary<Guid, ActiveSubstance> activeSubstanceById,
-        CancellationToken cancellationToken)
-    {
-        List<InteractionExpandedProjection> projections =
-            await _interactionRepository.ListExpandedByLeftActiveSubstanceIdsAsync(
-                InteractionKind.Food,
-                leftSubstanceIds,
-                cancellationToken);
-
-        List<DrugToolFoodSupplementInteractionGroupDto> allGroups = await BuildFoodOrSupplementGroupsAsync(
-            projections,
-            substanceNameById,
-            selectedForm.IsOral,
-            isFood: true,
-            userContext,
-            cancellationToken);
-
-        DrugToolOralGuidanceDto? oralGuidance = selectedForm.IsOral
-            ? BuildOralGuidance(drug, activeSubstanceById, userMealTimes)
+        List<DrugToolDrugInteractionRowDto> userRowDtos = MapRows(allRows.Where(row => row.IsUserMatch));
+        DrugToolDrugSubsectionDto? takenNowSubsection = userRowDtos.Count > 0
+            ? new DrugToolDrugSubsectionDto(
+                DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.UserData),
+                DrugToolHeadlines.DrugTakenNow,
+                userRowDtos.Count,
+                userRowDtos)
             : null;
 
-        int foodRecordCount = interactionScope == DrugToolInteractionScope.UserOnly
-            ? allGroups.Count(group => group.IsUserMatch)
-            : allGroups.Count;
-
-        return new DrugToolFoodInteractionSectionDto(
-            foodRecordCount,
-            oralGuidance,
-            BuildFoodSupplementSubsections(allGroups, interactionScope));
-    }
-
-    private async Task<DrugToolSupplementInteractionSectionDto> BuildSupplementSectionAsync(
-        Drug drug,
-        DrugForm selectedForm,
-        IReadOnlyCollection<Guid> leftSubstanceIds,
-        IReadOnlyDictionary<Guid, string> substanceNameById,
-        DrugToolInteractionScope interactionScope,
-        UserContext userContext,
-        CancellationToken cancellationToken)
-    {
-        List<InteractionExpandedProjection> projections =
-            await _interactionRepository.ListExpandedByLeftActiveSubstanceIdsAsync(
-                InteractionKind.Supplement,
-                leftSubstanceIds,
-                cancellationToken);
-
-        List<DrugToolFoodSupplementInteractionGroupDto> allGroups = await BuildFoodOrSupplementGroupsAsync(
-            projections,
-            substanceNameById,
-            selectedForm.IsOral,
-            isFood: false,
-            userContext,
-            cancellationToken);
-
-        int supplementRecordCount = interactionScope == DrugToolInteractionScope.UserOnly
-            ? allGroups.Count(group => group.IsUserMatch)
-            : allGroups.Count;
-
-        return new DrugToolSupplementInteractionSectionDto(
-            supplementRecordCount,
-            BuildFoodSupplementSubsections(allGroups, interactionScope));
-    }
-
-    private async Task<List<DrugToolFoodSupplementInteractionGroupDto>> BuildFoodOrSupplementGroupsAsync(
-        List<InteractionExpandedProjection> projections,
-        IReadOnlyDictionary<Guid, string> substanceNameById,
-        bool selectedFormIsOral,
-        bool isFood,
-        UserContext userContext,
-        CancellationToken cancellationToken)
-    {
-        if (projections.Count == 0)
-        {
-            return [];
-        }
-
-        var interactionIds = projections.Select(row => row.InteractionId).ToHashSet();
-        List<Interaction> interactions = await _interactionRepository.GetByIdsAsync(interactionIds, cancellationToken);
-        var interactionById = interactions.ToDictionary(interaction => interaction.Id);
-
-        Dictionary<string, DrugToolFoodSupplementInteractionGroupDto> groups = new(StringComparer.Ordinal);
-
-        foreach (InteractionExpandedProjection projection in projections)
-        {
-            if (!interactionById.TryGetValue(projection.InteractionId, out Interaction? interaction))
-            {
-                continue;
-            }
-
-            InteractionParty? targetParty = interaction.Parties.FirstOrDefault(party =>
-                isFood
-                    ? party.PartyType is InteractionType.Food or InteractionType.FoodGroup
-                    : party.PartyType is InteractionType.Supplement or InteractionType.SupplementGroup);
-
-            if (targetParty is null)
-            {
-                continue;
-            }
-
-            string targetEntityType;
-            string targetDisplayName;
-            Guid targetKeyId;
-            bool isUserMatch;
-
-            if (isFood)
-            {
-                (targetEntityType, targetDisplayName, targetKeyId, isUserMatch) =
-                    await ResolveFoodTargetAsync(targetParty, projection.RightPartyId, userContext, cancellationToken);
-            }
-            else
-            {
-                (targetEntityType, targetDisplayName, targetKeyId, isUserMatch) =
-                    await ResolveSupplementTargetAsync(targetParty, projection.RightPartyId, userContext, cancellationToken);
-            }
-
-            string groupKey = $"{targetEntityType}:{targetKeyId}";
-            if (!groups.TryGetValue(groupKey, out DrugToolFoodSupplementInteractionGroupDto? existing))
-            {
-                existing = new DrugToolFoodSupplementInteractionGroupDto(
-                    targetEntityType,
-                    targetDisplayName,
-                    isUserMatch,
-                    []);
-                groups[groupKey] = existing;
-            }
-
-            DrugToolFoodSupplementInteractionPairDto pair = new(
-                substanceNameById[projection.LeftPartyId],
-                targetDisplayName,
-                projection.DefaultText ?? string.Empty,
-                selectedFormIsOral ? projection.StomachText : null,
-                projection.SeverityName);
-
-            var updatedPairs = existing.InteractionPairs
-                .Append(pair)
-                .OrderBy(p => p.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(p => p.TargetDisplayName, StringComparer.OrdinalIgnoreCase)
-                .ThenByDescending(p => p.Severity)
-                .ToList();
-
-            groups[groupKey] = existing with
-            {
-                IsUserMatch = existing.IsUserMatch || isUserMatch,
-                InteractionPairs = updatedPairs
-            };
-        }
-
-        return groups.Values
-            .OrderBy(group => group.TargetDisplayName, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
-
-    private async Task<(string EntityType, string DisplayName, Guid KeyId, bool IsUserMatch)> ResolveFoodTargetAsync(
-        InteractionParty targetParty,
-        Guid expandedRightPartyId,
-        UserContext userContext,
-        CancellationToken cancellationToken)
-    {
-        if (targetParty.PartyType == InteractionType.FoodGroup && targetParty.FoodGroupId.HasValue)
-        {
-            FoodGroup? group = (await _foodGroupRepository.GetByIdsAsync(
-                [targetParty.FoodGroupId.Value],
-                cancellationToken)).FirstOrDefault();
-
-            string name = group?.Name ?? "Food group";
-            bool isUserMatch = group?.Foods.Any(food => userContext.FoodIds.Contains(food.Id)) == true
-                || userContext.FoodIds.Contains(expandedRightPartyId);
-
-            return ("food_group", name, targetParty.FoodGroupId.Value, isUserMatch);
-        }
-
-        Food? food = (await _foodRepository.GetByIdsAsync([expandedRightPartyId], cancellationToken)).FirstOrDefault();
-        string foodName = food?.Name ?? "Food";
-        bool foodMatch = userContext.FoodIds.Contains(expandedRightPartyId);
-        return ("food", foodName, expandedRightPartyId, foodMatch);
-    }
-
-    private async Task<(string EntityType, string DisplayName, Guid KeyId, bool IsUserMatch)> ResolveSupplementTargetAsync(
-        InteractionParty targetParty,
-        Guid expandedRightPartyId,
-        UserContext userContext,
-        CancellationToken cancellationToken)
-    {
-        if (targetParty.PartyType == InteractionType.SupplementGroup && targetParty.SupplementGroupId.HasValue)
-        {
-            SupplementGroup? group = (await _supplementGroupRepository.GetByIdsAsync(
-                [targetParty.SupplementGroupId.Value],
-                cancellationToken)).FirstOrDefault();
-
-            string name = group?.Name ?? "Supplement group";
-            bool isUserMatch = group?.Supplements.Any(supplement => userContext.SupplementIds.Contains(supplement.Id)) == true
-                || userContext.SupplementIds.Contains(expandedRightPartyId);
-
-            return ("supplement_group", name, targetParty.SupplementGroupId.Value, isUserMatch);
-        }
-
-        Supplement? supplement = (await _supplementRepository.GetByIdsAsync([expandedRightPartyId], cancellationToken))
-            .FirstOrDefault();
-        string supplementName = supplement?.Name ?? "Supplement";
-        bool supplementMatch = userContext.SupplementIds.Contains(expandedRightPartyId);
-        return ("supplement", supplementName, expandedRightPartyId, supplementMatch);
-    }
-
-    private static List<DrugToolFoodSupplementSubsectionDto> BuildFoodSupplementSubsections(
-        List<DrugToolFoodSupplementInteractionGroupDto> allGroups,
-        DrugToolInteractionScope interactionScope)
-    {
-        if (interactionScope == DrugToolInteractionScope.UserOnly)
-        {
-            allGroups = allGroups
-                .Where(group => group.IsUserMatch)
-                .ToList();
-        }
-
-        List<DrugToolFoodSupplementSubsectionDto> subsections = new();
-
-        var userMatches = allGroups
-            .Where(group => group.IsUserMatch)
-            .ToList();
-
-        if (userMatches.Count > 0)
-        {
-            subsections.Add(new DrugToolFoodSupplementSubsectionDto(
-                DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.UserMatches),
-                userMatches.Count,
-                userMatches));
-        }
-
+        DrugToolDrugSubsectionDto? allOtherSubsection = null;
         if (interactionScope == DrugToolInteractionScope.All)
         {
-            var remainder = allGroups
-                .Where(group => !group.IsUserMatch)
-                .ToList();
-
-            if (remainder.Count > 0)
+            List<DrugToolDrugInteractionRowDto> catalogRowDtos = MapRows(allRows);
+            if (catalogRowDtos.Count > 0)
             {
-                subsections.Add(new DrugToolFoodSupplementSubsectionDto(
-                    DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.CatalogRemainder),
-                    remainder.Count,
-                    remainder));
+                allOtherSubsection = new DrugToolDrugSubsectionDto(
+                    DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.AllOther),
+                    DrugToolHeadlines.DrugAllOther,
+                    catalogRowDtos.Count,
+                    catalogRowDtos);
             }
         }
 
-        return subsections;
+        return new DrugToolDrugInteractionSectionDto(
+            DrugToolHeadlines.DrugSection,
+            DrugToolMappings.WrapSubsection(takenNowSubsection),
+            DrugToolMappings.WrapSubsection(allOtherSubsection));
     }
-
-    private static DrugToolOralGuidanceDto BuildOralGuidance(
-        Drug drug,
-        IReadOnlyDictionary<Guid, ActiveSubstance> activeSubstanceById,
-        IReadOnlyCollection<DrugToolUserMealTimeDto> userMealTimes)
-    {
-        string mealSummary = userMealTimes.Count > 0
-            ? $"Your meal intake is now: {string.Join(", ", userMealTimes.Select(meal => meal.MealName))}"
-            : "You have not configured any meal times yet.";
-
-        var rows = drug.ActiveSubstances
-            .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
-            .Select(substance =>
-            {
-                activeSubstanceById.TryGetValue(substance.Id, out ActiveSubstance? loaded);
-                return new DrugToolOralGuidanceSubstanceRowDto(
-                    substance.ActiveSubstanceName,
-                    DrugToolMappings.FormatOralGuidanceText(loaded?.OralMedicationIntakeGuidelines) ?? string.Empty);
-            })
-            .ToList();
-
-        return new DrugToolOralGuidanceDto(
-            DrugToolMappings.OralGuidanceHeadline,
-            mealSummary,
-            rows);
-    }
-
-    private static IReadOnlyCollection<DrugToolTargetFormDto> MapTargetForms(Drug targetDrug) =>
-        targetDrug.DrugForms
-            .OrderBy(form => DrugToolMappings.BuildFormLabel(form), StringComparer.OrdinalIgnoreCase)
-            .ThenBy(form => form.Id)
-            .Select(form => new DrugToolTargetFormDto(
-                form.PharmaceuticalForms
-                    .OrderBy(pf => pf.FormulationName, StringComparer.OrdinalIgnoreCase)
-                    .Select(pf => pf.FormulationName)
-                    .FirstOrDefault() ?? string.Empty,
-                form.Dosage ?? string.Empty,
-                form.IsOral))
-            .ToList();
 
     private static Guid ResolveTargetDrugFormId(Drug targetDrug, UserContext userContext)
     {
@@ -692,6 +360,323 @@ internal sealed class DrugToolDetailApplicationService(
             .ThenBy(form => form.Id)
             .First()
             .Id;
+    }
+
+    private async Task<DrugToolFoodInteractionSectionDto> BuildFoodSectionAsync(
+        DrugForm selectedForm,
+        IReadOnlyCollection<Guid> leftSubstanceIds,
+        IReadOnlyDictionary<Guid, string> substanceNameById,
+        DrugToolInteractionScope interactionScope,
+        UserContext userContext,
+        CancellationToken cancellationToken)
+    {
+        List<InteractionExpandedProjection> projections =
+            await _interactionRepository.ListExpandedByLeftActiveSubstanceIdsAsync(
+                InteractionKind.Food,
+                leftSubstanceIds,
+                cancellationToken);
+
+        List<FlatFoodInteraction> allInteractions = await BuildFlatFoodInteractionsAsync(
+            projections,
+            substanceNameById,
+            selectedForm.IsOral,
+            userContext,
+            cancellationToken);
+
+        return BuildFoodSection(allInteractions, interactionScope);
+    }
+
+    private async Task<DrugToolSupplementInteractionSectionDto> BuildSupplementSectionAsync(
+        DrugForm selectedForm,
+        IReadOnlyCollection<Guid> leftSubstanceIds,
+        IReadOnlyDictionary<Guid, string> substanceNameById,
+        DrugToolInteractionScope interactionScope,
+        UserContext userContext,
+        CancellationToken cancellationToken)
+    {
+        List<InteractionExpandedProjection> projections =
+            await _interactionRepository.ListExpandedByLeftActiveSubstanceIdsAsync(
+                InteractionKind.Supplement,
+                leftSubstanceIds,
+                cancellationToken);
+
+        List<FlatSupplementInteraction> allInteractions = await BuildFlatSupplementInteractionsAsync(
+            projections,
+            substanceNameById,
+            selectedForm.IsOral,
+            userContext,
+            cancellationToken);
+
+        return BuildSupplementSection(allInteractions, interactionScope);
+    }
+
+    private async Task<List<FlatFoodInteraction>> BuildFlatFoodInteractionsAsync(
+        List<InteractionExpandedProjection> projections,
+        IReadOnlyDictionary<Guid, string> substanceNameById,
+        bool selectedFormIsOral,
+        UserContext userContext,
+        CancellationToken cancellationToken)
+    {
+        if (projections.Count == 0)
+        {
+            return [];
+        }
+
+        var interactionIds = projections.Select(row => row.InteractionId).ToHashSet();
+        List<Interaction> interactions = await _interactionRepository.GetByIdsAsync(interactionIds, cancellationToken);
+        var interactionById = interactions.ToDictionary(interaction => interaction.Id);
+
+        List<FlatFoodInteraction> results = new();
+
+        foreach (InteractionExpandedProjection projection in projections)
+        {
+            if (!interactionById.TryGetValue(projection.InteractionId, out Interaction? interaction))
+            {
+                continue;
+            }
+
+            InteractionParty? targetParty = interaction.Parties.FirstOrDefault(party =>
+                party.PartyType is InteractionType.Food or InteractionType.FoodGroup);
+
+            if (targetParty is null)
+            {
+                continue;
+            }
+
+            (Guid foodId, string foodName, bool isUserMatch) =
+                await ResolveFoodTargetAsync(targetParty, projection.RightPartyId, userContext, cancellationToken);
+
+            results.Add(new FlatFoodInteraction(
+                projection.LeftPartyId,
+                substanceNameById[projection.LeftPartyId],
+                foodId,
+                foodName,
+                projection.DefaultText ?? string.Empty,
+                selectedFormIsOral ? projection.StomachText : null,
+                projection.SeverityName,
+                isUserMatch));
+        }
+
+        return results
+            .OrderBy(row => row.FoodName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(row => row.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+            .ThenByDescending(row => row.Severity)
+            .ToList();
+    }
+
+    private async Task<List<FlatSupplementInteraction>> BuildFlatSupplementInteractionsAsync(
+        List<InteractionExpandedProjection> projections,
+        IReadOnlyDictionary<Guid, string> substanceNameById,
+        bool selectedFormIsOral,
+        UserContext userContext,
+        CancellationToken cancellationToken)
+    {
+        if (projections.Count == 0)
+        {
+            return [];
+        }
+
+        var interactionIds = projections.Select(row => row.InteractionId).ToHashSet();
+        List<Interaction> interactions = await _interactionRepository.GetByIdsAsync(interactionIds, cancellationToken);
+        var interactionById = interactions.ToDictionary(interaction => interaction.Id);
+
+        List<FlatSupplementInteraction> results = new();
+
+        foreach (InteractionExpandedProjection projection in projections)
+        {
+            if (!interactionById.TryGetValue(projection.InteractionId, out Interaction? interaction))
+            {
+                continue;
+            }
+
+            InteractionParty? targetParty = interaction.Parties.FirstOrDefault(party =>
+                party.PartyType is InteractionType.Supplement or InteractionType.SupplementGroup);
+
+            if (targetParty is null)
+            {
+                continue;
+            }
+
+            (Guid supplementId, string supplementName, bool isUserMatch) =
+                await ResolveSupplementTargetAsync(targetParty, projection.RightPartyId, userContext, cancellationToken);
+
+            results.Add(new FlatSupplementInteraction(
+                projection.LeftPartyId,
+                substanceNameById[projection.LeftPartyId],
+                supplementId,
+                supplementName,
+                projection.DefaultText ?? string.Empty,
+                selectedFormIsOral ? projection.StomachText : null,
+                projection.SeverityName,
+                isUserMatch));
+        }
+
+        return results
+            .OrderBy(row => row.SupplementName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(row => row.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+            .ThenByDescending(row => row.Severity)
+            .ToList();
+    }
+
+    private static DrugToolFoodInteractionSectionDto BuildFoodSection(
+        List<FlatFoodInteraction> allInteractions,
+        DrugToolInteractionScope interactionScope)
+    {
+        if (allInteractions.Count == 0)
+        {
+            return new DrugToolFoodInteractionSectionDto(string.Empty, null, null);
+        }
+
+        (DrugToolFoodSubsectionDto? takenNow, DrugToolFoodSubsectionDto? allOther) =
+            BuildFoodSubsections(allInteractions, interactionScope);
+
+        return new DrugToolFoodInteractionSectionDto(
+            DrugToolHeadlines.FoodSection,
+            DrugToolMappings.WrapSubsection(takenNow),
+            DrugToolMappings.WrapSubsection(allOther));
+    }
+
+    private static DrugToolSupplementInteractionSectionDto BuildSupplementSection(
+        List<FlatSupplementInteraction> allInteractions,
+        DrugToolInteractionScope interactionScope)
+    {
+        if (allInteractions.Count == 0)
+        {
+            return new DrugToolSupplementInteractionSectionDto(string.Empty, null, null);
+        }
+
+        (DrugToolSupplementSubsectionDto? takenNow, DrugToolSupplementSubsectionDto? allOther) =
+            BuildSupplementSubsections(allInteractions, interactionScope);
+
+        return new DrugToolSupplementInteractionSectionDto(
+            DrugToolHeadlines.SupplementSection,
+            DrugToolMappings.WrapSubsection(takenNow),
+            DrugToolMappings.WrapSubsection(allOther));
+    }
+
+    private static (DrugToolFoodSubsectionDto? TakenNow, DrugToolFoodSubsectionDto? AllOther) BuildFoodSubsections(
+        List<FlatFoodInteraction> allInteractions,
+        DrugToolInteractionScope interactionScope)
+    {
+        var userItems = allInteractions
+            .Where(row => row.IsUserMatch)
+            .ToList();
+
+        DrugToolFoodSubsectionDto? takenNow = userItems.Count > 0
+            ? new DrugToolFoodSubsectionDto(
+                DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.UserData),
+                userItems.Count,
+                userItems.Select(MapFoodInteraction).ToList())
+            : null;
+
+        DrugToolFoodSubsectionDto? allOther = null;
+        if (interactionScope == DrugToolInteractionScope.All)
+        {
+            allOther = new DrugToolFoodSubsectionDto(
+                DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.All),
+                allInteractions.Count,
+                allInteractions.Select(MapFoodInteraction).ToList());
+        }
+
+        return (takenNow, allOther);
+    }
+
+    private static (DrugToolSupplementSubsectionDto? TakenNow, DrugToolSupplementSubsectionDto? AllOther) BuildSupplementSubsections(
+        List<FlatSupplementInteraction> allInteractions,
+        DrugToolInteractionScope interactionScope)
+    {
+        var userItems = allInteractions
+            .Where(row => row.IsUserMatch)
+            .ToList();
+
+        DrugToolSupplementSubsectionDto? takenNow = userItems.Count > 0
+            ? new DrugToolSupplementSubsectionDto(
+                DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.UserData),
+                userItems.Count,
+                userItems.Select(MapSupplementInteraction).ToList())
+            : null;
+
+        DrugToolSupplementSubsectionDto? allOther = null;
+        if (interactionScope == DrugToolInteractionScope.All)
+        {
+            allOther = new DrugToolSupplementSubsectionDto(
+                DrugToolMappings.MapSubsectionToApi(DrugToolInteractionSubsectionCode.All),
+                allInteractions.Count,
+                allInteractions.Select(MapSupplementInteraction).ToList());
+        }
+
+        return (takenNow, allOther);
+    }
+
+    private static DrugToolFoodInteractionDto MapFoodInteraction(FlatFoodInteraction item) =>
+        new(
+            item.ActiveSubstanceId,
+            item.ActiveSubstanceName,
+            item.FoodId,
+            item.FoodName,
+            item.DefaultText,
+            item.StomachText,
+            item.Severity);
+
+    private static DrugToolSupplementInteractionDto MapSupplementInteraction(FlatSupplementInteraction item) =>
+        new(
+            item.ActiveSubstanceId,
+            item.ActiveSubstanceName,
+            item.SupplementId,
+            item.SupplementName,
+            item.DefaultText,
+            item.StomachText,
+            item.Severity);
+
+    private async Task<(Guid FoodId, string FoodName, bool IsUserMatch)> ResolveFoodTargetAsync(
+        InteractionParty targetParty,
+        Guid expandedRightPartyId,
+        UserContext userContext,
+        CancellationToken cancellationToken)
+    {
+        if (targetParty.PartyType == InteractionType.FoodGroup && targetParty.FoodGroupId.HasValue)
+        {
+            FoodGroup? group = (await _foodGroupRepository.GetByIdsAsync(
+                [targetParty.FoodGroupId.Value],
+                cancellationToken)).FirstOrDefault();
+
+            string name = group?.Name ?? "Food group";
+            bool isUserMatch = group?.Foods.Any(food => userContext.FoodIds.Contains(food.Id)) == true
+                || userContext.FoodIds.Contains(expandedRightPartyId);
+
+            return (targetParty.FoodGroupId.Value, name, isUserMatch);
+        }
+
+        Food? food = (await _foodRepository.GetByIdsAsync([expandedRightPartyId], cancellationToken)).FirstOrDefault();
+        string foodName = food?.Name ?? "Food";
+        bool foodMatch = userContext.FoodIds.Contains(expandedRightPartyId);
+        return (expandedRightPartyId, foodName, foodMatch);
+    }
+
+    private async Task<(Guid SupplementId, string SupplementName, bool IsUserMatch)> ResolveSupplementTargetAsync(
+        InteractionParty targetParty,
+        Guid expandedRightPartyId,
+        UserContext userContext,
+        CancellationToken cancellationToken)
+    {
+        if (targetParty.PartyType == InteractionType.SupplementGroup && targetParty.SupplementGroupId.HasValue)
+        {
+            SupplementGroup? group = (await _supplementGroupRepository.GetByIdsAsync(
+                [targetParty.SupplementGroupId.Value],
+                cancellationToken)).FirstOrDefault();
+
+            string name = group?.Name ?? "Supplement group";
+            bool isUserMatch = group?.Supplements.Any(supplement => userContext.SupplementIds.Contains(supplement.Id)) == true
+                || userContext.SupplementIds.Contains(expandedRightPartyId);
+
+            return (targetParty.SupplementGroupId.Value, name, isUserMatch);
+        }
+
+        Supplement? supplement = (await _supplementRepository.GetByIdsAsync([expandedRightPartyId], cancellationToken))
+            .FirstOrDefault();
+        string supplementName = supplement?.Name ?? "Supplement";
+        bool supplementMatch = userContext.SupplementIds.Contains(expandedRightPartyId);
+        return (expandedRightPartyId, supplementName, supplementMatch);
     }
 
     private static bool IsDrugUserMatch(Guid targetDrugId, HashSet<Guid> targetSubstanceIds, UserContext userContext)
@@ -781,6 +766,32 @@ internal sealed class DrugToolDetailApplicationService(
 
         return results;
     }
+
+    private sealed record DrugSectionRowBuild(
+        Drug TargetDrug,
+        DrugForm TargetForm,
+        bool IsUserMatch,
+        IReadOnlyCollection<DrugToolDrugInteractionPairDto> Pairs);
+
+    private sealed record FlatFoodInteraction(
+        Guid ActiveSubstanceId,
+        string ActiveSubstanceName,
+        Guid FoodId,
+        string FoodName,
+        string DefaultText,
+        string? StomachText,
+        string Severity,
+        bool IsUserMatch);
+
+    private sealed record FlatSupplementInteraction(
+        Guid ActiveSubstanceId,
+        string ActiveSubstanceName,
+        Guid SupplementId,
+        string SupplementName,
+        string DefaultText,
+        string? StomachText,
+        string Severity,
+        bool IsUserMatch);
 
     private sealed record UserContext(
         List<ClientRegularDrug> RegularDrugs,
