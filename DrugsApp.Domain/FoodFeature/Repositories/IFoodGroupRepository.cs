@@ -106,4 +106,11 @@ public interface IFoodGroupRepository
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True when references exist.</returns>
     Task<bool> IsReferencedByInteractionsAsync(Guid foodGroupId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Bulk loads food groups by identifiers with member foods included.
+    /// </summary>
+    Task<List<FoodGroup>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> foodGroupIds,
+        CancellationToken cancellationToken);
 }

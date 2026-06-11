@@ -19,6 +19,7 @@ using DrugsApp.Features.AdminUserManagementFeature.ApplicationServices;
 using DrugsApp.Features.ClientUserManagementFeature.ApplicationServices;
 using DrugsApp.Domain.AccountFeature.Interfaces;
 using DrugsApp.Features.AccountFeature.ApplicationServices;
+using DrugsApp.Features.DrugInteractionToolFeature.ApplicationServices;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -70,6 +71,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminUserManagementApplicationService, AdminUserManagementApplicationService>();
         services.AddScoped<IClientUserManagementApplicationService, ClientUserManagementApplicationService>();
         services.AddScoped<IClientAccountAdminDeletionService, ClientAccountAdminDeletionService>();
+        services.AddScoped<IDrugInteractionToolReportApplicationService, DrugInteractionToolReportApplicationService>();
 
         return services;
     }

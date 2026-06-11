@@ -33,4 +33,11 @@ public interface ISupplementGroupRepository
     Task<bool> IsInUseByInteractionsAsync(
         Guid supplementGroupId,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Bulk loads supplement groups by identifiers with members included.
+    /// </summary>
+    Task<List<SupplementGroup>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> supplementGroupIds,
+        CancellationToken cancellationToken);
 }
