@@ -15,6 +15,10 @@ using DrugsApp.Features.UserProfileFeature.ApplicationServices;
 using DrugsApp.Domain.PatientSupervisionFeature.Interfaces;
 using DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ApplicationServices;
 using DrugsApp.Features.PatientSupervisionFeature.ApplicationServices;
+using DrugsApp.Features.AdminUserManagementFeature.ApplicationServices;
+using DrugsApp.Features.ClientUserManagementFeature.ApplicationServices;
+using DrugsApp.Domain.AccountFeature.Interfaces;
+using DrugsApp.Features.AccountFeature.ApplicationServices;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -63,6 +67,9 @@ public static class DependencyInjection
         services.AddScoped<IMedicalChangeProposalApplyService, MedicalChangeProposalApplyService>();
         services.AddScoped<IMedicalChangeProposalDraftValidationService, MedicalChangeProposalDraftValidationService>();
         services.AddScoped<IProviderPatientMedicalSummaryReadService, ProviderPatientMedicalSummaryReadService>();
+        services.AddScoped<IAdminUserManagementApplicationService, AdminUserManagementApplicationService>();
+        services.AddScoped<IClientUserManagementApplicationService, ClientUserManagementApplicationService>();
+        services.AddScoped<IClientAccountAdminDeletionService, ClientAccountAdminDeletionService>();
 
         return services;
     }

@@ -38,6 +38,17 @@ public static class AuthRoles
     public const string Admin = "Admin";
 
     /// <summary>
+    /// Admin-portal roles that can be assigned through admin user management.
+    /// </summary>
+    public static IReadOnlyCollection<string> AdminRoleNames => new[]
+    {
+        ContentAdmin,
+        CatalogAdmin,
+        ImportAdmin,
+        Admin
+    };
+
+    /// <summary>
     /// Returns all supported role names.
     /// </summary>
     public static IReadOnlyCollection<string> All => new[]
