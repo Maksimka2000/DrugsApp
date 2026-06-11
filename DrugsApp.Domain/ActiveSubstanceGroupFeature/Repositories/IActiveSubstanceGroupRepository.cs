@@ -62,4 +62,11 @@ public interface IActiveSubstanceGroupRepository
         IReadOnlyCollection<Guid> memberIds,
         Guid? excludedGroupId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists groups containing any of the provided active substance member ids.
+    /// </summary>
+    Task<List<ActiveSubstanceGroup>> ListByMemberIdsAsync(
+        IReadOnlyCollection<Guid> memberIds,
+        CancellationToken cancellationToken = default);
 }

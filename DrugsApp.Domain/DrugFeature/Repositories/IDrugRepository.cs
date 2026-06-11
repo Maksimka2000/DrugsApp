@@ -74,5 +74,15 @@ public interface IDrugRepository
         string commercialName,
         string typeOfProduct,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Bulk loads drug aggregates that own the specified form ids with interaction-tool includes.
+    /// </summary>
+    /// <param name="drugFormIds">Drug form identifiers to resolve.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Drugs ordered by commercial name then id.</returns>
+    Task<List<Drug>> GetByDrugFormIdsAsync(
+        IReadOnlyCollection<Guid> drugFormIds,
+        CancellationToken cancellationToken);
 }
 
