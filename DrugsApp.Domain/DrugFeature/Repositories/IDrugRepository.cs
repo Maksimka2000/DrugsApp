@@ -84,5 +84,17 @@ public interface IDrugRepository
     Task<List<Drug>> GetByDrugFormIdsAsync(
         IReadOnlyCollection<Guid> drugFormIds,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Loads catalog drugs that contain any of the provided active substances.
+    /// </summary>
+    /// <param name="activeSubstanceIds">Active substance identifiers to match.</param>
+    /// <param name="excludeDrugId">Optional drug id to exclude from results.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Matching drugs with forms and active substances included.</returns>
+    Task<List<Drug>> ListByActiveSubstanceIdsAsync(
+        IReadOnlyCollection<Guid> activeSubstanceIds,
+        Guid? excludeDrugId,
+        CancellationToken cancellationToken);
 }
 

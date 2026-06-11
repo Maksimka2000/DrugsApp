@@ -82,6 +82,14 @@ public interface IInteractionRepository
     Task<List<Interaction>> GetByIdsAsync(
         IReadOnlyCollection<Guid> interactionIds,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns expanded atomic pairs for the given left active substances joined to parent interaction texts.
+    /// </summary>
+    Task<List<InteractionExpandedProjection>> ListExpandedByLeftActiveSubstanceIdsAsync(
+        InteractionKind interactionKind,
+        IReadOnlyCollection<Guid> leftActiveSubstanceIds,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -103,3 +111,28 @@ public sealed record InteractionAtomicPair(
     Guid PartyIdA,
     ShortInteractionType PartyTypeB,
     Guid PartyIdB);
+
+/// <summary>
+/// Read-side projection of an expanded interaction pair with parent interaction texts.
+/// </summary>
+/// <param name="ExpandedRowId">Expanded row identifier.</param>
+/// <param name="InteractionId">Parent interaction identifier.</param>
+/// <param name="LeftPartyType">Left atomic party type.</param>
+/// <param name="LeftPartyId">Left atomic party identifier.</param>
+/// <param name="RightPartyType">Right atomic party type.</param>
+/// <param name="RightPartyId">Right atomic party identifier.</param>
+/// <param name="DefaultText">Default interaction text from parent interaction.</param>
+/// <param name="StomachText">Stomach interaction text from parent interaction.</param>
+/// <param name="SeverityName">Severity label from parent interaction.</param>
+/// <param name="SeverityNumber">Severity rank used for ordering.</param>
+public sealed record InteractionExpandedProjection(
+    Guid ExpandedRowId,
+    Guid InteractionId,
+    ShortInteractionType LeftPartyType,
+    Guid LeftPartyId,
+    ShortInteractionType RightPartyType,
+    Guid RightPartyId,
+    string? DefaultText,
+    string? StomachText,
+    string SeverityName,
+    short SeverityNumber);
