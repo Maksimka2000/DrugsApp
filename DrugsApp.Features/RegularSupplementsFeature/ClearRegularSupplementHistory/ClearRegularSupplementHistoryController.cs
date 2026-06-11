@@ -23,7 +23,7 @@ public sealed record ClearRegularSupplementHistoryCommand(Guid UserId)
 /// Controller for clearing regular supplement history rows.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Supplements")]
 [Route("api/regular-supplements/history")]
 public sealed class ClearRegularSupplementHistoryController(IMediator _mediator) : ControllerBase

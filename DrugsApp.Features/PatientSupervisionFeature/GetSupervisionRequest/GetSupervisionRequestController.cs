@@ -22,7 +22,7 @@ public sealed class GetSupervisionRequestController(
     public const string RouteName = "GetSupervisionRequest";
 
     [HttpGet("{request_id:guid}", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<SupervisionRequestDetailDto>> Get(
         [FromRoute] Guid request_id,
         CancellationToken cancellationToken)

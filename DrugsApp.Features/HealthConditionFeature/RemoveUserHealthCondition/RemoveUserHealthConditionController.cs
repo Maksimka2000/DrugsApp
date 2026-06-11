@@ -23,7 +23,7 @@ public sealed record RemoveUserHealthConditionCommand(
 /// Controller for removing user health conditions.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Health Conditions")]
 [Route("api/user-health-conditions")]
 public sealed class RemoveUserHealthConditionController(IMediator _mediator) : ControllerBase

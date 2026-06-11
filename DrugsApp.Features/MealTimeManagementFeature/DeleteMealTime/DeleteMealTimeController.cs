@@ -21,7 +21,7 @@ public sealed record DeleteMealTimeCommand(Guid UserId, Guid MealTimeId) : IRequ
 /// Controller for deleting meal times.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Meal Times")]
 [Route("api/meal-times")]
 public sealed class DeleteMealTimeController(IMediator _mediator) : ControllerBase

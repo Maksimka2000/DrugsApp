@@ -36,7 +36,7 @@ public sealed record UpsertAllergySummaryCommand(
 /// Controller for upserting allergy summary answers.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class UpsertAllergySummaryController(

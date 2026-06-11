@@ -20,7 +20,7 @@ public sealed record CreateOtherAllergyCommand(Guid UserId, CreateOtherAllergyRe
     : IRequest<ErrorOr<CreatedOtherAllergyResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class CreateOtherAllergyController(

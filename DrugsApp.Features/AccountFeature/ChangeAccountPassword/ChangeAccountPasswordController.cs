@@ -10,12 +10,13 @@ using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.AccountFeature.ChangeAccountPassword;
 
 [ApiController]
 [Route("api/account/change-password")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Account")]
 public sealed class ChangeAccountPasswordController(
     IMediator _mediator,

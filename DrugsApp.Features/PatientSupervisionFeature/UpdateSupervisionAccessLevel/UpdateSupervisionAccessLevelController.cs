@@ -22,7 +22,7 @@ public sealed class UpdateSupervisionAccessLevelController(
     public const string RouteName = "UpdateSupervisionAccessLevel";
 
     [HttpPut("{connection_id:guid}/access-level", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<UpdateSupervisionAccessLevelResponseDto>> Update(
         [FromRoute] Guid connection_id,
         [FromBody] UpdateSupervisionAccessLevelRequest body,

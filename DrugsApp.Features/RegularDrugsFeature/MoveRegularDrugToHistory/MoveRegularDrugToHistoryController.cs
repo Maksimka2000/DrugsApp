@@ -29,7 +29,7 @@ public sealed record MoveRegularDrugToHistoryResponse(MoveRegularDrugToHistorySu
 /// Controller for moving regular drug schedules to history.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs")]
 public sealed class MoveRegularDrugToHistoryController(IMediator _mediator) : ControllerBase

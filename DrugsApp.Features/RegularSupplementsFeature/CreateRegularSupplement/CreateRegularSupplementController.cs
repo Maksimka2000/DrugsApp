@@ -44,7 +44,7 @@ public sealed record CreateRegularSupplementResponse(RegularSupplementDetailsDto
 /// Controller for creating regular supplement schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Supplements")]
 [Route("api/regular-supplements")]
 public sealed class CreateRegularSupplementController(

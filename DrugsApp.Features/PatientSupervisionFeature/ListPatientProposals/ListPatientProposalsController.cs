@@ -22,7 +22,7 @@ public sealed class ListPatientProposalsController(
     public const string RouteName = "ListPatientProposals";
 
     [HttpGet(Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<PatientProposalListResponse>> List(
         [FromQuery] ListPatientProposalsRequest request,
         CancellationToken cancellationToken)

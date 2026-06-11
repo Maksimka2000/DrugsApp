@@ -22,7 +22,7 @@ public sealed record ListMealTimesQuery(Guid UserId) : IRequest<ErrorOr<ListMeal
 /// Controller for listing user meal times.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Meal Times")]
 [Route("api/meal-times")]
 public sealed class ListMealTimesController(IMediator _mediator) : ControllerBase

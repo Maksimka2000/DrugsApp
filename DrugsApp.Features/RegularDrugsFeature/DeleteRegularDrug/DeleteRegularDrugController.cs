@@ -21,7 +21,7 @@ public sealed record DeleteRegularDrugCommand(Guid UserId, Guid Id) : IRequest<E
 /// Controller for permanently deleting regular drug schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs")]
 public sealed class DeleteRegularDrugController(IMediator _mediator) : ControllerBase

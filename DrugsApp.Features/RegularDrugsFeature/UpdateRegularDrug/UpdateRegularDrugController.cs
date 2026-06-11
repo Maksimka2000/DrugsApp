@@ -41,7 +41,7 @@ public sealed record UpdateRegularDrugResponse(RegularDrugListItemDto Item);
 /// Controller for updating regular drug schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs")]
 public sealed class UpdateRegularDrugController(

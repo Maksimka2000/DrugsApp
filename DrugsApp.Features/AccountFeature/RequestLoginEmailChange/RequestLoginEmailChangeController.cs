@@ -11,12 +11,13 @@ using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.AccountFeature.RequestLoginEmailChange;
 
 [ApiController]
 [Route("api/account/change-email")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Account")]
 public sealed class RequestLoginEmailChangeController(
     IMediator _mediator,

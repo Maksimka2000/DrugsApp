@@ -28,7 +28,7 @@ public sealed record MoveRegularSupplementToHistoryResponse(MoveRegularSupplemen
 /// Controller for moving regular supplement schedules to history.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Supplements")]
 [Route("api/regular-supplements")]
 public sealed class MoveRegularSupplementToHistoryController(IMediator _mediator) : ControllerBase

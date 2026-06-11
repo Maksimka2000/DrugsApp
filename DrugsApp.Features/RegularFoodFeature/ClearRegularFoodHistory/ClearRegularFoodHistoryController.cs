@@ -26,7 +26,7 @@ public sealed record ClearRegularFoodHistoryResponse(int DeletedCount);
 /// Controller for clearing regular food history rows.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food/history")]
 public sealed class ClearRegularFoodHistoryController(IMediator _mediator) : ControllerBase

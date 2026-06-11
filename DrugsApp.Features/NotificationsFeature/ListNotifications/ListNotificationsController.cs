@@ -23,7 +23,7 @@ public sealed record ListNotificationsQuery(
     int Take) : IRequest<ErrorOr<NotificationListResponse>>;
 
 [ApiController]
-[Authorize(Roles = $"{AuthRoles.Client},{AuthRoles.HealthcareProvider}")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Notifications")]
 [Route("api/notifications")]
 public sealed class ListNotificationsController(

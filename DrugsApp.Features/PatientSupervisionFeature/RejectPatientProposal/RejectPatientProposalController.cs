@@ -22,7 +22,7 @@ public sealed class RejectPatientProposalController(
     public const string RouteName = "RejectPatientProposal";
 
     [HttpPost("{proposal_id:guid}/reject", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<RejectPatientProposalResponseDto>> Reject(
         [FromRoute] Guid proposal_id,
         CancellationToken cancellationToken)

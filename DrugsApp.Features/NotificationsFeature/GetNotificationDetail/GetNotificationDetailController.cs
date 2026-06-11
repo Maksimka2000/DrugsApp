@@ -19,7 +19,7 @@ public sealed record GetNotificationDetailQuery(
     bool IncludeProviderAudience) : IRequest<ErrorOr<NotificationDetailResponse>>;
 
 [ApiController]
-[Authorize(Roles = $"{AuthRoles.Client},{AuthRoles.HealthcareProvider}")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Notifications")]
 [Route("api/notifications")]
 public sealed class GetNotificationDetailController(IMediator _mediator) : ControllerBase

@@ -22,7 +22,7 @@ public sealed class ApproveSupervisionRequestController(
     public const string RouteName = "ApproveSupervisionRequest";
 
     [HttpPost("{request_id:guid}/approve", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<ApproveSupervisionRequestResponseDto>> Approve(
         [FromRoute] Guid request_id,
         [FromBody] ApproveSupervisionRequestRequest body,

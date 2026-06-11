@@ -8,12 +8,13 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.RemoveReproductiveHealthProfile;
 
 [ApiController]
 [Route("api/user-profile/reproductive-health")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Profile")]
 public sealed class RemoveReproductiveHealthProfileController(IMediator _mediator) : ControllerBase
 {

@@ -20,7 +20,7 @@ public sealed record CheckSupplementCustomNameAvailabilityQuery(Guid UserId, str
     : IRequest<ErrorOr<NameAvailabilityResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class CheckSupplementCustomNameAvailabilityController(

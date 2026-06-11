@@ -40,7 +40,7 @@ public sealed record CreateOwnSupplementResponse(OwnSupplementDetailsDto Item);
 /// Controller for creating own supplement compounds.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Own Supplements")]
 [Route("api/own-supplements")]
 public sealed class CreateOwnSupplementController(

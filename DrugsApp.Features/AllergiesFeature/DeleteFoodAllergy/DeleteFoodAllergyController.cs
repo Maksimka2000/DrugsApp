@@ -15,7 +15,7 @@ namespace DrugsApp.Features.AllergiesFeature.DeleteFoodAllergy;
 public sealed record DeleteFoodAllergyCommand(Guid UserId, Guid Id) : IRequest<ErrorOr<Success>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class DeleteFoodAllergyController(IMediator _mediator) : ControllerBase

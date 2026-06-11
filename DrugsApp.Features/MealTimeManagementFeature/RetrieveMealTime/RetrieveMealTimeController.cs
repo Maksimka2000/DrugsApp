@@ -22,7 +22,7 @@ public sealed record RetrieveMealTimeQuery(Guid UserId, Guid MealTimeId) : IRequ
 /// Controller for retrieving meal times.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Meal Times")]
 [Route("api/meal-times")]
 public sealed class RetrieveMealTimeController(IMediator _mediator) : ControllerBase
