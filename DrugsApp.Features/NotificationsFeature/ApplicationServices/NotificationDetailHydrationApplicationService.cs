@@ -108,7 +108,6 @@ public sealed class NotificationDetailHydrationApplicationService(
                 detail.Value.ProposalId,
                 detail.Value.HealthcareProfessionalSummary,
                 detail.Value.ProposalSummary,
-                detail.Value.InteractionReportSummary,
                 detail.Value.Sections
                     .Select(section => new MedicalChangeProposalSectionBlockDto(
                         section.SectionCode,

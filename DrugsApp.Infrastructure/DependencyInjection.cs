@@ -27,6 +27,9 @@ using DrugsApp.Domain.NotificationsFeature.Repositories;
 using DrugsApp.Domain.RegularDrugsFeature.Interfaces;
 using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
 using DrugsApp.Domain.RegularFoodFeature.Interfaces;
+using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
+using DrugsApp.Domain.PatientSupervisionFeature.Interfaces;
+using DrugsApp.Infrastructure.Repositories.PatientSupervisionFeature;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
 using DrugsApp.Infrastructure.ExternalServices.Email;
@@ -142,6 +145,13 @@ public static class DependencyInjection
         services.AddScoped<IClientRegularFoodRepository, ClientRegularFoodRepository>();
         services.AddScoped<IUserSecurityStatusReadService, UserSecurityStatusReadService>();
         services.AddScoped<IPatientSupervisionNotificationReadService, PatientSupervisionNotificationReadService>();
+
+        // Patient Supervision
+        services.AddScoped<ISupervisionRequestRepository, SupervisionRequestRepository>();
+        services.AddScoped<ISupervisionConnectionRepository, SupervisionConnectionRepository>();
+        services.AddScoped<IMedicalChangeProposalRepository, MedicalChangeProposalRepository>();
+        services.AddScoped<ISupervisionReadRepository, SupervisionReadRepository>();
+        services.AddScoped<IUserRoleReadService, UserRoleReadService>();
 
 
         // Register Email External services here
