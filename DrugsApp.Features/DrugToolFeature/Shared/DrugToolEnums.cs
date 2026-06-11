@@ -6,54 +6,33 @@ namespace DrugsApp.Features.DrugToolFeature.Shared;
 public enum DrugToolInteractionScope
 {
     /// <summary>
-    /// Returns user matches and catalog remainder subsections.
+    /// Returns userdata and catalog subsections.
     /// </summary>
     All,
 
     /// <summary>
-    /// Returns only targets intersecting the user's live regular intake data.
+    /// Returns only the userdata subsection.
     /// </summary>
     UserOnly
 }
 
 /// <summary>
-/// Top-level accordion section discriminator in the drug tool response [description].
-/// </summary>
-public enum DrugToolInteractionSectionCode
-{
-    /// <summary>
-    /// Alcohol interaction accordion section.
-    /// </summary>
-    Alcohol,
-
-    /// <summary>
-    /// Drug-drug interaction accordion section.
-    /// </summary>
-    Drug,
-
-    /// <summary>
-    /// Food interaction accordion section.
-    /// </summary>
-    Food,
-
-    /// <summary>
-    /// Supplement interaction accordion section.
-    /// </summary>
-    Supplement
-}
-
-/// <summary>
-/// Optional split inside drug/food/supplement interaction sections [description].
+/// Subsection discriminator inside drug/food/supplement interaction sections [description].
 /// </summary>
 public enum DrugToolInteractionSubsectionCode
 {
     /// <summary>
-    /// Targets intersecting the user's live regular intake data.
+    /// Interactions intersecting the user's live regular intake data.
     /// </summary>
-    UserMatches,
+    UserData,
 
     /// <summary>
-    /// Remaining interacted catalog targets not matched to the user.
+    /// All catalog interactions for the selected drug (food/supplement sections).
     /// </summary>
-    CatalogRemainder
+    All,
+
+    /// <summary>
+    /// All catalog drug interactions (drug section).
+    /// </summary>
+    AllOther
 }

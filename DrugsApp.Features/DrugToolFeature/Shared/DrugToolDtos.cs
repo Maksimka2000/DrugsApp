@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DrugsApp.Domain.DrugFeature.Entities;
 
 namespace DrugsApp.Features.DrugToolFeature.Shared;
@@ -13,19 +14,7 @@ public sealed record DrugToolFormSummaryDto(
 
 public sealed record DrugToolActiveSubstanceDto(
     Guid Id,
-    string Name,
-    string? OralGuidance);
-
-public sealed record DrugToolAvailableDrugFormDto(
-    Guid Id,
-    string Label,
-    bool IsOral,
-    string Dosage,
-    string FormulationName);
-
-public sealed record DrugToolUserMealTimeDto(
-    string MealName,
-    string IntakeTime);
+    string Name);
 
 public sealed record DrugToolAlcoholRowDto(
     Guid ActiveSubstanceId,
@@ -39,73 +28,76 @@ public sealed record DrugToolAlcoholSectionDto(
     string Headline,
     IReadOnlyCollection<DrugToolAlcoholRowDto> Rows);
 
-public sealed record DrugToolTargetFormDto(
-    string FormulationName,
-    string Dosage,
-    bool IsOral);
-
 public sealed record DrugToolDrugInteractionPairDto(
-    string LeftActiveSubstanceName,
-    string RightActiveSubstanceName,
-    string DefaultText,
-    string? StomachText,
-    string Severity,
-    Guid TargetDrugFormId,
-    bool TargetDrugFormIsOral);
-
-public sealed record DrugToolDrugInteractionGroupDto(
-    Guid? TargetDrugId,
-    string TargetCommercialName,
-    string TargetDisplayLine,
-    bool IsCurrentDrug,
-    bool IsUserMatch,
-    IReadOnlyCollection<DrugToolTargetFormDto> TargetForms,
-    IReadOnlyCollection<DrugToolDrugInteractionPairDto> InteractionPairs);
-
-public sealed record DrugToolInteractionSubsectionDto(
-    string SubsectionCode,
-    int RecordCount,
-    IReadOnlyCollection<DrugToolDrugInteractionGroupDto> Groups);
-
-public sealed record DrugToolDrugInteractionSectionDto(
-    int RecordCount,
-    IReadOnlyCollection<DrugToolInteractionSubsectionDto> Subsections);
-
-public sealed record DrugToolFoodSupplementInteractionPairDto(
-    string ActiveSubstanceName,
-    string TargetDisplayName,
+    Guid ThisActiveSubstanceId,
+    string ThisActiveSubstanceName,
+    Guid TargetActiveSubstanceId,
+    string TargetActiveSubstanceName,
     string DefaultText,
     string? StomachText,
     string Severity);
 
-public sealed record DrugToolFoodSupplementInteractionGroupDto(
-    string TargetEntityType,
-    string TargetDisplayName,
-    bool IsUserMatch,
-    IReadOnlyCollection<DrugToolFoodSupplementInteractionPairDto> InteractionPairs);
+public sealed record DrugToolDrugTargetSummaryDto(
+    Guid DrugId,
+    Guid SelectedDrugFormId,
+    string DrugSummaryText,
+    bool IsOral);
 
-public sealed record DrugToolFoodSupplementSubsectionDto(
+public sealed record DrugToolDrugInteractionRowDto(
+    DrugToolDrugTargetSummaryDto TargetDrug,
+    int RecordCount,
+    IReadOnlyCollection<DrugToolDrugInteractionPairDto> InteractionPairs);
+
+public sealed record DrugToolDrugSubsectionDto(
+    string SectionCode,
+    string HeadlineText,
+    int RecordCount,
+    IReadOnlyCollection<DrugToolDrugInteractionRowDto> Rows);
+
+public sealed record DrugToolDrugInteractionSectionDto(
+    string Headline,
+    IReadOnlyCollection<DrugToolDrugSubsectionDto>? TakenNow,
+    IReadOnlyCollection<DrugToolDrugSubsectionDto>? AllOther);
+
+public sealed record DrugToolFoodInteractionDto(
+    Guid ActiveSubstanceId,
+    string ActiveSubstanceName,
+    Guid FoodId,
+    string FoodName,
+    string DefaultText,
+    string? StomachText,
+    string Severity);
+
+public sealed record DrugToolFoodSubsectionDto(
     string SubsectionCode,
     int RecordCount,
-    IReadOnlyCollection<DrugToolFoodSupplementInteractionGroupDto> Groups);
+    IReadOnlyCollection<DrugToolFoodInteractionDto> Interactions);
 
 public sealed record DrugToolFoodInteractionSectionDto(
+    string Headline,
+    IReadOnlyCollection<DrugToolFoodSubsectionDto>? TakenNow,
+    [property: JsonPropertyName("allother")]
+    IReadOnlyCollection<DrugToolFoodSubsectionDto>? AllOther);
+
+public sealed record DrugToolSupplementInteractionDto(
+    Guid ActiveSubstanceId,
+    string ActiveSubstanceName,
+    Guid SupplementId,
+    string SupplementName,
+    string DefaultText,
+    string? StomachText,
+    string Severity);
+
+public sealed record DrugToolSupplementSubsectionDto(
+    string SubsectionCode,
     int RecordCount,
-    DrugToolOralGuidanceDto? OralGuidance,
-    IReadOnlyCollection<DrugToolFoodSupplementSubsectionDto> Subsections);
+    IReadOnlyCollection<DrugToolSupplementInteractionDto> Interactions);
 
 public sealed record DrugToolSupplementInteractionSectionDto(
-    int RecordCount,
-    IReadOnlyCollection<DrugToolFoodSupplementSubsectionDto> Subsections);
-
-public sealed record DrugToolOralGuidanceSubstanceRowDto(
-    string ActiveSubstanceName,
-    string OralGuidance);
-
-public sealed record DrugToolOralGuidanceDto(
     string Headline,
-    string MealIntakeSummary,
-    IReadOnlyCollection<DrugToolOralGuidanceSubstanceRowDto> ActiveSubstanceGuidanceRows);
+    IReadOnlyCollection<DrugToolSupplementSubsectionDto>? TakenNow,
+    [property: JsonPropertyName("allother")]
+    IReadOnlyCollection<DrugToolSupplementSubsectionDto>? AllOther);
 
 public sealed record GetDrugToolDetailResponse(
     Guid DrugId,
@@ -114,12 +106,9 @@ public sealed record GetDrugToolDetailResponse(
     DrugType TypeOfDrug,
     Guid SelectedDrugFormId,
     DrugToolFormSummaryDto SelectedDrugFormSummary,
-    string DrugDisplayLine,
     IReadOnlyCollection<DrugToolActiveSubstanceDto> ActiveSubstances,
-    IReadOnlyCollection<DrugToolAvailableDrugFormDto> AvailableDrugForms,
     string CurrentInteractionScope,
     IReadOnlyCollection<string> AllowedInteractionScopes,
-    IReadOnlyCollection<DrugToolUserMealTimeDto> UserMealTimes,
     DrugToolAlcoholSectionDto AlcoholSection,
     DrugToolDrugInteractionSectionDto DrugSection,
     DrugToolFoodInteractionSectionDto FoodSection,

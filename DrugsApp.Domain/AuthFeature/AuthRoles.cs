@@ -38,6 +38,15 @@ public static class AuthRoles
     public const string Admin = "Admin";
 
     /// <summary>
+    /// Client-portal roles for members using the consumer application.
+    /// </summary>
+    public static IReadOnlyCollection<string> MemberRoleNames => new[]
+    {
+        Client,
+        HealthcareProvider
+    };
+
+    /// <summary>
     /// Admin-portal roles that can be assigned through admin user management.
     /// </summary>
     public static IReadOnlyCollection<string> AdminRoleNames => new[]
