@@ -23,7 +23,7 @@ public sealed record DeleteOwnSupplementCommand(Guid UserId, Guid Id)
 /// Controller for deleting own supplement compounds.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Own Supplements")]
 [Route("api/own-supplements")]
 public sealed class DeleteOwnSupplementController(IMediator _mediator) : ControllerBase

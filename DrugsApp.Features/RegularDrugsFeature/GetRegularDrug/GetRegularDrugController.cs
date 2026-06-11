@@ -27,7 +27,7 @@ public sealed record GetRegularDrugResponse(RegularDrugListItemDto Item);
 /// Controller for retrieving a regular drug schedule.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs")]
 public sealed class GetRegularDrugController(IMediator _mediator) : ControllerBase

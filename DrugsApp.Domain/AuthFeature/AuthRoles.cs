@@ -38,6 +38,11 @@ public static class AuthRoles
     public const string Admin = "Admin";
 
     /// <summary>
+    /// Comma-separated member role names for ASP.NET Core authorize attributes.
+    /// </summary>
+    public const string MemberRoles = "Client,HealthcareProvider";
+
+    /// <summary>
     /// Client-portal roles for members using the consumer application.
     /// </summary>
     public static IReadOnlyCollection<string> MemberRoleNames => new[]

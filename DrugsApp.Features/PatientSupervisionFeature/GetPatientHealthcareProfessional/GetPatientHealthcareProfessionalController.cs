@@ -22,7 +22,7 @@ public sealed class GetPatientHealthcareProfessionalController(
     public const string RouteName = "GetPatientHealthcareProfessional";
 
     [HttpGet("{healthcare_professional_user_id:guid}", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<PatientHealthcareProfessionalDetailDto>> GetById(
         [FromRoute] Guid healthcare_professional_user_id,
         CancellationToken cancellationToken)

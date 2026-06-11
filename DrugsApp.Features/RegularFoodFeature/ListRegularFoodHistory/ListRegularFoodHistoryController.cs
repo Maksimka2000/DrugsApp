@@ -49,7 +49,7 @@ public sealed record ListRegularFoodHistoryResponse(
 /// Controller for listing regular food history rows.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food/history")]
 public sealed class ListRegularFoodHistoryController(

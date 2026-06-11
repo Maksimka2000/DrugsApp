@@ -9,12 +9,13 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.GetUserProfile;
 
 [ApiController]
 [Route("api/user-profile")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Profile")]
 public sealed class GetUserProfileController(IMediator _mediator) : ControllerBase
 {

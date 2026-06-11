@@ -22,7 +22,7 @@ public sealed class GetPatientProposalController(
     public const string RouteName = "GetPatientProposal";
 
     [HttpGet("{proposal_id:guid}", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<PatientProposalDetailResponse>> Get(
         [FromRoute] Guid proposal_id,
         CancellationToken cancellationToken)

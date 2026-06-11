@@ -31,7 +31,7 @@ public sealed record CheckDrugCustomNameAvailabilityQuery(
 /// Controller for checking drug custom name availability.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class CheckDrugCustomNameAvailabilityController(

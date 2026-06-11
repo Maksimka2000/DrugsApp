@@ -27,7 +27,7 @@ public sealed record GetRegularFoodResponse(RegularFoodListItemDto Item);
 /// Controller for retrieving regular food schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food")]
 public sealed class GetRegularFoodController(IMediator _mediator) : ControllerBase

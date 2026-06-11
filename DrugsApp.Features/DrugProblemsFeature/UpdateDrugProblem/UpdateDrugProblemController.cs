@@ -40,7 +40,7 @@ public sealed record UpdateDrugProblemResponse(DrugProblemDetailsDto Item);
 /// Controller for updating drug problems.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Drug Problems")]
 [Route("api/drug-problems")]
 public sealed class UpdateDrugProblemController(

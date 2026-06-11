@@ -19,7 +19,7 @@ public sealed record MarkNotificationReadCommand(
     bool IncludeProviderAudience) : IRequest<ErrorOr<MarkNotificationReadResponse>>;
 
 [ApiController]
-[Authorize(Roles = $"{AuthRoles.Client},{AuthRoles.HealthcareProvider}")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Notifications")]
 [Route("api/notifications")]
 public sealed class MarkNotificationReadController(IMediator _mediator) : ControllerBase

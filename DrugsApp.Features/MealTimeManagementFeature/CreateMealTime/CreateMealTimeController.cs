@@ -32,7 +32,7 @@ public sealed record CreateMealTimeCommand(
 /// Controller for creating meal times.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Meal Times")]
 [Route("api/meal-times")]
 public sealed class CreateMealTimeController(

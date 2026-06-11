@@ -10,12 +10,13 @@ using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.AccountFeature.DeleteAccount;
 
 [ApiController]
 [Route("api/account/delete")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Account")]
 public sealed class DeleteAccountController(
     IMediator _mediator,

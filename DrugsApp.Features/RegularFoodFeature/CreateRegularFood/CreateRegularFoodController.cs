@@ -42,7 +42,7 @@ public sealed record CreateRegularFoodResponse(RegularFoodListItemDto Item);
 /// Controller for creating regular food schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food")]
 public sealed class CreateRegularFoodController(

@@ -35,7 +35,7 @@ public sealed record CreateDrugAllergyCommand(
 /// Controller for creating drug allergies.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class CreateDrugAllergyController(

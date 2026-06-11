@@ -10,12 +10,13 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.DownloadUserProfilePhoto;
 
 [ApiController]
 [Route("api/user-profile/photo")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Profile")]
 public sealed class DownloadUserProfilePhotoController(IMediator _mediator) : ControllerBase
 {

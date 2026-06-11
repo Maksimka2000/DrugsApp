@@ -39,7 +39,7 @@ public sealed record CreateDrugProblemResponse(DrugProblemDetailsDto Item);
 /// Controller for creating drug problems.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Drug Problems")]
 [Route("api/drug-problems")]
 public sealed class CreateDrugProblemController(

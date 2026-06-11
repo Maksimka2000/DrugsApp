@@ -11,12 +11,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using FluentValidation.Results;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.UploadUserProfilePhoto;
 
 [ApiController]
 [Route("api/user-profile/photo")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Profile")]
 public sealed class UploadUserProfilePhotoController(
     IMediator _mediator,

@@ -32,7 +32,7 @@ public sealed record ListDrugAllergiesQuery(
 /// Controller for listing drug allergies.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class ListDrugAllergiesController(

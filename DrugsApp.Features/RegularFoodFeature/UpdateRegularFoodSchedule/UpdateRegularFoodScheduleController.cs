@@ -41,7 +41,7 @@ public sealed record UpdateRegularFoodScheduleResponse(RegularFoodListItemDto It
 /// Controller for updating regular food schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food")]
 public sealed class UpdateRegularFoodScheduleController(

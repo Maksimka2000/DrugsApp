@@ -26,7 +26,7 @@ public sealed record ClearRegularDrugHistoryResponse(int DeletedCount);
 /// Controller for clearing regular drug history rows.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs/history")]
 public sealed class ClearRegularDrugHistoryController(IMediator _mediator) : ControllerBase

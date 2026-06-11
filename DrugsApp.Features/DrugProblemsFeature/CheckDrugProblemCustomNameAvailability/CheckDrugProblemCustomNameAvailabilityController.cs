@@ -38,7 +38,7 @@ public sealed record DrugProblemCustomNameAvailabilityDto(bool IsAvailable, Guid
 /// Controller for checking custom name availability.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Drug Problems")]
 [Route("api/drug-problems/custom-name-availability")]
 public sealed class CheckDrugProblemCustomNameAvailabilityController(

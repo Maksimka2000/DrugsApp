@@ -22,7 +22,7 @@ public sealed class RejectSupervisionRequestController(
     public const string RouteName = "RejectSupervisionRequest";
 
     [HttpPost("{request_id:guid}/reject", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.Client)]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<RejectSupervisionRequestResponseDto>> Reject(
         [FromRoute] Guid request_id,
         CancellationToken cancellationToken)

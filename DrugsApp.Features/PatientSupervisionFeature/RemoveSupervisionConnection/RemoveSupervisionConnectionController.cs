@@ -22,7 +22,7 @@ public sealed class RemoveSupervisionConnectionController(
     public const string RouteName = "RemoveSupervisionConnection";
 
     [HttpDelete("{connection_id:guid}", Name = RouteName)]
-    [Authorize(Roles = $"{AuthRoles.Client},{AuthRoles.HealthcareProvider}")]
+    [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<RemoveSupervisionConnectionResponseDto>> Remove(
         [FromRoute] Guid connection_id,
         CancellationToken cancellationToken)

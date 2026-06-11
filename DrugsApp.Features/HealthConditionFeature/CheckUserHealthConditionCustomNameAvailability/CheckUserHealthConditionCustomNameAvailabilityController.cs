@@ -37,7 +37,7 @@ public sealed record CheckUserHealthConditionCustomNameAvailabilityQuery(
 /// Controller for checking custom user health condition name availability.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Health Conditions")]
 [Route("api/user-health-conditions/custom-name-availability")]
 public sealed class CheckUserHealthConditionCustomNameAvailabilityController(

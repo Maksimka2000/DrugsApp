@@ -21,7 +21,7 @@ public sealed record DeleteDrugAllergyCommand(Guid UserId, Guid Id) : IRequest<E
 /// Controller for deleting drug allergies.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class DeleteDrugAllergyController(IMediator _mediator) : ControllerBase

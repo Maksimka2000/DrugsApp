@@ -32,7 +32,7 @@ public sealed record UpdateUserHealthConditionNoteCommand(
 /// Controller for updating user health condition note.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Health Conditions")]
 [Route("api/user-health-conditions")]
 public sealed class UpdateUserHealthConditionNoteController(

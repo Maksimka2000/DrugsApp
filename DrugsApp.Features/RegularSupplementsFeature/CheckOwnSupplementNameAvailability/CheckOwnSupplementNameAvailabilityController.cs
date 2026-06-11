@@ -32,7 +32,7 @@ public sealed record CheckOwnSupplementNameAvailabilityQuery(
 /// Controller for checking own supplement name availability.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Own Supplements")]
 [Route("api/own-supplements/validate-name-availability")]
 public sealed class CheckOwnSupplementNameAvailabilityController(
