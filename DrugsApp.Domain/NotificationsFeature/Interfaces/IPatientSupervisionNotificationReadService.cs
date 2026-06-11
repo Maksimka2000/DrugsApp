@@ -40,7 +40,6 @@ public sealed record MedicalChangeProposalNotificationDetail(
     Guid ProposalId,
     string HealthcareProfessionalSummary,
     string ProposalSummary,
-    string? InteractionReportSummary,
     IReadOnlyList<MedicalChangeProposalSectionDetail> Sections,
     string? ProposalNote,
     string CurrentProposalState);

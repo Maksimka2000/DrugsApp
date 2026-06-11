@@ -28,6 +28,13 @@ public sealed class UserProfileRepository(DrugsAppDbContext _context) : IUserPro
             .FirstOrDefaultAsync(profile => profile.Id == userId, cancellationToken);
     }
 
+    public async Task<UserProfile?> GetByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+    {
+        return await _context.UserProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(profile => profile.Email.ToLower() == normalizedEmail.ToLower(), cancellationToken);
+    }
+
     public async Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         UserProfile? profile = await _context.UserProfiles
