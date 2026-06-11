@@ -19,7 +19,7 @@ public sealed record UpdateFoodAllergyNoteCommand(
     Guid UserId, Guid Id, UpdateAllergyNoteRequest Request) : IRequest<ErrorOr<UpdatedFoodAllergyResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class UpdateFoodAllergyNoteController(

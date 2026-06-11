@@ -18,7 +18,7 @@ public sealed record GetUnreadNotificationCountQuery(
     bool IncludeProviderAudience) : IRequest<ErrorOr<UnreadNotificationCountResponse>>;
 
 [ApiController]
-[Authorize(Roles = $"{AuthRoles.Client},{AuthRoles.HealthcareProvider}")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Notifications")]
 [Route("api/notifications")]
 public sealed class GetUnreadNotificationCountController(IMediator _mediator) : ControllerBase

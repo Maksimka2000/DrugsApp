@@ -21,7 +21,7 @@ public sealed record DeleteRegularFoodCommand(Guid UserId, Guid Id) : IRequest<E
 /// Controller for deleting regular food schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food")]
 public sealed class DeleteRegularFoodController(IMediator _mediator) : ControllerBase

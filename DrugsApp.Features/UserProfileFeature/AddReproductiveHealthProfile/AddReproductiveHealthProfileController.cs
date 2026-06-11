@@ -11,12 +11,13 @@ using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
+using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.AddReproductiveHealthProfile;
 
 [ApiController]
 [Route("api/user-profile/reproductive-health")]
-[Authorize(Roles = "Client,HealthcareProvider")]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("User Profile")]
 public sealed class AddReproductiveHealthProfileController(
     IMediator _mediator,

@@ -26,7 +26,7 @@ public sealed record CreateSupplementAllergyCommand(
     CreateSupplementAllergyRequest Request) : IRequest<ErrorOr<CreatedSupplementAllergyResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class CreateSupplementAllergyController(

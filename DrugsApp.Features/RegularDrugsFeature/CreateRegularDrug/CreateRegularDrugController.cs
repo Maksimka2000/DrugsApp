@@ -43,7 +43,7 @@ public sealed record CreateRegularDrugResponse(RegularDrugListItemDto Item);
 /// Controller for creating regular drug schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs")]
 public sealed class CreateRegularDrugController(

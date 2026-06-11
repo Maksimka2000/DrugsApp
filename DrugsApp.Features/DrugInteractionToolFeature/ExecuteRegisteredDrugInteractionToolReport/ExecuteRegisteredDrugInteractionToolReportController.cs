@@ -39,7 +39,7 @@ public sealed record ExecuteRegisteredDrugInteractionToolReportCommand(
   : IRequest<ErrorOr<ExecuteRegisteredDrugInteractionToolReportResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Drug Interaction Tool")]
 [Route("api/tools/drug-interactions/registered")]
 public sealed class ExecuteRegisteredDrugInteractionToolReportController(

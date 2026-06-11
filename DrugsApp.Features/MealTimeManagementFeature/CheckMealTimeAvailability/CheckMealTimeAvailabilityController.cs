@@ -36,7 +36,7 @@ public sealed record CheckMealTimeAvailabilityQuery(
 /// Controller for checking meal time availability.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Meal Times")]
 [Route("api/meal-times")]
 public sealed class CheckMealTimeAvailabilityController(

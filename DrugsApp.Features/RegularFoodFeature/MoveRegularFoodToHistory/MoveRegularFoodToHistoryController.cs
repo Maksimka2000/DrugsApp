@@ -28,7 +28,7 @@ public sealed record MoveRegularFoodToHistoryResponse(MoveRegularFoodToHistorySu
 /// Controller for moving regular food schedules to history.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food")]
 public sealed class MoveRegularFoodToHistoryController(IMediator _mediator) : ControllerBase

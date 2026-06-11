@@ -21,7 +21,7 @@ public sealed record DeleteDrugProblemCommand(Guid UserId, Guid Id) : IRequest<E
 /// Controller for deleting drug problems.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Drug Problems")]
 [Route("api/drug-problems")]
 public sealed class DeleteDrugProblemController(IMediator _mediator) : ControllerBase

@@ -41,7 +41,7 @@ public sealed record ListRegularSupplementHistoryQuery(
 /// Controller for listing regular supplement history rows.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberRoles)]
 [Tags("Regular Supplements")]
 [Route("api/regular-supplements/history")]
 public sealed class ListRegularSupplementHistoryController(
