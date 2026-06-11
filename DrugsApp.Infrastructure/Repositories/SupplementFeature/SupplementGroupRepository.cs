@@ -132,4 +132,22 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext context) : ISupp
             .AsNoTracking()
             .AnyAsync(group => group.Id == supplementGroupId, cancellationToken);
     }
+
+    public async Task<List<SupplementGroup>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> supplementGroupIds,
+        CancellationToken cancellationToken)
+    {
+        if (supplementGroupIds.Count == 0)
+        {
+            return new List<SupplementGroup>();
+        }
+
+        return await context.SupplementGroups
+            .AsNoTracking()
+            .Include(group => group.Supplements)
+            .Where(group => supplementGroupIds.Contains(group.Id))
+            .OrderBy(group => group.Name)
+            .ThenBy(group => group.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

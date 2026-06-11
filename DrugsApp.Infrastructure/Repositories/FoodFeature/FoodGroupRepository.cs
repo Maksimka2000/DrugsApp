@@ -175,4 +175,22 @@ public sealed class FoodGroupRepository : IFoodGroupRepository
                 EF.Functions.ILike(food.SearchText, containsPattern) ||
                 useTrigram && EF.Functions.TrigramsSimilarity(food.SearchText, trimmedQuery) >= SimilarityThreshold));
     }
+
+    public async Task<List<FoodGroup>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> foodGroupIds,
+        CancellationToken cancellationToken)
+    {
+        if (foodGroupIds.Count == 0)
+        {
+            return new List<FoodGroup>();
+        }
+
+        return await _context.FoodGroups
+            .AsNoTracking()
+            .Include(group => group.Foods)
+            .Where(group => foodGroupIds.Contains(group.Id))
+            .OrderBy(group => group.Name)
+            .ThenBy(group => group.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

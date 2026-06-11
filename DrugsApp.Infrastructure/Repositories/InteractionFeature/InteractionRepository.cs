@@ -373,4 +373,44 @@ public sealed class InteractionRepository : IInteractionRepository
 
         return Expression.Lambda<Func<InteractionExpanded, bool>>(finalExpression, parameter);
     }
+
+    public async Task<List<InteractionExpanded>> SearchExpandedRowsByAtomicIdsAsync(
+        ShortInteractionType typeA,
+        IReadOnlyCollection<Guid> idsA,
+        ShortInteractionType typeB,
+        IReadOnlyCollection<Guid> idsB,
+        CancellationToken cancellationToken)
+    {
+        if (idsA.Count == 0 || idsB.Count == 0)
+        {
+            return new List<InteractionExpanded>();
+        }
+
+        return await _context.InteractionExpandedRows
+            .AsNoTracking()
+            .Where(row =>
+                row.PartyTypeA == typeA &&
+                idsA.Contains(row.PartyIdA) &&
+                row.PartyTypeB == typeB &&
+                idsB.Contains(row.PartyIdB))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Interaction>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> interactionIds,
+        CancellationToken cancellationToken)
+    {
+        if (interactionIds.Count == 0)
+        {
+            return new List<Interaction>();
+        }
+
+        return await _context.Interactions
+            .AsNoTracking()
+            .Include(interaction => interaction.InteractionSeverity)
+            .Include(interaction => interaction.Parties)
+            .Where(interaction => interactionIds.Contains(interaction.Id))
+            .OrderBy(interaction => interaction.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

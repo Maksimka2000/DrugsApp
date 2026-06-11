@@ -53,7 +53,12 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
         }
 
         return await _context.ActiveSubstances
+            .AsNoTracking()
+            .Include(activeSubstance => activeSubstance.OralMedicationIntakeGuidelines)
+            .Include(activeSubstance => activeSubstance.AlcoholInteractionOverride)
             .Where(activeSubstance => ids.Contains(activeSubstance.Id))
+            .OrderBy(activeSubstance => activeSubstance.ActiveSubstanceName)
+            .ThenBy(activeSubstance => activeSubstance.Id)
             .ToListAsync(cancellationToken);
     }
 

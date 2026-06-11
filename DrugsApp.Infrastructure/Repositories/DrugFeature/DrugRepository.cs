@@ -254,4 +254,20 @@ public sealed class DrugRepository : IDrugRepository
             d.DrugForms.Any(df => df.ProductIdentifier == numericIdentifier));
     }
 
+    public async Task<List<Drug>> GetByDrugFormIdsAsync(
+        IReadOnlyCollection<Guid> drugFormIds,
+        CancellationToken cancellationToken)
+    {
+        if (drugFormIds.Count == 0)
+        {
+            return new List<Drug>();
+        }
+
+        return await ApplyIncludes(_context.Drugs.AsNoTracking())
+            .Where(drug => drug.DrugForms.Any(form => drugFormIds.Contains(form.Id)))
+            .OrderBy(drug => drug.CommercialName)
+            .ThenBy(drug => drug.Id)
+            .ToListAsync(cancellationToken);
+    }
+
 }

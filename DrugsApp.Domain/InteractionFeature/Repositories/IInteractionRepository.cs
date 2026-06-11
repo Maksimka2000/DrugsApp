@@ -65,6 +65,23 @@ public interface IInteractionRepository
         Guid interactionId,
         IEnumerable<InteractionAtomicPair> atomicPairs,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns expanded projection rows matching atomic party id sets (pair discovery only).
+    /// </summary>
+    Task<List<InteractionExpanded>> SearchExpandedRowsByAtomicIdsAsync(
+        ShortInteractionType typeA,
+        IReadOnlyCollection<Guid> idsA,
+        ShortInteractionType typeB,
+        IReadOnlyCollection<Guid> idsB,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Bulk loads parent interactions with severity and parties for report mapping.
+    /// </summary>
+    Task<List<Interaction>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> interactionIds,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>

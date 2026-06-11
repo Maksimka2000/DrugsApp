@@ -180,4 +180,22 @@ public sealed class ActiveSubstanceGroupRepository(DrugsAppDbContext _context) :
             .Where(group => group.ActiveSubstances.All(member => normalizedIds.Contains(member.Id)))
             .AnyAsync(cancellationToken);
     }
+
+    public async Task<List<ActiveSubstanceGroup>> ListByMemberIdsAsync(
+        IReadOnlyCollection<Guid> memberIds,
+        CancellationToken cancellationToken)
+    {
+        if (memberIds.Count == 0)
+        {
+            return new List<ActiveSubstanceGroup>();
+        }
+
+        return await _context.ActiveSubstanceGroups
+            .AsNoTracking()
+            .Include(group => group.ActiveSubstances)
+            .Where(group => group.ActiveSubstances.Any(member => memberIds.Contains(member.Id)))
+            .OrderBy(group => group.Name)
+            .ThenBy(group => group.Id)
+            .ToListAsync(cancellationToken);
+    }
 }
