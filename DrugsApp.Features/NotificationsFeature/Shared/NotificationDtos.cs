@@ -64,7 +64,6 @@ public sealed record MedicalChangeProposalDetailBlockDto(
     Guid ProposalId,
     string HealthcareProfessionalSummary,
     string ProposalSummary,
-    string? InteractionReportSummary,
     IReadOnlyList<MedicalChangeProposalSectionBlockDto> Sections,
     string? ProposalNote,
     string CurrentProposalState);

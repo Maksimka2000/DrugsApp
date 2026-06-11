@@ -1342,6 +1342,311 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("UserNotifications", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccessLevelSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("access_level_snapshot");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid>("HealthcareProfessionalUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("healthcare_professional_user_id");
+
+                    b.Property<Guid>("PatientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_user_id");
+
+                    b.Property<string>("ProposalState")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("proposal_state");
+
+                    b.Property<string>("ProposalSummary")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("proposal_summary");
+
+                    b.Property<DateTime?>("ResolvedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at_utc");
+
+                    b.Property<Guid?>("ResolvedByPatientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by_patient_user_id");
+
+                    b.Property<DateTime>("SubmittedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at_utc");
+
+                    b.Property<Guid>("SupervisionConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supervision_connection_id");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupervisionConnectionId", "ProposalState")
+                        .HasDatabaseName("ix_medical_change_proposals_connection_state");
+
+                    b.HasIndex("HealthcareProfessionalUserId", "ProposalState", "SubmittedAtUtc", "Id")
+                        .IsDescending(false, false, true, true)
+                        .HasDatabaseName("ix_medical_change_proposals_provider_state_submitted_desc_id");
+
+                    b.HasIndex("PatientUserId", "ProposalState", "SubmittedAtUtc", "Id")
+                        .IsDescending(false, false, true, true)
+                        .HasDatabaseName("ix_medical_change_proposals_patient_state_submitted_desc_id");
+
+                    b.ToTable("medical_change_proposals", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ApplyPayload")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("apply_payload");
+
+                    b.Property<string>("CategoryCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("category_code");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CustomValue")
+                        .HasColumnType("text")
+                        .HasColumnName("custom_value");
+
+                    b.Property<string>("DisplayNameSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("display_name_snapshot");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<Guid?>("MedicalChangeProposalId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("ProposalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proposal_id");
+
+                    b.Property<Guid?>("RelatedCatalogId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_catalog_id");
+
+                    b.Property<string>("SecondaryTextSnapshot")
+                        .HasColumnType("text")
+                        .HasColumnName("secondary_text_snapshot");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MedicalChangeProposalId");
+
+                    b.HasIndex("ProposalId", "SortOrder")
+                        .IsUnique()
+                        .HasDatabaseName("ux_medical_change_proposal_items_proposal_sort");
+
+                    b.ToTable("medical_change_proposal_items", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItemIntakeTime", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<TimeOnly>("IntakeTime")
+                        .HasColumnType("time")
+                        .HasColumnName("intake_time");
+
+                    b.Property<Guid?>("MedicalChangeProposalItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProposalItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proposal_item_id");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MedicalChangeProposalItemId");
+
+                    b.HasIndex("ProposalItemId", "IntakeTime")
+                        .IsUnique()
+                        .HasDatabaseName("ux_medical_change_proposal_item_times_item_time");
+
+                    b.ToTable("medical_change_proposal_item_intake_times", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.SupervisionConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccessLevelCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("access_level_code");
+
+                    b.Property<DateTime>("ApprovedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at_utc");
+
+                    b.Property<string>("ConnectionState")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("connection_state");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid>("HealthcareProfessionalUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("healthcare_professional_user_id");
+
+                    b.Property<Guid>("PatientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_user_id");
+
+                    b.Property<DateTime?>("RemovedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("removed_at_utc");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientUserId", "HealthcareProfessionalUserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_supervision_connections_pair_active")
+                        .HasFilter("connection_state = 'Active'");
+
+                    b.HasIndex("HealthcareProfessionalUserId", "ConnectionState", "ApprovedAtUtc", "Id")
+                        .IsDescending(false, false, true, true)
+                        .HasDatabaseName("ix_supervision_connections_provider_state_approved_desc_id");
+
+                    b.HasIndex("PatientUserId", "ConnectionState", "ApprovedAtUtc", "Id")
+                        .IsDescending(false, false, true, true)
+                        .HasDatabaseName("ix_supervision_connections_patient_state_approved_desc_id");
+
+                    b.ToTable("supervision_connections", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.SupervisionRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<Guid>("HealthcareProfessionalUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("healthcare_professional_user_id");
+
+                    b.Property<Guid>("PatientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_user_id");
+
+                    b.Property<string>("RequestState")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_state");
+
+                    b.Property<DateTime>("RequestedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at_utc");
+
+                    b.Property<DateTime?>("ResolvedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at_utc");
+
+                    b.Property<Guid?>("ResolvedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by_user_id");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HealthcareProfessionalUserId", "RequestedAtUtc")
+                        .HasDatabaseName("ix_supervision_requests_provider_requested");
+
+                    b.HasIndex("PatientUserId", "HealthcareProfessionalUserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_supervision_requests_pair_pending")
+                        .HasFilter("request_state = 'pending'");
+
+                    b.HasIndex("RequestState", "ExpiresAtUtc")
+                        .HasDatabaseName("ix_supervision_requests_state_expires");
+
+                    b.HasIndex("HealthcareProfessionalUserId", "RequestedAtUtc", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("ix_supervision_requests_provider_requested_desc_id");
+
+                    b.HasIndex("PatientUserId", "RequestedAtUtc", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("ix_supervision_requests_patient_requested_desc_id");
+
+                    b.ToTable("supervision_requests", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.PharmaceuticalFormFeature.Entities.PharmaceuticalForm", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2874,6 +3179,42 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("SystemAnnouncement");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposal", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.SupervisionConnection", null)
+                        .WithMany()
+                        .HasForeignKey("SupervisionConnectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItem", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposal", null)
+                        .WithMany("Items")
+                        .HasForeignKey("MedicalChangeProposalId");
+
+                    b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposal", null)
+                        .WithMany()
+                        .HasForeignKey("ProposalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItemIntakeTime", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItem", null)
+                        .WithMany("IntakeTimes")
+                        .HasForeignKey("MedicalChangeProposalItemId");
+
+                    b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItem", null)
+                        .WithMany()
+                        .HasForeignKey("ProposalItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_medical_change_proposal_item_intake_times_medical_change_p~1");
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", b =>
                 {
                     b.HasOne("DrugsApp.Domain.DrugFeature.Entities.DrugForm", "DrugForm")
@@ -3094,6 +3435,16 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("ExpandedRows");
 
                     b.Navigation("Parties");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposal", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItem", b =>
+                {
+                    b.Navigation("IntakeTimes");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", b =>

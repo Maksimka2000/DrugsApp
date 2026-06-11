@@ -12,6 +12,9 @@ using DrugsApp.Features.RegularFoodFeature.ApplicationServices;
 using DrugsApp.Features.RegularSupplementsFeature.ApplicationServices;
 using DrugsApp.Domain.NotificationsFeature.Interfaces;
 using DrugsApp.Features.UserProfileFeature.ApplicationServices;
+using DrugsApp.Domain.PatientSupervisionFeature.Interfaces;
+using DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ApplicationServices;
+using DrugsApp.Features.PatientSupervisionFeature.ApplicationServices;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -57,6 +60,9 @@ public static class DependencyInjection
         services.AddScoped<IRegularFoodExpirationApplicationService, RegularFoodExpirationApplicationService>();
         services.AddScoped<IRegularSupplementExpirationApplicationService, RegularSupplementExpirationApplicationService>();
         services.AddScoped<IClientOwnSupplementDeletionApplicationService, ClientOwnSupplementDeletionApplicationService>();
+        services.AddScoped<IMedicalChangeProposalApplyService, MedicalChangeProposalApplyService>();
+        services.AddScoped<IMedicalChangeProposalDraftValidationService, MedicalChangeProposalDraftValidationService>();
+        services.AddScoped<IProviderPatientMedicalSummaryReadService, ProviderPatientMedicalSummaryReadService>();
 
         return services;
     }

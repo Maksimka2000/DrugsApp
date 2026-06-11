@@ -16,5 +16,7 @@ public interface IUserProfileRepository
 
     Task<UserProfile?> GetTrackedByUserIdAsync(Guid userId, CancellationToken cancellationToken);
 
+    Task<UserProfile?> GetByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken);
+
     Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken);
 }

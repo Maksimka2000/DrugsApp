@@ -9,6 +9,7 @@ using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.PharmaceuticalFormFeature.Entities;
 using DrugsApp.Domain.RouteOfAdministrationFeature.Entities;
 using DrugsApp.Domain.InteractionFeature.Entities;
+using DrugsApp.Domain.PatientSupervisionFeature.Entities;
 using DrugsApp.Domain.TempDrugFeature.Entities;
 using DrugsApp.Domain.TestFeature.Entities;
 using DrugsApp.Domain.VetDrugFeature.Entities;
@@ -77,6 +78,11 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<ClientOwnSupplementItem> ClientOwnSupplementItems { get; set; } = null!;
     public DbSet<ClientRegularFood> ClientRegularFoods { get; set; } = null!;
     public DbSet<ClientRegularFoodIntakeTime> ClientRegularFoodIntakeTimes { get; set; } = null!;
+    public DbSet<SupervisionRequest> SupervisionRequests { get; set; } = null!;
+    public DbSet<SupervisionConnection> SupervisionConnections { get; set; } = null!;
+    public DbSet<MedicalChangeProposal> MedicalChangeProposals { get; set; } = null!;
+    public DbSet<MedicalChangeProposalItem> MedicalChangeProposalItems { get; set; } = null!;
+    public DbSet<MedicalChangeProposalItemIntakeTime> MedicalChangeProposalItemIntakeTimes { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
