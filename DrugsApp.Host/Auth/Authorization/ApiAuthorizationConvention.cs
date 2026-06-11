@@ -142,6 +142,12 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         "DrugsApp.Features.DrugProblemsFeature.CheckDrugProblemTypeNameAvailability"
     };
 
+    private static readonly HashSet<string> AdminSelfServiceNamespaces = new(StringComparer.Ordinal)
+    {
+        "DrugsApp.Features.AdminUserManagementFeature.ChangeAdminUserPassword",
+        "DrugsApp.Features.AdminUserManagementFeature.ChangeAdminUserLoginEmail"
+    };
+
     public void Apply(ApplicationModel application)
     {
         foreach (ControllerModel controller in application.Controllers)
@@ -253,6 +259,24 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         if (CatalogWriteNamespaces.Contains(controllerNamespace))
         {
             RequirePermission(controller, Permission.ManageCatalog);
+            return;
+        }
+
+        if (AdminSelfServiceNamespaces.Contains(controllerNamespace))
+        {
+            RequireAnyAdminRole(controller);
+            return;
+        }
+
+        if (controllerNamespace.StartsWith("DrugsApp.Features.AdminUserManagementFeature.", StringComparison.Ordinal))
+        {
+            RequirePermission(controller, Permission.ManageAdminUsers);
+            return;
+        }
+
+        if (controllerNamespace.StartsWith("DrugsApp.Features.ClientUserManagementFeature.", StringComparison.Ordinal))
+        {
+            RequirePermission(controller, Permission.ManageClientUsers);
         }
     }
 
@@ -279,6 +303,15 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
             .ToArray();
 
         string policy = "AnyPermissionOrClient:" + AuthRoles.Client + "|" + string.Join('|', orderedPermissionNames);
+        controller.Filters.Add(new AuthorizeFilter(policy));
+    }
+
+    private static void RequireAnyAdminRole(ControllerModel controller)
+    {
+        AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+            .RequireRole(AuthRoles.AdminRoleNames.ToArray())
+            .Build();
+
         controller.Filters.Add(new AuthorizeFilter(policy));
     }
 }

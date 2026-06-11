@@ -27,6 +27,11 @@ public interface IIdentityAuthenticationService
         string password,
         CancellationToken cancellationToken);
 
+    Task<ErrorOr<AuthTokensResult>> LoginAdminAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken);
+
     Task<ErrorOr<AuthTokensResult>> RefreshAsync(
         string refreshToken,
         CancellationToken cancellationToken);
@@ -51,6 +56,10 @@ public interface IIdentityAuthenticationService
     Task<ErrorOr<Success>> DeleteAccountAsync(
         Guid userId,
         string currentPassword,
+        CancellationToken cancellationToken);
+
+    Task<ErrorOr<Success>> TeardownClientAccountAsync(
+        Guid userId,
         CancellationToken cancellationToken);
 
     Task<ErrorOr<Success>> ConfirmEmailAsync(

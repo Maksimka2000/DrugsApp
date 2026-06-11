@@ -2793,12 +2793,23 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at_utc")
+                        .HasDefaultValueSql("timezone('utc', now())");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("full_name");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -2834,6 +2845,12 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc")
+                        .HasDatabaseName("ix_asp_net_users_created_at_utc");
+
+                    b.HasIndex("FullName")
+                        .HasDatabaseName("ix_asp_net_users_full_name");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");

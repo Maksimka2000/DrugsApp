@@ -7,6 +7,7 @@ using DrugsApp.Domain.AuthFeature;
 using DrugsApp.Domain.AuthFeature.Entities;
 using DrugsApp.Domain.AuthFeature.Interfaces;
 using DrugsApp.Domain.Common;
+using DrugsApp.Domain.AccountFeature.Interfaces;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Enums;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
@@ -31,6 +32,8 @@ public sealed class IdentityAuthenticationService(
     IClientReproductiveHealthProfileRepository _clientReproductiveHealthProfileRepository,
     IHealthcareProviderProfileRepository _healthcareProviderProfileRepository,
     IPendingEmailChangeRepository _pendingEmailChangeRepository,
+    IClientAccountTeardownRepository _clientAccountTeardownRepository,
+    IBlobService _blobService,
     IUnitOfWork _unitOfWork) : IIdentityAuthenticationService
 {
     public async Task<ErrorOr<AuthRegistrationResult>> RegisterAsync(
@@ -55,7 +58,8 @@ public sealed class IdentityAuthenticationService(
         var user = new ApplicationUser
         {
             Email = normalizedEmail,
-            UserName = normalizedEmail
+            UserName = normalizedEmail,
+            CreatedAtUtc = DateTime.UtcNow
         };
 
         IdentityResult createResult = await _userManager.CreateAsync(user, password);
@@ -172,6 +176,63 @@ public sealed class IdentityAuthenticationService(
             return Error.Unauthorized(
                 code: "Auth.InvalidCredentials",
                 description: "Invalid email or password.");
+        }
+
+        if (!user.EmailConfirmed)
+        {
+            return Error.Forbidden(
+                code: "Auth.EmailNotConfirmed",
+                description: "Email address is not confirmed.");
+        }
+
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+        if (AuthPortalClassifier.IsAdminPortalUser(roles))
+        {
+            return Error.Forbidden(
+                code: "Auth.WrongPortal",
+                description: "This account must sign in through the admin portal.",
+                metadata: new Dictionary<string, object> { ["expectedPortal"] = "admin" });
+        }
+
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return Error.Forbidden(
+                code: "Auth.AccountSuspended",
+                description: "This account is suspended.");
+        }
+
+        return await IssueTokensAsync(user, cancellationToken);
+    }
+
+    public async Task<ErrorOr<AuthTokensResult>> LoginAdminAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken)
+    {
+        string normalizedEmail = email.Trim();
+
+        ApplicationUser? user = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (user is null || !await _userManager.CheckPasswordAsync(user, password))
+        {
+            return Error.Unauthorized(
+                code: "Auth.InvalidCredentials",
+                description: "Invalid email or password.");
+        }
+
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+        if (!AuthPortalClassifier.IsAdminPortalUser(roles))
+        {
+            return Error.Forbidden(
+                code: "Auth.WrongPortal",
+                description: "This account must sign in through the client portal.",
+                metadata: new Dictionary<string, object> { ["expectedPortal"] = "client" });
+        }
+
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return Error.Forbidden(
+                code: "Auth.AccountSuspended",
+                description: "This account is suspended.");
         }
 
         if (!user.EmailConfirmed)
@@ -520,14 +581,37 @@ public sealed class IdentityAuthenticationService(
                 description: "Current password is invalid.");
         }
 
+        return await TeardownClientAccountAsync(userId, cancellationToken);
+    }
+
+    public async Task<ErrorOr<Success>> TeardownClientAccountAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Error.NotFound(
+                code: "Auth.UserNotFound",
+                description: "User account was not found.");
+        }
+
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+
         UserProfile? profile = await _userProfileRepository.GetByUserIdAsync(userId, cancellationToken);
         string? photoKey = profile?.ProfilePhotoStorageKey;
 
+        await _clientAccountTeardownRepository.DeleteAllOwnedClientDataAsync(userId, cancellationToken);
         await _userProfileRepository.DeleteByUserIdAsync(userId, cancellationToken);
         await _clientReproductiveHealthProfileRepository.RemoveByUserIdAsync(userId, cancellationToken);
         await _healthcareProviderProfileRepository.RemoveByUserIdAsync(userId, cancellationToken);
         await _pendingEmailChangeRepository.RemoveByUserIdAsync(userId, cancellationToken);
         await _refreshTokenRepository.DeleteByUserIdAsync(userId, cancellationToken);
+
+        if (photoKey is not null && Guid.TryParse(photoKey, out Guid storageKey))
+        {
+            await _blobService.DeleteAsync(storageKey, cancellationToken);
+        }
 
         IdentityResult deleteResult = await _userManager.DeleteAsync(user);
         if (!deleteResult.Succeeded)
@@ -535,7 +619,10 @@ public sealed class IdentityAuthenticationService(
             return MapIdentityFailure(deleteResult);
         }
 
-        _ = photoKey;
+        if (roles.Contains(AuthRoles.HealthcareProvider))
+        {
+            await _userPermissionService.InvalidateAsync(userId, cancellationToken);
+        }
 
         return Result.Success;
     }

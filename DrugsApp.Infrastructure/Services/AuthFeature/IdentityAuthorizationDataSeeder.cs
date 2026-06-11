@@ -63,7 +63,9 @@ public sealed class IdentityAuthorizationDataSeeder(
             {
                 Email = email,
                 UserName = email,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                FullName = "Super Admin",
+                CreatedAtUtc = DateTime.UtcNow
             };
 
             IdentityResult createResult = await _userManager.CreateAsync(user, _superAdminSettings.Password);
