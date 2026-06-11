@@ -270,4 +270,28 @@ public sealed class DrugRepository : IDrugRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Drug>> ListByActiveSubstanceIdsAsync(
+        IReadOnlyCollection<Guid> activeSubstanceIds,
+        Guid? excludeDrugId,
+        CancellationToken cancellationToken)
+    {
+        if (activeSubstanceIds.Count == 0)
+        {
+            return new List<Drug>();
+        }
+
+        IQueryable<Drug> query = ApplyIncludes(_context.Drugs.AsNoTracking())
+            .Where(drug => drug.ActiveSubstances.Any(substance => activeSubstanceIds.Contains(substance.Id)));
+
+        if (excludeDrugId.HasValue)
+        {
+            query = query.Where(drug => drug.Id != excludeDrugId.Value);
+        }
+
+        return await query
+            .OrderBy(drug => drug.CommercialName)
+            .ThenBy(drug => drug.Id)
+            .ToListAsync(cancellationToken);
+    }
+
 }

@@ -49,7 +49,6 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
     private static readonly HashSet<string> ClientCatalogReadNamespaces = new(StringComparer.Ordinal)
     {
         "DrugsApp.Features.DrugFeature.SearchDrugs",
-        "DrugsApp.Features.DrugFeature.RetrieveDrug",
     };
 
     private static readonly HashSet<string> CatalogReadNamespaces = new(StringComparer.Ordinal)
