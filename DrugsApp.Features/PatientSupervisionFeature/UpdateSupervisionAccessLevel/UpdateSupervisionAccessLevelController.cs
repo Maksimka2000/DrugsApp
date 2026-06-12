@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.UpdateSupervisionAccessLev
 
 [ApiController]
 [Route("api/supervision/connections")]
-[Tags("Supervision")]
+[Tags("Supervision Patient")]
 public sealed class UpdateSupervisionAccessLevelController(
     IMediator mediator,
     IValidator<UpdateSupervisionAccessLevelRequest> validator) : ControllerBase
