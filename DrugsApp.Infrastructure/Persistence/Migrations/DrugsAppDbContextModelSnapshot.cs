@@ -2077,10 +2077,6 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<IReadOnlyCollection<string>>("Aliases")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreatedAtUtc");
@@ -2097,6 +2093,10 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<List<string>>("_aliases")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Aliases");
 
                     b.HasKey("Id");
 
@@ -2703,6 +2703,9 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("OnboardingCompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ProfilePhotoStorageKey")
                         .HasMaxLength(64)

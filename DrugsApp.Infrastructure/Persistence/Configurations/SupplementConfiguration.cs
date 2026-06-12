@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,8 +17,10 @@ public sealed class SupplementConfiguration : BaseEntityConfiguration<Supplement
             .IsRequired()
             .HasMaxLength(256);
 
-        builder.Property(supplement => supplement.Aliases)
-            .HasColumnType("jsonb");
+        builder.Property<List<string>>("_aliases")
+            .HasColumnName("Aliases")
+            .HasColumnType("jsonb")
+            .IsRequired(false);
 
         builder.Property(supplement => supplement.SearchText)
             .IsRequired()

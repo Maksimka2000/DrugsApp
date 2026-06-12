@@ -14,6 +14,7 @@ public sealed record UserProfileResponse(
     string? ProfilePhotoUrl,
     bool HasReproductiveHealthProfile,
     string? PendingLoginEmail,
+    DateTime? OnboardingCompletedAtUtc,
     bool? ShowMedicalReviewHint = null)
 {
     public static UserProfileResponse From(
@@ -33,6 +34,7 @@ public sealed record UserProfileResponse(
             ProfilePhotoUrl: profilePhotoUrl,
             HasReproductiveHealthProfile: hasReproductiveHealthProfile,
             PendingLoginEmail: pendingLoginEmail,
+            OnboardingCompletedAtUtc: profile.OnboardingCompletedAtUtc,
             ShowMedicalReviewHint: showMedicalReviewHint);
     }
 }

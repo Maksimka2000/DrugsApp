@@ -21,8 +21,10 @@ public sealed class EmailVerificationSender(
 
         string clientBaseUrl = settings.ClientBaseUrl.TrimEnd('/');
 
+        string encodedToken = Uri.EscapeDataString(confirmationToken);
+
         string confirmUrl =
-            $"{clientBaseUrl}/auth/confirm-email?userId={userId:D}&token={confirmationToken}";
+            $"{clientBaseUrl}/auth/confirm-email?userId={userId:D}&token={encodedToken}";
 
         string htmlBody =
             $"""
@@ -48,8 +50,10 @@ public sealed class EmailVerificationSender(
 
         string clientBaseUrl = settings.ClientBaseUrl.TrimEnd('/');
 
+        string encodedToken = Uri.EscapeDataString(confirmationToken);
+
         string confirmUrl =
-            $"{clientBaseUrl}/account/confirm-email-change?userId={userId:D}&token={confirmationToken}";
+            $"{clientBaseUrl}/account/confirm-email-change?userId={userId:D}&token={encodedToken}";
 
         string htmlBody =
             $"""
