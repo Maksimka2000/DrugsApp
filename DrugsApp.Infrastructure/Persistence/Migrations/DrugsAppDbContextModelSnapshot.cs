@@ -298,15 +298,27 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreatedAtUtc");
 
+                    b.Property<string>("CustomActiveSubstances")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("CustomDosage")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("CustomDrugName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<string>("CustomDrugNameNormalized")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
-                    b.Property<Guid?>("DrugId")
+                    b.Property<string>("CustomFormulationName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid?>("DrugFormId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Note")
@@ -327,7 +339,7 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DrugId");
+                    b.HasIndex("DrugFormId");
 
                     b.HasIndex(new[] { "UserId" }, "IX_ClientDrugAllergies_UserId");
 
@@ -335,9 +347,9 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("\"CustomDrugNameNormalized\" IS NOT NULL");
 
-                    b.HasIndex(new[] { "UserId", "DrugId" }, "IX_ClientDrugAllergies_UserId_DrugId_Database")
+                    b.HasIndex(new[] { "UserId", "DrugFormId" }, "IX_ClientDrugAllergies_UserId_DrugFormId_Database")
                         .IsUnique()
-                        .HasFilter("\"DrugId\" IS NOT NULL");
+                        .HasFilter("\"DrugFormId\" IS NOT NULL");
 
                     b.HasIndex(new[] { "UserId", "Source", "Id" }, "IX_ClientDrugAllergies_UserId_Source_Id");
 
@@ -681,11 +693,23 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreatedAtUtc");
 
+                    b.Property<string>("CustomActiveSubstances")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("CustomDosage")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("CustomDrugName")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
-                    b.Property<Guid?>("DrugId")
+                    b.Property<string>("CustomFormulationName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid?>("DrugFormId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("ProblemNote")
@@ -707,7 +731,7 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DrugId");
+                    b.HasIndex("DrugFormId");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_DrugProblems_UserId");
@@ -717,17 +741,17 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UX_DrugProblems_UserId_CustomDrugName")
                         .HasFilter("\"CustomDrugName\" IS NOT NULL");
 
-                    b.HasIndex("UserId", "DrugId")
+                    b.HasIndex("UserId", "DrugFormId")
                         .IsUnique()
-                        .HasDatabaseName("UX_DrugProblems_UserId_DrugId")
-                        .HasFilter("\"DrugId\" IS NOT NULL");
+                        .HasDatabaseName("UX_DrugProblems_UserId_DrugFormId")
+                        .HasFilter("\"DrugFormId\" IS NOT NULL");
 
                     b.HasIndex("UserId", "CreatedAtUtc", "Id")
                         .HasDatabaseName("IX_DrugProblems_UserId_CreatedAtUtc_Id");
 
                     b.ToTable("DrugProblems", null, t =>
                         {
-                            t.HasCheckConstraint("CK_DrugProblems_SourceXor", "(CASE WHEN \"DrugId\" IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN \"CustomDrugName\" IS NOT NULL THEN 1 ELSE 0 END) = 1");
+                            t.HasCheckConstraint("CK_DrugProblems_SourceXor", "(CASE WHEN \"DrugFormId\" IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN \"CustomDrugName\" IS NOT NULL THEN 1 ELSE 0 END) = 1");
                         });
                 });
 
@@ -3082,12 +3106,12 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientDrugAllergy", b =>
                 {
-                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", "Drug")
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.DrugForm", "DrugForm")
                         .WithMany()
-                        .HasForeignKey("DrugId")
+                        .HasForeignKey("DrugFormId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Drug");
+                    b.Navigation("DrugForm");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.AllergiesFeature.Entities.ClientFoodAllergy", b =>
@@ -3132,12 +3156,12 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("DrugsApp.Domain.DrugProblemsFeature.Entities.DrugProblem", b =>
                 {
-                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.Drug", "Drug")
+                    b.HasOne("DrugsApp.Domain.DrugFeature.Entities.DrugForm", "DrugForm")
                         .WithMany()
-                        .HasForeignKey("DrugId")
+                        .HasForeignKey("DrugFormId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Drug");
+                    b.Navigation("DrugForm");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.HealthConditionFeature.Entities.UserHealthCondition", b =>

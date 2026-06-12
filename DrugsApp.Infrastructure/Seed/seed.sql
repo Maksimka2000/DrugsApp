@@ -270,17 +270,51 @@ WHERE NOT EXISTS (
     SELECT 1 FROM client_reproductive_health_profiles WHERE "UserId" = '{{SEED_USER_ID}}'::uuid
 );
 
--- Drug allergies (20) — notes reference the commercial product
-INSERT INTO "ClientDrugAllergies" ("Id", "UserId", "DrugId", "Source", "Note", "CreatedAtUtc")
+-- Drug allergies (20) — catalog entries reference a specific drug form (not just the parent drug)
+INSERT INTO "ClientDrugAllergies" ("Id", "UserId", "DrugFormId", "Source", "Note", "CreatedAtUtc")
 SELECT
     ('e0000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid,
     '{{SEED_USER_ID}}'::uuid,
-    ('a0000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid,
+    ('a1000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid,
     'Database',
-    'Documented rash after taking ' || d."CommercialName" || '.',
+    'Documented rash after taking ' || d."CommercialName" || ' (' || df."Dosage" || ').',
     (NOW() AT TIME ZONE 'utc')
 FROM generate_series(1, 20) AS i
-JOIN "Drugs" d ON d."Id" = ('a0000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid
+JOIN "DrugForms" df ON df."Id" = ('a1000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid
+JOIN "Drugs" d ON d."Id" = df."DrugId"
+ON CONFLICT ("Id") DO NOTHING;
+
+-- Custom drug allergies (2) — exercise custom name + active substances / formulation / dosage
+INSERT INTO "ClientDrugAllergies" (
+    "Id", "UserId", "CustomDrugName", "CustomDrugNameNormalized",
+    "CustomActiveSubstances", "CustomFormulationName", "CustomDosage",
+    "Source", "Note", "CreatedAtUtc"
+)
+VALUES
+    (
+        'e0000000-0000-4000-8000-000000000021'::uuid,
+        '{{SEED_USER_ID}}'::uuid,
+        'Homeopathic Arnica',
+        'homeopathic arnica',
+        'Arnica montana',
+        'Drops',
+        '30C',
+        'Custom',
+        'Swelling and hives after homeopathic remedy.',
+        (NOW() AT TIME ZONE 'utc')
+    ),
+    (
+        'e0000000-0000-4000-8000-000000000022'::uuid,
+        '{{SEED_USER_ID}}'::uuid,
+        'Compound Cream X',
+        'compound cream x',
+        'Hydrocortisone, Clotrimazole',
+        'Cream',
+        '1% / 1%',
+        'Custom',
+        'Contact dermatitis from imported topical cream.',
+        (NOW() AT TIME ZONE 'utc')
+    )
 ON CONFLICT ("Id") DO NOTHING;
 
 -- Supplement allergies (20)
@@ -323,23 +357,63 @@ SELECT
 FROM generate_series(1, 20) AS i
 ON CONFLICT ("Id") DO NOTHING;
 
--- Drug problems (20) — intolerance notes tied to each product
-INSERT INTO "DrugProblems" ("Id", "UserId", "DrugId", "Source", "ProblemNote", "CreatedAtUtc")
+-- Drug problems (20 catalog + 2 custom) — catalog entries reference a specific drug form (not just the parent drug)
+INSERT INTO "DrugProblems" (
+    "Id", "UserId", "DrugFormId", "CustomDrugName", "CustomActiveSubstances",
+    "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc"
+)
 SELECT
     ('f1000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid,
     '{{SEED_USER_ID}}'::uuid,
-    ('a0000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid,
+    ('a1000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     'Database',
     CASE (i % 5)
-        WHEN 0 THEN 'Nausea within an hour of taking ' || d."CommercialName" || '.'
-        WHEN 1 THEN 'Dizziness reported with ' || d."CommercialName" || '.'
-        WHEN 2 THEN 'Mild rash after starting ' || d."CommercialName" || '.'
-        WHEN 3 THEN 'Stomach pain when taking ' || d."CommercialName" || ' on an empty stomach.'
-        ELSE 'Drowsiness in the afternoon after ' || d."CommercialName" || '.'
+        WHEN 0 THEN 'Nausea within an hour of taking ' || d."CommercialName" || ' (' || df."Dosage" || ').'
+        WHEN 1 THEN 'Dizziness reported with ' || d."CommercialName" || ' (' || df."Dosage" || ').'
+        WHEN 2 THEN 'Mild rash after starting ' || d."CommercialName" || ' (' || df."Dosage" || ').'
+        WHEN 3 THEN 'Stomach pain when taking ' || d."CommercialName" || ' (' || df."Dosage" || ') on an empty stomach.'
+        ELSE 'Drowsiness in the afternoon after ' || d."CommercialName" || ' (' || df."Dosage" || ').'
     END,
     (NOW() AT TIME ZONE 'utc')
 FROM generate_series(1, 20) AS i
-JOIN "Drugs" d ON d."Id" = ('a0000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid
+JOIN "DrugForms" df ON df."Id" = ('a1000000-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid
+JOIN "Drugs" d ON d."Id" = df."DrugId"
+ON CONFLICT ("Id") DO NOTHING;
+
+-- Custom drug problems (2) — exercise custom name + active substances / formulation / dosage
+INSERT INTO "DrugProblems" (
+    "Id", "UserId", "DrugFormId", "CustomDrugName", "CustomActiveSubstances",
+    "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc"
+)
+VALUES
+    (
+        'f1000000-0000-4000-8000-000000000021'::uuid,
+        '{{SEED_USER_ID}}'::uuid,
+        NULL,
+        'Homeopathic Arnica',
+        'Arnica montana',
+        'Drops',
+        '30C',
+        'Custom',
+        'Severe nausea and headache after each dose of the homeopathic remedy.',
+        (NOW() AT TIME ZONE 'utc')
+    ),
+    (
+        'f1000000-0000-4000-8000-000000000022'::uuid,
+        '{{SEED_USER_ID}}'::uuid,
+        NULL,
+        'Compound Cream X',
+        'Hydrocortisone, Clotrimazole',
+        'Cream',
+        '1% / 1%',
+        'Custom',
+        'Burning sensation and redness after applying the imported topical cream.',
+        (NOW() AT TIME ZONE 'utc')
+    )
 ON CONFLICT ("Id") DO NOTHING;
 
 -- Regular drugs (20)
