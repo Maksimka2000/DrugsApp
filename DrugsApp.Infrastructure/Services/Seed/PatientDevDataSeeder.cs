@@ -20,6 +20,7 @@ namespace DrugsApp.Infrastructure.Services.Seed;
 /// </summary>
 public sealed class PatientDevDataSeeder(
     DrugsAppDbContext dbContext,
+    NpgsqlDataSource dataSource,
     UserManager<ApplicationUser> userManager,
     RoleManager<ApplicationRole> roleManager,
     IUserProfileRepository userProfileRepository,
@@ -55,8 +56,7 @@ public sealed class PatientDevDataSeeder(
             await dbContext.Database.ExecuteSqlRawAsync(MetadataTableSql, cancellationToken);
 
             string seedKey = _settings.SeedKey.Trim();
-            await using NpgsqlConnection connection = new(dbContext.Database.GetConnectionString()!);
-            await connection.OpenAsync(cancellationToken);
+            await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
             if (await IsSeedAlreadyAppliedAsync(connection, seedKey, cancellationToken))
             {
