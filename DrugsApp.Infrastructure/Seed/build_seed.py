@@ -38,6 +38,8 @@ SUPERVISION_CONNECTION = "ab020000-0000-4000-8000"
 MEDICAL_PROPOSAL = "ab030000-0000-4000-8000"
 MEDICAL_PROPOSAL_ITEM = "ab031000-0000-4000-8000"
 NOTIFICATION = "b4010000-0000-4000-8000"
+USER_HEALTH_CONDITION = "f0000000-0000-4000-8000"
+DRUG_PROBLEM = "f1000000-0000-4000-8000"
 VET_DRUG = "b5010000-0000-4000-8000"
 TEMP_BATCH = "b6010000-0000-4000-8000"
 TEMP_DRUG = "b6020000-0000-4000-8000"
@@ -282,6 +284,36 @@ def seed_user_block(user_id: str, idx: int) -> None:
         f"    ('e2500000-0000-4000-8000-{idx:012d}'::uuid, '{user_id}'::uuid, "
         f"'Nickel jewelry {idx}', 'nickel jewelry {idx}', 'Contact dermatitis from watch buckle.', {NOW})\n"
         f'ON CONFLICT ("Id") DO NOTHING;'
+    )
+    hc_i = ((idx - 1) % 10) + 1
+    w(
+        f'INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES\n'
+        f"    ('{uid(USER_HEALTH_CONDITION, idx)}'::uuid, '{user_id}'::uuid, "
+        f"'d0000000-0000-4000-8000-{hc_i:012d}'::uuid, 'Database', 'Diagnosed and monitored by GP.', {NOW})\n"
+        f'ON CONFLICT ("Id") DO NOTHING;'
+    )
+    dp_i = ((df + 3) % 20) + 1
+    problem_notes = [
+        "Nausea within an hour of taking the medication.",
+        "Dizziness reported after starting the drug.",
+        "Mild rash after a few doses.",
+        "Stomach pain when taken on an empty stomach.",
+        "Drowsiness in the afternoon.",
+    ]
+    w(
+        f'INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES\n'
+        f"    ('{uid(DRUG_PROBLEM, idx * 10 + 1)}'::uuid, '{user_id}'::uuid, "
+        f"'a1000000-0000-4000-8000-{dp_i:012d}'::uuid, 'Database', "
+        f"'{sql_str(problem_notes[idx % len(problem_notes)])}', {NOW})\n"
+        f'ON CONFLICT ("Id") DO NOTHING;'
+    )
+    w(
+        f'INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", '
+        f'"CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (\n'
+        f"    '{uid(DRUG_PROBLEM, idx * 10 + 2)}'::uuid, '{user_id}'::uuid,\n"
+        f"    'Compound Cream X {idx}', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',\n"
+        f"    'Custom', 'Burning sensation and redness after applying the imported topical cream.', {NOW}\n"
+        f') ON CONFLICT ("Id") DO NOTHING;'
     )
     meals = [("Breakfast", "07:30"), ("Lunch", "12:30"), ("Dinner", "18:30"), ("Evening snack", "20:30")]
     mvals = [
