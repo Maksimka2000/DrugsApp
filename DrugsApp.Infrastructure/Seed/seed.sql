@@ -922,6 +922,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000001'::uuid, 'b1010000-0000-4000-8000-000000000001'::uuid, 'Nickel jewelry 1', 'nickel jewelry 1', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000001'::uuid, 'b1010000-0000-4000-8000-000000000001'::uuid, 'd0000000-0000-4000-8000-000000000001'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000000011'::uuid, 'b1010000-0000-4000-8000-000000000001'::uuid, 'a1000000-0000-4000-8000-000000000005'::uuid, 'Database', 'Dizziness reported after starting the drug.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000000012'::uuid, 'b1010000-0000-4000-8000-000000000001'::uuid,
+    'Compound Cream X 1', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000000011'::uuid, 'b1010000-0000-4000-8000-000000000001'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
@@ -1024,6 +1035,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000002'::uuid, 'b1010000-0000-4000-8000-000000000002'::uuid, 'Nickel jewelry 2', 'nickel jewelry 2', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000002'::uuid, 'b1010000-0000-4000-8000-000000000002'::uuid, 'd0000000-0000-4000-8000-000000000002'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000000021'::uuid, 'b1010000-0000-4000-8000-000000000002'::uuid, 'a1000000-0000-4000-8000-000000000006'::uuid, 'Database', 'Mild rash after a few doses.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000000022'::uuid, 'b1010000-0000-4000-8000-000000000002'::uuid,
+    'Compound Cream X 2', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000000021'::uuid, 'b1010000-0000-4000-8000-000000000002'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
@@ -1126,6 +1148,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000003'::uuid, 'b1010000-0000-4000-8000-000000000003'::uuid, 'Nickel jewelry 3', 'nickel jewelry 3', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000003'::uuid, 'b1010000-0000-4000-8000-000000000003'::uuid, 'd0000000-0000-4000-8000-000000000003'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000000031'::uuid, 'b1010000-0000-4000-8000-000000000003'::uuid, 'a1000000-0000-4000-8000-000000000007'::uuid, 'Database', 'Stomach pain when taken on an empty stomach.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000000032'::uuid, 'b1010000-0000-4000-8000-000000000003'::uuid,
+    'Compound Cream X 3', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000000031'::uuid, 'b1010000-0000-4000-8000-000000000003'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
@@ -1228,6 +1261,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000004'::uuid, 'b1010000-0000-4000-8000-000000000004'::uuid, 'Nickel jewelry 4', 'nickel jewelry 4', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000004'::uuid, 'b1010000-0000-4000-8000-000000000004'::uuid, 'd0000000-0000-4000-8000-000000000004'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000000041'::uuid, 'b1010000-0000-4000-8000-000000000004'::uuid, 'a1000000-0000-4000-8000-000000000008'::uuid, 'Database', 'Drowsiness in the afternoon.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000000042'::uuid, 'b1010000-0000-4000-8000-000000000004'::uuid,
+    'Compound Cream X 4', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000000041'::uuid, 'b1010000-0000-4000-8000-000000000004'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
@@ -1330,6 +1374,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000005'::uuid, 'b1010000-0000-4000-8000-000000000005'::uuid, 'Nickel jewelry 5', 'nickel jewelry 5', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000005'::uuid, 'b1010000-0000-4000-8000-000000000005'::uuid, 'd0000000-0000-4000-8000-000000000005'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000000051'::uuid, 'b1010000-0000-4000-8000-000000000005'::uuid, 'a1000000-0000-4000-8000-000000000009'::uuid, 'Database', 'Nausea within an hour of taking the medication.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000000052'::uuid, 'b1010000-0000-4000-8000-000000000005'::uuid,
+    'Compound Cream X 5', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000000051'::uuid, 'b1010000-0000-4000-8000-000000000005'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
@@ -1432,6 +1487,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000101'::uuid, 'b2010000-0000-4000-8000-000000000001'::uuid, 'Nickel jewelry 101', 'nickel jewelry 101', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000101'::uuid, 'b2010000-0000-4000-8000-000000000001'::uuid, 'd0000000-0000-4000-8000-000000000001'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000001011'::uuid, 'b2010000-0000-4000-8000-000000000001'::uuid, 'a1000000-0000-4000-8000-000000000005'::uuid, 'Database', 'Dizziness reported after starting the drug.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000001012'::uuid, 'b2010000-0000-4000-8000-000000000001'::uuid,
+    'Compound Cream X 101', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000001011'::uuid, 'b2010000-0000-4000-8000-000000000001'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
@@ -1534,6 +1600,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000102'::uuid, 'b2010000-0000-4000-8000-000000000002'::uuid, 'Nickel jewelry 102', 'nickel jewelry 102', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000102'::uuid, 'b2010000-0000-4000-8000-000000000002'::uuid, 'd0000000-0000-4000-8000-000000000002'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000001021'::uuid, 'b2010000-0000-4000-8000-000000000002'::uuid, 'a1000000-0000-4000-8000-000000000006'::uuid, 'Database', 'Mild rash after a few doses.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000001022'::uuid, 'b2010000-0000-4000-8000-000000000002'::uuid,
+    'Compound Cream X 102', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000001021'::uuid, 'b2010000-0000-4000-8000-000000000002'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
@@ -1636,6 +1713,17 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientOtherAllergies" ("Id", "UserId", "AllergyName", "AllergyNameNormalized", "Note", "CreatedAtUtc") VALUES
     ('e2500000-0000-4000-8000-000000000103'::uuid, 'b2010000-0000-4000-8000-000000000003'::uuid, 'Nickel jewelry 103', 'nickel jewelry 103', 'Contact dermatitis from watch buckle.', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "UserHealthConditions" ("Id", "UserId", "HealthConditionId", "Source", "Note", "CreatedAtUtc") VALUES
+    ('f0000000-0000-4000-8000-000000000103'::uuid, 'b2010000-0000-4000-8000-000000000003'::uuid, 'd0000000-0000-4000-8000-000000000003'::uuid, 'Database', 'Diagnosed and monitored by GP.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "DrugFormId", "Source", "ProblemNote", "CreatedAtUtc") VALUES
+    ('f1000000-0000-4000-8000-000000001031'::uuid, 'b2010000-0000-4000-8000-000000000003'::uuid, 'a1000000-0000-4000-8000-000000000007'::uuid, 'Database', 'Stomach pain when taken on an empty stomach.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "DrugProblems" ("Id", "UserId", "CustomDrugName", "CustomActiveSubstances", "CustomFormulationName", "CustomDosage", "Source", "ProblemNote", "CreatedAtUtc") VALUES (
+    'f1000000-0000-4000-8000-000000001032'::uuid, 'b2010000-0000-4000-8000-000000000003'::uuid,
+    'Compound Cream X 103', 'Hydrocortisone, Clotrimazole', 'Cream', '1% / 1%',
+    'Custom', 'Burning sensation and redness after applying the imported topical cream.', (NOW() AT TIME ZONE 'utc')
+) ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "ClientMealTimes" ("Id", "UserId", "MealName", "NormalizedMealName", "IntakeTime", "CreatedAtUtc")
 VALUES
     ('e8000000-0000-4000-8000-000000001031'::uuid, 'b2010000-0000-4000-8000-000000000003'::uuid, 'Breakfast', 'breakfast', '07:30'::time, (NOW() AT TIME ZONE 'utc')),
