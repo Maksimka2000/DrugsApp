@@ -352,6 +352,52 @@ public sealed class IdentityAuthenticationService(
             Email: user.Email!);
     }
 
+    public async Task<ErrorOr<Success>> RequestPasswordResetAsync(
+        string email,
+        CancellationToken cancellationToken)
+    {
+        string normalizedEmail = email.Trim();
+        ApplicationUser? user = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (user is null)
+        {
+            return Result.Success;
+        }
+
+        string resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        await _emailVerificationSender.SendPasswordResetAsync(
+            user.Id,
+            user.Email!,
+            resetToken,
+            cancellationToken);
+
+        return Result.Success;
+    }
+
+    public async Task<ErrorOr<Success>> ResetPasswordAsync(
+        Guid userId,
+        string token,
+        string newPassword,
+        CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Error.NotFound(
+                code: "Auth.UserNotFound",
+                description: "User account was not found.");
+        }
+
+        IdentityResult resetResult = await _userManager.ResetPasswordAsync(user, token, newPassword);
+        if (!resetResult.Succeeded)
+        {
+            return MapIdentityFailure(resetResult);
+        }
+
+        await _refreshTokenRepository.DeleteByUserIdAsync(userId, cancellationToken);
+
+        return Result.Success;
+    }
+
     public async Task<ErrorOr<Success>> LogoutAsync(
         string refreshToken,
         CancellationToken cancellationToken)
@@ -390,6 +436,12 @@ public sealed class IdentityAuthenticationService(
             return Error.NotFound(
                 code: "Auth.UserNotFound",
                 description: "User account was not found.");
+        }
+
+        Error? portalError = await GetClientPortalViolationAsync(user);
+        if (portalError is not null)
+        {
+            return portalError.Value;
         }
 
         if (!await _userManager.CheckPasswordAsync(user, currentPassword))
@@ -497,6 +549,12 @@ public sealed class IdentityAuthenticationService(
                 description: "User account was not found.");
         }
 
+        Error? portalError = await GetClientPortalViolationAsync(user);
+        if (portalError is not null)
+        {
+            return portalError.Value;
+        }
+
         PendingEmailChange? pending = await _pendingEmailChangeRepository.GetActiveByUserIdAsync(
             userId,
             cancellationToken);
@@ -552,6 +610,12 @@ public sealed class IdentityAuthenticationService(
                 description: "User account was not found.");
         }
 
+        Error? portalError = await GetClientPortalViolationAsync(user);
+        if (portalError is not null)
+        {
+            return portalError.Value;
+        }
+
         IdentityResult result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
         if (!result.Succeeded)
         {
@@ -572,6 +636,12 @@ public sealed class IdentityAuthenticationService(
             return Error.NotFound(
                 code: "Auth.UserNotFound",
                 description: "User account was not found.");
+        }
+
+        Error? portalError = await GetClientPortalViolationAsync(user);
+        if (portalError is not null)
+        {
+            return portalError.Value;
         }
 
         if (!await _userManager.CheckPasswordAsync(user, currentPassword))
@@ -654,6 +724,20 @@ public sealed class IdentityAuthenticationService(
             AccessToken: accessToken,
             RefreshToken: refreshToken.Token,
             ExpiresInSeconds: _jwtTokenProvider.GetAccessTokenLifetimeSeconds());
+    }
+
+    private async Task<Error?> GetClientPortalViolationAsync(ApplicationUser user)
+    {
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+        if (AuthPortalClassifier.IsClientPortalUser(roles))
+        {
+            return null;
+        }
+
+        return Error.Forbidden(
+            code: "Auth.WrongPortal",
+            description: "This action is only available for client portal accounts.",
+            metadata: new Dictionary<string, object> { ["expectedPortal"] = "client" });
     }
 
     private async Task EnsureNewIdentityUserPersistedAsync(

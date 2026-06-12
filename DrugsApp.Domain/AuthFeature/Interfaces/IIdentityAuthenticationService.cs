@@ -71,6 +71,16 @@ public interface IIdentityAuthenticationService
         string email,
         CancellationToken cancellationToken);
 
+    Task<ErrorOr<Success>> RequestPasswordResetAsync(
+        string email,
+        CancellationToken cancellationToken);
+
+    Task<ErrorOr<Success>> ResetPasswordAsync(
+        Guid userId,
+        string token,
+        string newPassword,
+        CancellationToken cancellationToken);
+
     Task<ErrorOr<Success>> LogoutAsync(
         string refreshToken,
         CancellationToken cancellationToken);

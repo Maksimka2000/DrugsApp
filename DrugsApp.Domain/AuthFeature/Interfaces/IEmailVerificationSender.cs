@@ -17,4 +17,10 @@ public interface IEmailVerificationSender
         string newEmail,
         string confirmationToken,
         CancellationToken cancellationToken);
+
+    Task SendPasswordResetAsync(
+        Guid userId,
+        string email,
+        string confirmationToken,
+        CancellationToken cancellationToken);
 }
