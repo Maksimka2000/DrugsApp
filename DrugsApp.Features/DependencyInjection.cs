@@ -74,7 +74,6 @@ public static class DependencyInjection
         services.AddScoped<IClientAccountAdminDeletionService, ClientAccountAdminDeletionService>();
         services.AddScoped<IDrugInteractionToolReportApplicationService, DrugInteractionToolReportApplicationService>();
         services.AddScoped<IDrugToolDetailApplicationService, DrugToolDetailApplicationService>();
-
         return services;
     }
 }
