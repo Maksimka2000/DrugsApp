@@ -61,7 +61,9 @@ using DrugsApp.Infrastructure.Repositories.RegularFoodFeature;
 using DrugsApp.Infrastructure.Services.NotificationsFeature;
 using DrugsApp.Infrastructure.Persistence.Identity;
 using DrugsApp.Infrastructure.Services.AuthFeature;
+using DrugsApp.Infrastructure.Services.Seed;
 using Microsoft.AspNetCore.Identity;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,10 +77,17 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Register DbContext 
-        services.AddDbContext<DrugsAppDbContext>(options =>
-            options.UseNpgsql(
-                configuration.GetConnectionString("Postgres")));
+        // Register DbContext (NpgsqlDataSource enables jsonb deserialization for catalog aliases)
+        string postgresConnectionString = configuration.GetConnectionString("Postgres")
+            ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
+
+        services.AddSingleton<NpgsqlDataSource>(_ =>
+            new NpgsqlDataSourceBuilder(postgresConnectionString)
+                .EnableDynamicJson()
+                .Build());
+
+        services.AddDbContext<DrugsAppDbContext>((serviceProvider, options) =>
+            options.UseNpgsql(serviceProvider.GetRequiredService<NpgsqlDataSource>()));
 
         // regis cache registration
         string? redisConnection = configuration.GetConnectionString("Redis");
@@ -187,6 +196,8 @@ public static class DependencyInjection
         services.AddScoped<IUserPermissionService, UserPermissionServiceDb>();
         services.Decorate<IUserPermissionService, UserPermissionServiceCached>();
         services.AddScoped<IdentityAuthorizationDataSeeder>();
+        services.Configure<DevSeedSettings>(configuration.GetSection(DevSeedSettings.SectionName));
+        services.AddScoped<PatientDevDataSeeder>();
         services.AddHttpClient("ImportDownload", client => client.Timeout = TimeSpan.FromMinutes(5));
 
         // Register BLOB AZURE External services here

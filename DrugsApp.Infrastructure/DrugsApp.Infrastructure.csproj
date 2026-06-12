@@ -29,4 +29,8 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Seed\seed.sql" />
+  </ItemGroup>
+
 </Project>

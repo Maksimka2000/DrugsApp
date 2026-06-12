@@ -41,6 +41,11 @@ public sealed class UserProfile : BaseEntity
     /// </summary>
     public string? ProfilePhotoStorageKey { get; private set; }
 
+    /// <summary>
+    /// UTC timestamp when the client completed patient onboarding. Null until marked complete.
+    /// </summary>
+    public DateTime? OnboardingCompletedAtUtc { get; private set; }
+
     // Relationships (aggregate root)
 
     private UserProfile()
@@ -213,6 +218,15 @@ public sealed class UserProfile : BaseEntity
     public void RemoveProfilePhoto()
     {
         ProfilePhotoStorageKey = null;
+    }
+
+    /// <summary>
+    /// Marks the client onboarding as completed.
+    /// </summary>
+    /// <param name="completedAtUtc">UTC completion timestamp.</param>
+    public void MarkOnboardingCompleted(DateTime completedAtUtc)
+    {
+        OnboardingCompletedAtUtc = completedAtUtc;
     }
 
     /// <summary>
