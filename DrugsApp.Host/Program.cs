@@ -16,6 +16,7 @@ using DrugsApp.Infrastructure;
 using DrugsApp.Infrastructure.Extensions;
 using DrugsApp.Infrastructure.Extensions.Middleware;
 using DrugsApp.Infrastructure.Services.AuthFeature;
+using DrugsApp.Infrastructure.Services.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -123,6 +124,9 @@ if (!app.Environment.IsProduction())
     using IServiceScope scope = app.Services.CreateScope();
     IdentityAuthorizationDataSeeder seeder = scope.ServiceProvider.GetRequiredService<IdentityAuthorizationDataSeeder>();
     await seeder.SeedAsync(CancellationToken.None);
+
+    PatientDevDataSeeder patientDevDataSeeder = scope.ServiceProvider.GetRequiredService<PatientDevDataSeeder>();
+    await patientDevDataSeeder.SeedAsync(CancellationToken.None);
 }
 
 // Exception Handling

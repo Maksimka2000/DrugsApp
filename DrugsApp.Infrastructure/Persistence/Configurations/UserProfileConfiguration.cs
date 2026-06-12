@@ -39,6 +39,9 @@ internal sealed class UserProfileConfiguration : BaseEntityConfiguration<UserPro
         builder.Property(profile => profile.ProfilePhotoStorageKey)
             .HasMaxLength(64);
 
+        builder.Property(profile => profile.OnboardingCompletedAtUtc)
+            .HasColumnType("timestamp with time zone");
+
         builder.HasIndex(profile => profile.Email)
             .IsUnique();
     }
