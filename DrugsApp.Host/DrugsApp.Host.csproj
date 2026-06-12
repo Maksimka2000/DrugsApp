@@ -6,6 +6,7 @@
     <UserSecretsId>c15afcde-76ac-47d8-99d2-7f5d5cc2f749</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <RunPatientDevSeed Condition="'$(RunPatientDevSeed)' == ''">true</RunPatientDevSeed>
   </PropertyGroup>
 
 
@@ -31,5 +32,15 @@
     <ProjectReference Include="..\DrugsApp.Features\DrugsApp.Features.csproj" />
     <ProjectReference Include="..\DrugsApp.Infrastructure\DrugsApp.Infrastructure.csproj" />
   </ItemGroup>
+
+  <Target
+    Name="ApplyPatientDevSeed"
+    AfterTargets="Build"
+    Condition="'$(Configuration)' == 'Debug' AND '$(RunPatientDevSeed)' == 'true' AND '$(DesignTimeBuild)' != 'true'">
+    <Message Importance="high" Text="Applying patient dev seed (skip with RunPatientDevSeed=false)..." />
+    <Exec
+      Command="dotnet run --project &quot;$(MSBuildProjectDirectory)/../DrugsApp.DevSeed/DrugsApp.DevSeed.csproj&quot; --configuration $(Configuration) --verbosity quiet"
+      IgnoreExitCode="true" />
+  </Target>
 
 </Project>
