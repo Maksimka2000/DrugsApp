@@ -10,7 +10,9 @@ namespace DrugsApp.Host.Auth.Authorization;
 // Permission groups (admin + member portal):
 //
 // SearchCatalog (Client, HealthcareProvider, Admin):
-// - DrugFeature: SearchDrugs, SearchDrugForms, SearchDrugSimilarities, RetrieveDrug
+// - DrugFeature: SearchDrugForms, SearchDrugSimilarities, RetrieveDrug
+// Public (anonymous):
+// - DrugFeature: SearchDrugs
 // - VetDrugFeature: SearchVetDrugs, RetrieveVetDrug
 // - ActiveSubstanceFeature: SearchActiveSubstances
 // - ActiveSubstanceGroupFeature: SearchActiveSubstanceGroups
@@ -84,7 +86,6 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
 
     private static readonly HashSet<string> CatalogReadNamespaces = new(StringComparer.Ordinal)
     {
-        "DrugsApp.Features.DrugFeature.SearchDrugs",
         "DrugsApp.Features.DrugFeature.SearchDrugForms",
         "DrugsApp.Features.DrugFeature.SearchDrugSimilarities",
         "DrugsApp.Features.DrugFeature.RetrieveDrug",
@@ -210,7 +211,8 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
             return;
         }
 
-        if (controllerNamespace == "DrugsApp.Features.SupportFeature.SearchPublicFaqEntries")
+        if (controllerNamespace == "DrugsApp.Features.SupportFeature.SearchPublicFaqEntries"
+            || controllerNamespace == "DrugsApp.Features.DrugFeature.SearchDrugs")
         {
             AllowAnonymous(controller);
             return;
