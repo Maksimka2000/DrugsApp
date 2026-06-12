@@ -8,7 +8,7 @@ namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
 /// </summary>
 internal static class DrugInteractionToolReportMapping
 {
-    internal static string BuildDrugSummaryText(Drug drug, DrugForm form)
+    internal static string BuildDrugSummaryText(Drug drug, DrugForm? form)
     {
         var parts = new List<string> { drug.CommercialName };
 
@@ -21,12 +21,15 @@ internal static class DrugInteractionToolReportMapping
 
         parts.Add(activeSubstanceSegment);
 
-        string formulation = form.PharmaceuticalForms
-            .OrderBy(pf => pf.FormulationName, StringComparer.OrdinalIgnoreCase)
-            .Select(pf => pf.FormulationName)
-            .FirstOrDefault() ?? string.Empty;
-        parts.Add(formulation);
-        parts.Add(form.Dosage ?? string.Empty);
+        if (form is not null)
+        {
+            string formulation = form.PharmaceuticalForms
+                .OrderBy(pf => pf.FormulationName, StringComparer.OrdinalIgnoreCase)
+                .Select(pf => pf.FormulationName)
+                .FirstOrDefault() ?? string.Empty;
+            parts.Add(formulation);
+            parts.Add(form.Dosage ?? string.Empty);
+        }
 
         if (drug.TypeOfDrug is DrugType.Special or DrugType.Ophthalmic)
         {
@@ -63,9 +66,40 @@ internal static class DrugInteractionToolReportMapping
     internal static DrugTargetSummaryReadModel MapDrugTargetSummary(Drug drug, DrugForm form) =>
         new(
             DrugId: drug.Id,
-            SelectedDrugFormId: form.Id,
+            DrugFormId: form.Id,
             DrugSummaryText: BuildDrugSummaryText(drug, form),
             IsOral: form.IsOral);
+
+    internal static DuplicationDrugSummaryReadModel MapDuplicationDrugSummary(Drug drug, DrugForm form) =>
+        new(
+            DrugId: drug.Id,
+            OnlyDrugSummaryText: BuildDrugSummaryText(drug, form: null),
+            IsOral: form.IsOral);
+
+    internal static string BuildOtherCustomData(
+        string? activeSubstances,
+        string? dosage,
+        string? formulationName)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(activeSubstances))
+        {
+            parts.Add(activeSubstances.Trim());
+        }
+
+        if (!string.IsNullOrWhiteSpace(dosage))
+        {
+            parts.Add(dosage.Trim());
+        }
+
+        if (!string.IsNullOrWhiteSpace(formulationName))
+        {
+            parts.Add(formulationName.Trim());
+        }
+
+        return string.Join(", ", parts);
+    }
 
     internal static SpecificDrugDetailReadModel MapSpecificDrugDetail(Drug drug, DrugForm form) =>
         new(

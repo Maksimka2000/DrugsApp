@@ -29,9 +29,9 @@ public interface IDrugProblemRepository
 
     void Remove(DrugProblem drugProblem);
 
-    Task<bool> ExistsForUserWithDrugIdAsync(
+    Task<bool> ExistsForUserWithDrugFormIdAsync(
         Guid userId,
-        Guid drugId,
+        Guid drugFormId,
         Guid? excludeId,
         CancellationToken cancellationToken);
 

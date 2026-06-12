@@ -6,6 +6,7 @@ using DrugsApp.Domain.DrugFeature.Repositories;
 using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.DrugProblemsFeature.Enums;
 using DrugsApp.Domain.DrugProblemsFeature.Repositories;
+using DrugsApp.Domain.RegularDrugsFeature.Shared;
 using DrugsApp.Features.DrugProblemsFeature.Shared;
 using ErrorOr;
 using MediatR;
@@ -17,7 +18,7 @@ namespace DrugsApp.Features.DrugProblemsFeature.UpdateDrugProblem;
 /// </summary>
 internal sealed class UpdateDrugProblemHandler(
     IDrugProblemRepository _drugProblemRepository,
-    IDrugRepository _drugRepository)
+    IDrugFormRepository _drugFormRepository)
     : IRequestHandler<UpdateDrugProblemCommand, ErrorOr<UpdateDrugProblemResponse>>
 {
     public async Task<ErrorOr<UpdateDrugProblemResponse>> Handle(
@@ -41,14 +42,14 @@ internal sealed class UpdateDrugProblemHandler(
                 });
         }
 
-        if (entity.Source == DrugProblemSource.Database && command.Request.CustomDrugName is not null)
+        if (entity.Source == DrugProblemSource.Database && HasAnyCustomDrugField(command.Request))
         {
             return SourceMismatch("customDrugName", "sourceMismatch");
         }
 
-        if (entity.Source == DrugProblemSource.Custom && command.Request.DrugId is not null)
+        if (entity.Source == DrugProblemSource.Custom && command.Request.DrugFormId is not null)
         {
-            return SourceMismatch("drugId", "sourceMismatch");
+            return SourceMismatch("drugFormId", "sourceMismatch");
         }
 
         ErrorOr<Success> noteResult = ApplyProblemNote(entity, command);
@@ -57,7 +58,7 @@ internal sealed class UpdateDrugProblemHandler(
             return noteResult.Errors;
         }
 
-        if (command.Request.DrugId is not null)
+        if (command.Request.DrugFormId is not null)
         {
             ErrorOr<UpdateDrugProblemResponse> result = await ApplyDatabaseUpdateAsync(entity, command, cancellationToken);
             if (result.IsError)
@@ -68,7 +69,7 @@ internal sealed class UpdateDrugProblemHandler(
             return result;
         }
 
-        if (!string.IsNullOrWhiteSpace(command.Request.CustomDrugName))
+        if (HasAnyCustomDrugField(command.Request))
         {
             ErrorOr<Success> customResult = await ApplyCustomUpdateAsync(entity, command, cancellationToken);
             if (customResult.IsError)
@@ -79,6 +80,12 @@ internal sealed class UpdateDrugProblemHandler(
 
         return entity.MapToDetailsDto().MapToResponse();
     }
+
+    private static bool HasAnyCustomDrugField(UpdateDrugProblemRequest request) =>
+        !string.IsNullOrWhiteSpace(request.CustomDrugName) ||
+        !string.IsNullOrWhiteSpace(request.CustomActiveSubstances) ||
+        !string.IsNullOrWhiteSpace(request.CustomFormulationName) ||
+        !string.IsNullOrWhiteSpace(request.CustomDosage);
 
     private static Error SourceMismatch(string field, string reason) =>
         Error.Validation(
@@ -106,45 +113,45 @@ internal sealed class UpdateDrugProblemHandler(
         UpdateDrugProblemCommand command,
         CancellationToken cancellationToken)
     {
-        Guid drugId = command.Request.DrugId!.Value;
+        Guid drugFormId = command.Request.DrugFormId!.Value;
 
-        Drug? drug = await _drugRepository.GetByIdAsync(drugId, cancellationToken);
-        if (drug is null)
+        DrugForm? drugForm = await _drugFormRepository.GetByIdAsync(drugFormId, cancellationToken);
+        if (drugForm is null)
         {
             return Error.NotFound(
-                description: "Drug not found.",
+                description: "Drug form not found.",
                 metadata: new()
                 {
-                    ["resourceType"] = "Drug",
-                    ["resourceId"] = drugId.ToString(),
+                    ["resourceType"] = "DrugForm",
+                    ["resourceId"] = drugFormId.ToString(),
                 });
         }
 
-        if (drug.TypeOfDrug != DrugType.Standard ||
-            drug.TypeOfProduct.Equals("Weterynaryjny", StringComparison.OrdinalIgnoreCase))
+        Drug drug = drugForm.Drug;
+        if (!RegularDrugEligibility.IsEligibleDrug(drug))
         {
             return Error.Validation(
-                description: "Selected drug is not eligible.",
+                description: "Selected drug form is not eligible.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
+                    ["field"] = "drugFormId",
                     ["reason"] = "eligibility",
                 });
         }
 
-        bool hasCatalogDuplicate = await _drugProblemRepository.ExistsForUserWithDrugIdAsync(
+        bool hasCatalogDuplicate = await _drugProblemRepository.ExistsForUserWithDrugFormIdAsync(
             command.UserId,
-            drugId,
+            drugFormId,
             excludeId: command.Id,
             cancellationToken);
         if (hasCatalogDuplicate)
         {
             return Error.Conflict(
-                description: "Drug problem already exists for this drug.",
+                description: "Drug problem already exists for this drug form.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
-                    ["conflictingResourceId"] = drugId.ToString(),
+                    ["field"] = "drugFormId",
+                    ["conflictingResourceId"] = drugFormId.ToString(),
                 });
         }
 
@@ -165,13 +172,13 @@ internal sealed class UpdateDrugProblemHandler(
                 });
         }
 
-        ErrorOr<Success> updateResult = entity.UpdateDatabaseDrug(drugId);
+        ErrorOr<Success> updateResult = entity.UpdateDatabaseDrug(drugFormId);
         if (updateResult.IsError)
         {
             return updateResult.Errors;
         }
 
-        entity.AttachDrug(drug);
+        entity.AttachDrugForm(drugForm);
 
         return entity.MapToDetailsDto().MapToResponse();
     }
@@ -216,7 +223,11 @@ internal sealed class UpdateDrugProblemHandler(
                 });
         }
 
-        return entity.UpdateCustomDrugName(customName);
+        return entity.UpdateCustomDrugName(
+            customName,
+            command.Request.CustomActiveSubstances!,
+            command.Request.CustomFormulationName!,
+            command.Request.CustomDosage!);
     }
 
     private static string NormalizeForLookup(string value)

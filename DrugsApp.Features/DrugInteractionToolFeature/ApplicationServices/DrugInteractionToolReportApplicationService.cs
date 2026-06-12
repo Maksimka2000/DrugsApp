@@ -32,7 +32,9 @@ using DrugsApp.Domain.SupplementFeature.Repositories;
 using DrugsApp.Domain.SystemTextFeature.Repositories;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
+using DrugsApp.Features.AllergiesFeature.Shared;
 using DrugsApp.Features.DrugInteractionToolFeature.Shared;
+using DrugsApp.Features.DrugProblemsFeature.Shared;
 using ErrorOr;
 
 namespace DrugsApp.Features.DrugInteractionToolFeature.ApplicationServices;
@@ -374,7 +376,7 @@ public sealed class DrugInteractionToolReportApplicationService(
                 crossDrugPairs);
 
             SpecificDrugProblemsSectionReadModel? problems = includeUserData
-                ? BuildSpecificDrugProblems(selection.Drug.Id, userDrugProblems)
+                ? BuildSpecificDrugProblems(selection.Form.Id, userDrugProblems)
                 : null;
 
             SpecificDrugAllergiesSectionReadModel? allergies = includeUserData
@@ -673,7 +675,7 @@ public sealed class DrugInteractionToolReportApplicationService(
             RecordCount: totalRows,
             ComparedDrugGroups: groups
                 .OrderBy(group => group.ComparedDrug.DrugSummaryText, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(group => group.ComparedDrug.SelectedDrugFormId)
+                .ThenBy(group => group.ComparedDrug.DrugFormId)
                 .ToList());
     }
 
@@ -750,35 +752,38 @@ public sealed class DrugInteractionToolReportApplicationService(
 
     private static List<ExactDuplicationRowReadModel> BuildExactDuplicationRows(ReportCompositionContext context)
     {
-        Dictionary<Guid, List<DrugTargetSummaryReadModel>> drugsBySubstance = new();
+        Dictionary<Guid, Dictionary<Guid, DuplicationDrugSummaryReadModel>> drugsBySubstanceAndForm = new();
 
         foreach (DrugFormSelection selection in context.Selections)
         {
-            DrugTargetSummaryReadModel summary = context.TargetSummariesByFormId[selection.Form.Id];
+            DuplicationDrugSummaryReadModel summary = DrugInteractionToolReportMapping.MapDuplicationDrugSummary(
+                selection.Drug,
+                selection.Form);
+
             foreach (ActiveSubstance substance in selection.Drug.ActiveSubstances)
             {
-                if (!drugsBySubstance.TryGetValue(substance.Id, out List<DrugTargetSummaryReadModel>? list))
+                if (!drugsBySubstanceAndForm.TryGetValue(substance.Id, out Dictionary<Guid, DuplicationDrugSummaryReadModel>? byForm))
                 {
-                    list = new List<DrugTargetSummaryReadModel>();
-                    drugsBySubstance[substance.Id] = list;
+                    byForm = new Dictionary<Guid, DuplicationDrugSummaryReadModel>();
+                    drugsBySubstanceAndForm[substance.Id] = byForm;
                 }
 
-                list.Add(summary);
+                byForm[selection.Form.Id] = summary;
             }
         }
 
         List<ExactDuplicationRowReadModel> rows = new();
 
-        foreach ((Guid substanceId, List<DrugTargetSummaryReadModel> affected) in drugsBySubstance
-                     .Where(pair => pair.Value.Select(drug => drug.SelectedDrugFormId).Distinct().Count() > 1)
+        foreach ((Guid substanceId, Dictionary<Guid, DuplicationDrugSummaryReadModel> affectedByForm) in drugsBySubstanceAndForm
+                     .Where(pair => pair.Value.Count > 1)
                      .OrderBy(pair => context.ActiveSubstanceNameById[pair.Key], StringComparer.OrdinalIgnoreCase))
         {
             string substanceName = context.ActiveSubstanceNameById[substanceId];
-            IReadOnlyCollection<DrugTargetSummaryReadModel> distinctDrugs = affected
-                .GroupBy(drug => drug.SelectedDrugFormId)
+            IReadOnlyCollection<DuplicationDrugSummaryReadModel> distinctDrugs = affectedByForm.Values
+                .GroupBy(drug => drug.DrugId)
                 .Select(group => group.First())
-                .OrderBy(drug => drug.DrugSummaryText, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(drug => drug.SelectedDrugFormId)
+                .OrderBy(drug => drug.OnlyDrugSummaryText, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(drug => drug.DrugId)
                 .ToList();
 
             rows.Add(new ExactDuplicationRowReadModel(
@@ -812,11 +817,14 @@ public sealed class DrugInteractionToolReportApplicationService(
             var memberIds = group.ActiveSubstances.Select(member => member.Id).ToHashSet();
             var affectedDrugs = context.Selections
                 .Where(selection => selection.Drug.ActiveSubstances.Any(substance => memberIds.Contains(substance.Id)))
-                .Select(selection => context.TargetSummariesByFormId[selection.Form.Id])
-                .GroupBy(summary => summary.SelectedDrugFormId)
+                .GroupBy(selection => selection.Form.Id)
+                .Select(formGroup => DrugInteractionToolReportMapping.MapDuplicationDrugSummary(
+                    formGroup.First().Drug,
+                    formGroup.First().Form))
+                .GroupBy(summary => summary.DrugId)
                 .Select(drugGroup => drugGroup.First())
-                .OrderBy(summary => summary.DrugSummaryText, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(summary => summary.SelectedDrugFormId)
+                .OrderBy(summary => summary.OnlyDrugSummaryText, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(summary => summary.DrugId)
                 .ToList();
 
             if (affectedDrugs.Count < 2)
@@ -1097,6 +1105,7 @@ public sealed class DrugInteractionToolReportApplicationService(
                     : string.Empty;
 
                 return new ActiveSubstanceOralGuidanceRowReadModel(
+                    ActiveSubstanceId: substance.Id,
                     ActiveSubstanceName: substance.ActiveSubstanceName,
                     GuidanceText: guidance,
                     DisplayLine: $"{substance.ActiveSubstanceName}: {guidance}");
@@ -1411,11 +1420,11 @@ public sealed class DrugInteractionToolReportApplicationService(
     }
 
     private static SpecificDrugProblemsSectionReadModel? BuildSpecificDrugProblems(
-        Guid drugId,
+        Guid drugFormId,
         IReadOnlyCollection<DrugProblem> problems)
     {
         var rows = problems
-            .Where(problem => problem.Source == DrugProblemSource.Database && problem.DrugId == drugId)
+            .Where(problem => problem.Source == DrugProblemSource.Database && problem.DrugFormId == drugFormId)
             .Select(problem => new SpecificDrugProblemRowReadModel(
                 ProblemDescription: problem.ProblemNote,
                 HeadlineText:
@@ -1439,7 +1448,8 @@ public sealed class DrugInteractionToolReportApplicationService(
         ReportCompositionContext context)
     {
         SpecificDrugDirectAllergyRowReadModel? direct = allergies
-            .FirstOrDefault(allergy => allergy.Source == AllergyRecordSource.Database && allergy.DrugId == selection.Drug.Id) is
+            .FirstOrDefault(allergy =>
+                allergy.Source == AllergyRecordSource.Database && allergy.DrugFormId == selection.Form.Id) is
             { } directAllergy
             ? new SpecificDrugDirectAllergyRowReadModel(
                 ProblemDescription: directAllergy.Note ?? string.Empty,
@@ -1450,18 +1460,24 @@ public sealed class DrugInteractionToolReportApplicationService(
         var drugSubstanceIds = selection.Drug.ActiveSubstances.Select(substance => substance.Id).ToHashSet();
 
         var overlapRows = allergies
-            .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.Drug is not null)
-            .SelectMany(allergy => allergy.Drug!.ActiveSubstances
-                .Where(substance => drugSubstanceIds.Contains(substance.Id))
-                .Select(substance => new ActiveSubstanceAllergyOverlapRowReadModel(
-                    ActiveSubstanceId: substance.Id,
-                    ActiveSubstanceName: substance.ActiveSubstanceName,
-                    SourceAllergyDrugDisplay: allergy.Drug!.CommercialName,
-                    UserNote: allergy.Note,
-                    HeadlineText:
-                    $"THIS ACTIVE SUBSTANCE WAS CHOSEN AS THE ALLERGIC BY THE USER IN ANOTHER DRUG: {allergy.Drug.CommercialName}",
-                    DisplayLine:
-                    $"{substance.ActiveSubstanceName} <= allergic via {allergy.Drug.CommercialName} | {allergy.Note}")))
+            .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.DrugForm?.Drug is not null)
+            .SelectMany(allergy =>
+            {
+                Drug sourceDrug = allergy.DrugForm!.Drug;
+                string allergyDisplay = allergy.MapToDto().DisplayName;
+
+                return sourceDrug.ActiveSubstances
+                    .Where(substance => drugSubstanceIds.Contains(substance.Id))
+                    .Select(substance => new ActiveSubstanceAllergyOverlapRowReadModel(
+                        ActiveSubstanceId: substance.Id,
+                        ActiveSubstanceName: substance.ActiveSubstanceName,
+                        SourceAllergyDrugDisplay: allergyDisplay,
+                        UserNote: allergy.Note,
+                        HeadlineText:
+                        $"THIS ACTIVE SUBSTANCE WAS CHOSEN AS THE ALLERGIC BY THE USER IN ANOTHER DRUG: {allergyDisplay}",
+                        DisplayLine:
+                        $"{substance.ActiveSubstanceName} <= allergic via {allergyDisplay} | {allergy.Note}"));
+            })
             .GroupBy(row => (row.ActiveSubstanceName, row.SourceAllergyDrugDisplay))
             .Select(group => group.First())
             .OrderBy(row => row.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
@@ -1535,6 +1551,7 @@ public sealed class DrugInteractionToolReportApplicationService(
         var databaseRows = rows
             .Where(row => row.Source == HealthConditionSource.Database && row.HealthCondition is not null)
             .Select(row => new HealthConditionRowReadModel(
+                HealthConditionId: row.HealthConditionId!.Value,
                 HealthConditionName: row.HealthCondition!.HealthConditionName,
                 UserNote: row.Note,
                 DisplayLine: $"{row.HealthCondition.HealthConditionName} | {row.Note}"))
@@ -1566,20 +1583,42 @@ public sealed class DrugInteractionToolReportApplicationService(
         List<DrugProblem> problems = await LoadAllDrugProblemsAsync(userId, cancellationToken);
 
         var databaseRows = problems
-            .Where(problem => problem.Source == DrugProblemSource.Database && problem.Drug is not null)
-            .Select(problem => new ProblematicDrugRowReadModel(
-                DrugId: problem.Drug!.Id,
-                DrugDisplayLine: problem.Drug.CommercialName,
-                UserNote: problem.ProblemNote,
-                DisplayLine: $"{problem.Drug.CommercialName} | {problem.ProblemNote}"))
+            .Where(problem => problem.Source == DrugProblemSource.Database && problem.DrugForm?.Drug is not null)
+            .Select(problem =>
+            {
+                Drug drug = problem.DrugForm!.Drug;
+                DrugForm drugForm = problem.DrugForm;
+                string drugSummaryText = DrugInteractionToolReportMapping.BuildDrugSummaryText(drug, drugForm);
+
+                return new ProblematicDrugRowReadModel(
+                    DrugId: drug.Id,
+                    DrugFormId: drugForm.Id,
+                    DrugSummaryText: drugSummaryText,
+                    UserNote: problem.ProblemNote,
+                    DisplayLine: $"{drugSummaryText} | {problem.ProblemNote}");
+            })
             .ToList();
 
         var customRows = problems
             .Where(problem => problem.Source == DrugProblemSource.Custom)
-            .Select(problem => new CustomProblematicDrugRowReadModel(
-                CommercialName: problem.CustomDrugName ?? string.Empty,
-                UserNote: problem.ProblemNote,
-                DisplayLine: $"{problem.CustomDrugName} | {problem.ProblemNote}"))
+            .Select(problem =>
+            {
+                string? otherCustomData = DrugInteractionToolReportMapping.BuildOtherCustomData(
+                    problem.CustomActiveSubstances,
+                    problem.CustomDosage,
+                    problem.CustomFormulationName);
+                string customCommercialName = problem.CustomDrugName ?? string.Empty;
+                string displayLine = string.Join(
+                    " | ",
+                    new[] { customCommercialName, otherCustomData, problem.ProblemNote }
+                        .Where(part => !string.IsNullOrWhiteSpace(part)));
+
+                return new CustomProblematicDrugRowReadModel(
+                    CustomCommercialName: customCommercialName,
+                    OtherCustomData: string.IsNullOrWhiteSpace(otherCustomData) ? null : otherCustomData,
+                    UserNote: problem.ProblemNote,
+                    DisplayLine: displayLine);
+            })
             .ToList();
 
         return new ProblematicDrugsGroupReadModel(
@@ -1615,20 +1654,42 @@ public sealed class DrugInteractionToolReportApplicationService(
     private static AllergyDrugSubgroupReadModel BuildDrugAllergySubgroup(IReadOnlyCollection<ClientDrugAllergy> allergies)
     {
         var databaseRows = allergies
-            .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.Drug is not null)
-            .Select(allergy => new DrugAllergyRowReadModel(
-                DrugId: allergy.Drug!.Id,
-                DrugDisplayLine: allergy.Drug.CommercialName,
-                UserNote: allergy.Note,
-                DisplayLine: $"{allergy.Drug.CommercialName} | {allergy.Note}"))
+            .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.DrugForm?.Drug is not null)
+            .Select(allergy =>
+            {
+                Drug drug = allergy.DrugForm!.Drug;
+                DrugForm drugForm = allergy.DrugForm;
+                string drugSummaryText = DrugInteractionToolReportMapping.BuildDrugSummaryText(drug, drugForm);
+
+                return new DrugAllergyRowReadModel(
+                    DrugId: drug.Id,
+                    DrugFormId: drugForm.Id,
+                    DrugSummaryText: drugSummaryText,
+                    UserNote: allergy.Note,
+                    DisplayLine: $"{drugSummaryText} | {allergy.Note}");
+            })
             .ToList();
 
         var customRows = allergies
             .Where(allergy => allergy.Source == AllergyRecordSource.Custom)
-            .Select(allergy => new CustomDrugAllergyRowReadModel(
-                CommercialName: allergy.CustomDrugName ?? string.Empty,
-                UserNote: allergy.Note,
-                DisplayLine: $"{allergy.CustomDrugName} | {allergy.Note}"))
+            .Select(allergy =>
+            {
+                string? otherCustomData = DrugInteractionToolReportMapping.BuildOtherCustomData(
+                    allergy.CustomActiveSubstances,
+                    allergy.CustomDosage,
+                    allergy.CustomFormulationName);
+                string customCommercialName = allergy.CustomDrugName ?? string.Empty;
+                string displayLine = string.Join(
+                    " | ",
+                    new[] { customCommercialName, otherCustomData, allergy.Note }
+                        .Where(part => !string.IsNullOrWhiteSpace(part)));
+
+                return new CustomDrugAllergyRowReadModel(
+                    CustomCommercialName: customCommercialName,
+                    OtherCustomData: string.IsNullOrWhiteSpace(otherCustomData) ? null : otherCustomData,
+                    UserNote: allergy.Note,
+                    DisplayLine: displayLine);
+            })
             .ToList();
 
         return new AllergyDrugSubgroupReadModel(

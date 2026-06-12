@@ -14,13 +14,16 @@ namespace DrugsApp.Features.DrugProblemsFeature.Shared;
 public sealed record DrugProblemListItemDto(
     Guid Id,
     string Source,
-    Guid? DrugId,
+    Guid? DrugFormId,
     string? CustomDrugName,
+    string? CustomActiveSubstances,
+    string? CustomFormulationName,
+    string? CustomDosage,
     string DisplayName,
     string ProblemNote,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc,
-    DrugProblemDrugSummaryDto? DrugSummary);
+    DrugProblemDrugFormSummaryDto? DrugFormSummary);
 
 /// <summary>
 /// Full details DTO for a drug problem entry.
@@ -28,14 +31,17 @@ public sealed record DrugProblemListItemDto(
 public sealed record DrugProblemDetailsDto(DrugProblemListItemDto Item);
 
 /// <summary>
-/// Compact drug summary used when a drug problem references a catalog drug.
+/// Compact drug form summary used when a drug problem references a catalog drug form.
 /// </summary>
-public sealed record DrugProblemDrugSummaryDto(
-    Guid Id,
+public sealed record DrugProblemDrugFormSummaryDto(
+    Guid DrugFormId,
+    Guid DrugId,
     string CommercialName,
     string TypeOfProduct,
     DrugType TypeOfDrug,
-    IReadOnlyCollection<LookupDto> ActiveSubstances);
+    IReadOnlyCollection<LookupDto> ActiveSubstances,
+    string FormulationName,
+    string? Dosage);
 
 public static class DrugProblemMappings
 {
@@ -44,31 +50,44 @@ public static class DrugProblemMappings
         string source = MapSource(drugProblem.Source);
         string displayName = ResolveDisplayName(drugProblem);
 
-        DrugProblemDrugSummaryDto? drugSummary = null;
-        if (drugProblem.Source == DrugProblemSource.Database && drugProblem.Drug is not null)
+        DrugProblemDrugFormSummaryDto? drugFormSummary = null;
+        if (drugProblem.Source == DrugProblemSource.Database &&
+            drugProblem.DrugForm is not null &&
+            drugProblem.DrugForm.Drug is not null)
         {
-            IReadOnlyCollection<LookupDto> activeSubstances = drugProblem.Drug.ActiveSubstances
+            DrugForm drugForm = drugProblem.DrugForm;
+            Drug drug = drugForm.Drug;
+
+            IReadOnlyCollection<LookupDto> activeSubstances = drug.ActiveSubstances
+                .OrderBy(activeSubstance => activeSubstance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(activeSubstance => activeSubstance.Id)
                 .Select(activeSubstance => new LookupDto(activeSubstance.Id, activeSubstance.ActiveSubstanceName))
                 .ToList();
 
-            drugSummary = new DrugProblemDrugSummaryDto(
-                drugProblem.Drug.Id,
-                drugProblem.Drug.CommercialName,
-                drugProblem.Drug.TypeOfProduct,
-                drugProblem.Drug.TypeOfDrug,
-                activeSubstances);
+            drugFormSummary = new DrugProblemDrugFormSummaryDto(
+                drugForm.Id,
+                drug.Id,
+                drug.CommercialName,
+                drug.TypeOfProduct,
+                drug.TypeOfDrug,
+                activeSubstances,
+                BuildFormulationName(drugForm),
+                drugForm.Dosage);
         }
 
         return new DrugProblemListItemDto(
             drugProblem.Id,
             source,
-            drugProblem.DrugId,
+            drugProblem.DrugFormId,
             drugProblem.CustomDrugName,
+            drugProblem.CustomActiveSubstances,
+            drugProblem.CustomFormulationName,
+            drugProblem.CustomDosage,
             displayName,
             drugProblem.ProblemNote,
             drugProblem.CreatedAtUtc,
             drugProblem.UpdatedAtUtc,
-            drugSummary);
+            drugFormSummary);
     }
 
     public static DrugProblemDetailsDto MapToDetailsDto(this DrugProblem drugProblem) =>
@@ -78,16 +97,80 @@ public static class DrugProblemMappings
     {
         if (drugProblem.Source == DrugProblemSource.Custom && drugProblem.CustomDrugName is not null)
         {
-            return drugProblem.CustomDrugName;
+            var parts = new List<string> { drugProblem.CustomDrugName };
+
+            if (!string.IsNullOrWhiteSpace(drugProblem.CustomActiveSubstances))
+            {
+                parts.Add(drugProblem.CustomActiveSubstances);
+            }
+
+            if (!string.IsNullOrWhiteSpace(drugProblem.CustomFormulationName))
+            {
+                parts.Add(drugProblem.CustomFormulationName);
+            }
+
+            if (!string.IsNullOrWhiteSpace(drugProblem.CustomDosage))
+            {
+                parts.Add(drugProblem.CustomDosage);
+            }
+
+            return string.Join(" | ", parts);
         }
 
-        if (drugProblem.Drug is not null)
+        if (drugProblem.DrugForm?.Drug is not null)
         {
-            return drugProblem.Drug.CommercialName;
+            return BuildCatalogDisplayName(drugProblem.DrugForm.Drug, drugProblem.DrugForm);
         }
 
         return drugProblem.CustomDrugName ?? string.Empty;
     }
+
+    internal static string BuildCatalogDisplayName(Drug drug, DrugForm drugForm)
+    {
+        var parts = new List<string> { drug.CommercialName };
+
+        string activeSubstanceSegment = string.Join(
+            ", ",
+            drug.ActiveSubstances
+                .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(substance => substance.Id)
+                .Select(substance => substance.ActiveSubstanceName));
+
+        if (!string.IsNullOrWhiteSpace(activeSubstanceSegment))
+        {
+            parts.Add(activeSubstanceSegment);
+        }
+
+        string formulationName = BuildFormulationName(drugForm);
+        if (!string.IsNullOrWhiteSpace(formulationName))
+        {
+            parts.Add(formulationName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(drugForm.Dosage))
+        {
+            parts.Add(drugForm.Dosage);
+        }
+
+        if (drug.TypeOfDrug is DrugType.Special or DrugType.Ophthalmic)
+        {
+            parts.Add(drug.TypeOfDrug.ToString());
+        }
+
+        if (drug.TypeOfProduct.Equals("Weterynaryjny", StringComparison.OrdinalIgnoreCase))
+        {
+            parts.Add(drug.TypeOfProduct);
+        }
+
+        return string.Join(" | ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
+    }
+
+    private static string BuildFormulationName(DrugForm drugForm) =>
+        string.Join(
+            ", ",
+            drugForm.PharmaceuticalForms
+                .Select(form => form.FormulationName)
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase));
 
     private static string MapSource(DrugProblemSource source) =>
         source == DrugProblemSource.Database ? "database" : "custom";

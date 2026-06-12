@@ -19,10 +19,7 @@ public sealed class ClientDrugAllergyRepository(DrugsAppDbContext _context) : IC
         int take,
         CancellationToken cancellationToken)
     {
-        IQueryable<ClientDrugAllergy> query = _context.ClientDrugAllergies
-            .AsNoTracking()
-            .Include(x => x.Drug!)
-                .ThenInclude(drug => drug.ActiveSubstances)
+        IQueryable<ClientDrugAllergy> query = ApplyCatalogIncludes(_context.ClientDrugAllergies.AsNoTracking())
             .Where(x => x.UserId == userId);
 
         query = ApplySort(query);
@@ -45,9 +42,7 @@ public sealed class ClientDrugAllergyRepository(DrugsAppDbContext _context) : IC
         Guid id,
         CancellationToken cancellationToken)
     {
-        return await _context.ClientDrugAllergies
-            .Include(x => x.Drug!)
-                .ThenInclude(drug => drug.ActiveSubstances)
+        return await ApplyCatalogIncludes(_context.ClientDrugAllergies)
             .FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id, cancellationToken);
     }
 
@@ -61,9 +56,9 @@ public sealed class ClientDrugAllergyRepository(DrugsAppDbContext _context) : IC
         _context.ClientDrugAllergies.Remove(allergy);
     }
 
-    public async Task<bool> ExistsByDrugIdAsync(
+    public async Task<bool> ExistsByDrugFormIdAsync(
         Guid userId,
-        Guid drugId,
+        Guid drugFormId,
         CancellationToken cancellationToken)
     {
         return await _context.ClientDrugAllergies
@@ -71,7 +66,7 @@ public sealed class ClientDrugAllergyRepository(DrugsAppDbContext _context) : IC
             .AnyAsync(
                 x => x.UserId == userId &&
                      x.Source == AllergyRecordSource.Database &&
-                     x.DrugId == drugId,
+                     x.DrugFormId == drugFormId,
                 cancellationToken);
     }
 
@@ -94,14 +89,13 @@ public sealed class ClientDrugAllergyRepository(DrugsAppDbContext _context) : IC
         string drugDisplayNameNormalized,
         CancellationToken cancellationToken)
     {
-        return await _context.ClientDrugAllergies
-            .AsNoTracking()
-            .Include(x => x.Drug)
+        return await ApplyCatalogIncludes(_context.ClientDrugAllergies.AsNoTracking())
             .AnyAsync(
                 x => x.UserId == userId &&
                      x.Source == AllergyRecordSource.Database &&
-                     x.Drug != null &&
-                     x.Drug.CommercialName.ToLower() == drugDisplayNameNormalized,
+                     x.DrugForm != null &&
+                     x.DrugForm.Drug != null &&
+                     x.DrugForm.Drug.CommercialName.ToLower() == drugDisplayNameNormalized,
                 cancellationToken);
     }
 
@@ -127,8 +121,12 @@ public sealed class ClientDrugAllergyRepository(DrugsAppDbContext _context) : IC
             .Where(allergy =>
                 allergy.UserId == userId &&
                 allergy.Source == AllergyRecordSource.Database &&
-                allergy.DrugId != null)
-            .Select(allergy => allergy.DrugId!.Value)
+                allergy.DrugFormId != null)
+            .Join(
+                _context.DrugForms.AsNoTracking(),
+                allergy => allergy.DrugFormId,
+                drugForm => drugForm.Id,
+                (_, drugForm) => drugForm.DrugId)
             .ToListAsync(cancellationToken);
 
         if (existingDrugIds.Count == 0)
@@ -145,13 +143,23 @@ public sealed class ClientDrugAllergyRepository(DrugsAppDbContext _context) : IC
                 cancellationToken);
     }
 
+    private static IQueryable<ClientDrugAllergy> ApplyCatalogIncludes(IQueryable<ClientDrugAllergy> query) =>
+        query
+            .Include(allergy => allergy.DrugForm)
+                .ThenInclude(drugForm => drugForm!.Drug)
+                    .ThenInclude(drug => drug.ActiveSubstances)
+            .Include(allergy => allergy.DrugForm)
+                .ThenInclude(drugForm => drugForm!.PharmaceuticalForms);
+
     private static IQueryable<ClientDrugAllergy> ApplySort(IQueryable<ClientDrugAllergy> query)
     {
         return query
             .OrderBy(allergy =>
-                allergy.Source == AllergyRecordSource.Database && allergy.Drug != null
-                    ? allergy.Drug.CommercialName
-                    : allergy.CustomDrugName ?? string.Empty)
+                allergy.CustomDrugName != null
+                    ? allergy.CustomDrugName.ToLower()
+                    : allergy.DrugForm != null && allergy.DrugForm.Drug != null
+                        ? allergy.DrugForm.Drug.CommercialName.ToLower()
+                        : string.Empty)
             .ThenBy(allergy => allergy.Id);
     }
 }

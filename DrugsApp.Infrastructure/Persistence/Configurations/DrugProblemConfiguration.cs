@@ -16,11 +16,20 @@ public sealed class DrugProblemConfiguration : BaseEntityConfiguration<DrugProbl
         builder.Property(x => x.UserId)
             .IsRequired();
 
-        builder.Property(x => x.DrugId)
+        builder.Property(x => x.DrugFormId)
             .IsRequired(false);
 
         builder.Property(x => x.CustomDrugName)
             .HasMaxLength(300);
+
+        builder.Property(x => x.CustomActiveSubstances)
+            .HasMaxLength(300);
+
+        builder.Property(x => x.CustomFormulationName)
+            .HasMaxLength(300);
+
+        builder.Property(x => x.CustomDosage)
+            .HasMaxLength(200);
 
         builder.Property(x => x.Source)
             .HasConversion<string>()
@@ -32,9 +41,9 @@ public sealed class DrugProblemConfiguration : BaseEntityConfiguration<DrugProbl
             .IsRequired();
 
         builder
-            .HasOne(x => x.Drug)
+            .HasOne(x => x.DrugForm)
             .WithMany()
-            .HasForeignKey(x => x.DrugId)
+            .HasForeignKey(x => x.DrugFormId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.UserId)
@@ -43,10 +52,10 @@ public sealed class DrugProblemConfiguration : BaseEntityConfiguration<DrugProbl
         builder.HasIndex(x => new { x.UserId, x.CreatedAtUtc, x.Id })
             .HasDatabaseName("IX_DrugProblems_UserId_CreatedAtUtc_Id");
 
-        builder.HasIndex(x => new { x.UserId, x.DrugId })
-            .HasDatabaseName("UX_DrugProblems_UserId_DrugId")
+        builder.HasIndex(x => new { x.UserId, x.DrugFormId })
+            .HasDatabaseName("UX_DrugProblems_UserId_DrugFormId")
             .IsUnique()
-            .HasFilter("\"DrugId\" IS NOT NULL");
+            .HasFilter("\"DrugFormId\" IS NOT NULL");
 
         builder.HasIndex(x => new { x.UserId, x.CustomDrugName })
             .HasDatabaseName("UX_DrugProblems_UserId_CustomDrugName")
@@ -55,6 +64,6 @@ public sealed class DrugProblemConfiguration : BaseEntityConfiguration<DrugProbl
 
         builder.HasCheckConstraint(
             "CK_DrugProblems_SourceXor",
-            "(CASE WHEN \"DrugId\" IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN \"CustomDrugName\" IS NOT NULL THEN 1 ELSE 0 END) = 1");
+            "(CASE WHEN \"DrugFormId\" IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN \"CustomDrugName\" IS NOT NULL THEN 1 ELSE 0 END) = 1");
     }
 }

@@ -1,5 +1,4 @@
 using DrugsApp.Domain.AllergiesFeature.Entities;
-using DrugsApp.Domain.AllergiesFeature.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,11 +15,23 @@ public sealed class ClientDrugAllergyConfiguration : BaseEntityConfiguration<Cli
         builder.Property(x => x.UserId)
             .IsRequired();
 
+        builder.Property(x => x.DrugFormId)
+            .IsRequired(false);
+
         builder.Property(x => x.CustomDrugName)
-            .HasMaxLength(256);
+            .HasMaxLength(300);
 
         builder.Property(x => x.CustomDrugNameNormalized)
-            .HasMaxLength(256);
+            .HasMaxLength(300);
+
+        builder.Property(x => x.CustomActiveSubstances)
+            .HasMaxLength(300);
+
+        builder.Property(x => x.CustomFormulationName)
+            .HasMaxLength(300);
+
+        builder.Property(x => x.CustomDosage)
+            .HasMaxLength(200);
 
         builder.Property(x => x.Source)
             .HasConversion<string>()
@@ -30,17 +41,17 @@ public sealed class ClientDrugAllergyConfiguration : BaseEntityConfiguration<Cli
         builder.Property(x => x.Note)
             .HasMaxLength(1000);
 
-        builder.HasOne(x => x.Drug)
+        builder.HasOne(x => x.DrugForm)
             .WithMany()
-            .HasForeignKey(x => x.DrugId)
+            .HasForeignKey(x => x.DrugFormId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.UserId, "IX_ClientDrugAllergies_UserId");
 
         builder.HasIndex(
-                x => new { x.UserId, x.DrugId },
-                "IX_ClientDrugAllergies_UserId_DrugId_Database")
-            .HasFilter("\"DrugId\" IS NOT NULL")
+                x => new { x.UserId, x.DrugFormId },
+                "IX_ClientDrugAllergies_UserId_DrugFormId_Database")
+            .HasFilter("\"DrugFormId\" IS NOT NULL")
             .IsUnique();
 
         builder.HasIndex(

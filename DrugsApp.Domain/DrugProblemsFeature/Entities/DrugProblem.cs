@@ -14,9 +14,9 @@ public sealed class DrugProblem : BaseEntity
     // Relationships
 
     /// <summary>
-    /// Optional catalog drug reference when <see cref="Source"/> is <see cref="DrugProblemSource.Database"/>.
+    /// Optional catalog drug form reference when <see cref="Source"/> is <see cref="DrugProblemSource.Database"/>.
     /// </summary>
-    public Drug? Drug { get; private set; }
+    public DrugForm? DrugForm { get; private set; }
 
     // Attributes
 
@@ -26,14 +26,29 @@ public sealed class DrugProblem : BaseEntity
     public Guid UserId { get; private set; }
 
     /// <summary>
-    /// Catalog drug identifier when <see cref="Source"/> is <see cref="DrugProblemSource.Database"/>.
+    /// Catalog drug form identifier when <see cref="Source"/> is <see cref="DrugProblemSource.Database"/>.
     /// </summary>
-    public Guid? DrugId { get; private set; }
+    public Guid? DrugFormId { get; private set; }
 
     /// <summary>
     /// Custom user-provided drug name when <see cref="Source"/> is <see cref="DrugProblemSource.Custom"/>.
     /// </summary>
     public string? CustomDrugName { get; private set; }
+
+    /// <summary>
+    /// Custom active substances description when <see cref="Source"/> is <see cref="DrugProblemSource.Custom"/>.
+    /// </summary>
+    public string? CustomActiveSubstances { get; private set; }
+
+    /// <summary>
+    /// Custom formulation name when <see cref="Source"/> is <see cref="DrugProblemSource.Custom"/>.
+    /// </summary>
+    public string? CustomFormulationName { get; private set; }
+
+    /// <summary>
+    /// Custom dosage description when <see cref="Source"/> is <see cref="DrugProblemSource.Custom"/>.
+    /// </summary>
+    public string? CustomDosage { get; private set; }
 
     /// <summary>
     /// Indicates whether the record references a catalog drug or a custom name.
@@ -51,14 +66,20 @@ public sealed class DrugProblem : BaseEntity
 
     private DrugProblem(
         Guid userId,
-        Guid? drugId,
+        Guid? drugFormId,
         string? customDrugName,
+        string? customActiveSubstances,
+        string? customFormulationName,
+        string? customDosage,
         DrugProblemSource source,
         string problemNote) : this()
     {
         UserId = userId;
-        DrugId = drugId;
+        DrugFormId = drugFormId;
         CustomDrugName = customDrugName;
+        CustomActiveSubstances = customActiveSubstances;
+        CustomFormulationName = customFormulationName;
+        CustomDosage = customDosage;
         Source = source;
         ProblemNote = problemNote;
     }
@@ -67,12 +88,12 @@ public sealed class DrugProblem : BaseEntity
     /// Creates a catalog-backed drug problem entry.
     /// </summary>
     /// <param name="userId">Owner identifier.</param>
-    /// <param name="drugId">Catalog drug identifier.</param>
+    /// <param name="drugFormId">Catalog drug form identifier.</param>
     /// <param name="problemNote">Problem note.</param>
     /// <returns>Validated aggregate or validation errors.</returns>
-    public static ErrorOr<DrugProblem> CreateDatabase(Guid userId, Guid drugId, string problemNote)
+    public static ErrorOr<DrugProblem> CreateDatabase(Guid userId, Guid drugFormId, string problemNote)
     {
-        ErrorOr<(Guid UserId, Guid DrugId)> ownership = ValidateOwnership(userId, drugId);
+        ErrorOr<(Guid UserId, Guid DrugFormId)> ownership = ValidateOwnership(userId, drugFormId);
         if (ownership.IsError)
         {
             return ownership.Errors;
@@ -86,8 +107,11 @@ public sealed class DrugProblem : BaseEntity
 
         return new DrugProblem(
             userId: ownership.Value.UserId,
-            drugId: ownership.Value.DrugId,
+            drugFormId: ownership.Value.DrugFormId,
             customDrugName: null,
+            customActiveSubstances: null,
+            customFormulationName: null,
+            customDosage: null,
             source: DrugProblemSource.Database,
             problemNote: normalizedNote.Value);
     }
@@ -97,9 +121,18 @@ public sealed class DrugProblem : BaseEntity
     /// </summary>
     /// <param name="userId">Owner identifier.</param>
     /// <param name="customDrugName">Custom drug name.</param>
+    /// <param name="customActiveSubstances">Custom active substances description.</param>
+    /// <param name="customFormulationName">Custom formulation name.</param>
+    /// <param name="customDosage">Custom dosage.</param>
     /// <param name="problemNote">Problem note.</param>
     /// <returns>Validated aggregate or validation errors.</returns>
-    public static ErrorOr<DrugProblem> CreateCustom(Guid userId, string customDrugName, string problemNote)
+    public static ErrorOr<DrugProblem> CreateCustom(
+        Guid userId,
+        string customDrugName,
+        string customActiveSubstances,
+        string customFormulationName,
+        string customDosage,
+        string problemNote)
     {
         if (userId == Guid.Empty)
         {
@@ -118,6 +151,24 @@ public sealed class DrugProblem : BaseEntity
             return normalizedCustomDrugName.Errors;
         }
 
+        ErrorOr<string> normalizedActiveSubstances = NormalizeRequiredString(customActiveSubstances, "customActiveSubstances", 300);
+        if (normalizedActiveSubstances.IsError)
+        {
+            return normalizedActiveSubstances.Errors;
+        }
+
+        ErrorOr<string> normalizedFormulationName = NormalizeRequiredString(customFormulationName, "customFormulationName", 300);
+        if (normalizedFormulationName.IsError)
+        {
+            return normalizedFormulationName.Errors;
+        }
+
+        ErrorOr<string> normalizedDosage = NormalizeRequiredString(customDosage, "customDosage", 200);
+        if (normalizedDosage.IsError)
+        {
+            return normalizedDosage.Errors;
+        }
+
         ErrorOr<string> normalizedNote = NormalizeNote(problemNote);
         if (normalizedNote.IsError)
         {
@@ -126,8 +177,11 @@ public sealed class DrugProblem : BaseEntity
 
         return new DrugProblem(
             userId: userId,
-            drugId: null,
+            drugFormId: null,
             customDrugName: normalizedCustomDrugName.Value,
+            customActiveSubstances: normalizedActiveSubstances.Value,
+            customFormulationName: normalizedFormulationName.Value,
+            customDosage: normalizedDosage.Value,
             source: DrugProblemSource.Custom,
             problemNote: normalizedNote.Value);
     }
@@ -157,9 +211,9 @@ public sealed class DrugProblem : BaseEntity
     /// <summary>
     /// Updates the catalog drug for database-sourced records.
     /// </summary>
-    /// <param name="drugId">New catalog drug identifier.</param>
+    /// <param name="drugFormId">New catalog drug form identifier.</param>
     /// <returns>Success or validation errors.</returns>
-    public ErrorOr<Success> UpdateDatabaseDrug(Guid drugId)
+    public ErrorOr<Success> UpdateDatabaseDrug(Guid drugFormId)
     {
         if (Source != DrugProblemSource.Database)
         {
@@ -168,28 +222,28 @@ public sealed class DrugProblem : BaseEntity
                 description: "Drug reference can be changed only for catalog-backed records.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
+                    ["field"] = "drugFormId",
                     ["reason"] = "sourceMismatch",
                 });
         }
 
-        if (drugId == Guid.Empty)
+        if (drugFormId == Guid.Empty)
         {
             return Error.Validation(
-                code: "DrugProblem.DrugIdEmpty",
-                description: "Drug id must be provided.",
+                code: "DrugProblem.DrugFormIdEmpty",
+                description: "Drug form id must be provided.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
+                    ["field"] = "drugFormId",
                 });
         }
 
-        if (DrugId == drugId)
+        if (DrugFormId == drugFormId)
         {
             return Result.Success;
         }
 
-        DrugId = drugId;
+        DrugFormId = drugFormId;
         return Result.Success;
     }
 
@@ -197,8 +251,15 @@ public sealed class DrugProblem : BaseEntity
     /// Updates the custom drug name for custom-sourced records.
     /// </summary>
     /// <param name="customDrugName">New custom name.</param>
+    /// <param name="customActiveSubstances">Updated custom active substances.</param>
+    /// <param name="customFormulationName">Updated custom formulation.</param>
+    /// <param name="customDosage">Updated custom dosage.</param>
     /// <returns>Success or validation errors.</returns>
-    public ErrorOr<Success> UpdateCustomDrugName(string customDrugName)
+    public ErrorOr<Success> UpdateCustomDrugName(
+        string customDrugName,
+        string customActiveSubstances,
+        string customFormulationName,
+        string customDosage)
     {
         if (Source != DrugProblemSource.Custom)
         {
@@ -218,26 +279,53 @@ public sealed class DrugProblem : BaseEntity
             return normalizedName.Errors;
         }
 
-        if (string.Equals(CustomDrugName, normalizedName.Value, StringComparison.Ordinal))
+        ErrorOr<string> normalizedActiveSubstances = NormalizeRequiredString(customActiveSubstances, "customActiveSubstances", 300);
+        if (normalizedActiveSubstances.IsError)
+        {
+            return normalizedActiveSubstances.Errors;
+        }
+
+        ErrorOr<string> normalizedFormulationName = NormalizeRequiredString(customFormulationName, "customFormulationName", 300);
+        if (normalizedFormulationName.IsError)
+        {
+            return normalizedFormulationName.Errors;
+        }
+
+        ErrorOr<string> normalizedDosage = NormalizeRequiredString(customDosage, "customDosage", 200);
+        if (normalizedDosage.IsError)
+        {
+            return normalizedDosage.Errors;
+        }
+
+        bool unchanged =
+            string.Equals(CustomDrugName, normalizedName.Value, StringComparison.Ordinal) &&
+            string.Equals(CustomActiveSubstances, normalizedActiveSubstances.Value, StringComparison.Ordinal) &&
+            string.Equals(CustomFormulationName, normalizedFormulationName.Value, StringComparison.Ordinal) &&
+            string.Equals(CustomDosage, normalizedDosage.Value, StringComparison.Ordinal);
+
+        if (unchanged)
         {
             return Result.Success;
         }
 
         CustomDrugName = normalizedName.Value;
+        CustomActiveSubstances = normalizedActiveSubstances.Value;
+        CustomFormulationName = normalizedFormulationName.Value;
+        CustomDosage = normalizedDosage.Value;
         return Result.Success;
     }
 
     /// <summary>
     /// Attaches the catalog drug navigation after loading.
     /// </summary>
-    /// <param name="drug">Catalog drug to attach.</param>
-    public void AttachDrug(Drug drug)
+    /// <param name="drugForm">Catalog drug form to attach.</param>
+    public void AttachDrugForm(DrugForm drugForm)
     {
-        Drug = drug;
-        DrugId = drug.Id;
+        DrugForm = drugForm;
+        DrugFormId = drugForm.Id;
     }
 
-    private static ErrorOr<(Guid UserId, Guid DrugId)> ValidateOwnership(Guid userId, Guid drugId)
+    private static ErrorOr<(Guid UserId, Guid DrugFormId)> ValidateOwnership(Guid userId, Guid drugFormId)
     {
         if (userId == Guid.Empty)
         {
@@ -250,18 +338,18 @@ public sealed class DrugProblem : BaseEntity
                 });
         }
 
-        if (drugId == Guid.Empty)
+        if (drugFormId == Guid.Empty)
         {
             return Error.Validation(
-                code: "DrugProblem.DrugIdEmpty",
-                description: "Drug id must be provided.",
+                code: "DrugProblem.DrugFormIdEmpty",
+                description: "Drug form id must be provided.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
+                    ["field"] = "drugFormId",
                 });
         }
 
-        return (userId, drugId);
+        return (userId, drugFormId);
     }
 
     private static ErrorOr<string> NormalizeCustomDrugName(string value)
@@ -328,5 +416,34 @@ public sealed class DrugProblem : BaseEntity
         return string.Join(
             ' ',
             trimmed.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static ErrorOr<string> NormalizeRequiredString(string value, string field, int maxLength)
+    {
+        string collapsed = CollapseWhitespace(value);
+        if (string.IsNullOrWhiteSpace(collapsed))
+        {
+            return Error.Validation(
+                code: $"DrugProblem.{field}Empty",
+                description: $"{field} must be provided.",
+                metadata: new()
+                {
+                    ["field"] = field,
+                });
+        }
+
+        if (collapsed.Length > maxLength)
+        {
+            return Error.Validation(
+                code: $"DrugProblem.{field}TooLong",
+                description: $"{field} must not exceed {maxLength} characters.",
+                metadata: new()
+                {
+                    ["field"] = field,
+                    ["maxLength"] = maxLength,
+                });
+        }
+
+        return collapsed;
     }
 }
