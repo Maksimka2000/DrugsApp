@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.GetPatientHealthcareProfes
 
 [ApiController]
 [Route("api/supervision/patient/healthcare-professionals")]
-[Tags("Supervision")]
+[Tags("Supervision Patient")]
 public sealed class GetPatientHealthcareProfessionalController(
     IMediator mediator,
     IValidator<GetPatientHealthcareProfessionalRequest> validator) : ControllerBase

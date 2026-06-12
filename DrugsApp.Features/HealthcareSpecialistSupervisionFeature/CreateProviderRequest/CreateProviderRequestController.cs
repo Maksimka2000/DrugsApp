@@ -14,7 +14,7 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CreateProvide
 
 [ApiController]
 [Route("api/supervision/provider/requests")]
-[Tags("Supervision")]
+[Tags("Supervision Healthcare Specialist")]
 public sealed class CreateProviderRequestController(
     IMediator mediator,
     IValidator<CreateProviderRequestRequest> validator) : ControllerBase

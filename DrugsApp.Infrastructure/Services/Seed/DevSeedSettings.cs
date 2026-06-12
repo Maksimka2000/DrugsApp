@@ -16,9 +16,9 @@ public sealed class DevSeedSettings
     /// Unique key stored in <c>dev_seed_applications</c> to prevent re-seeding.
     /// Bump when seed data shape changes and you need a fresh apply on existing databases.
     /// </summary>
-    public string SeedKey { get; init; } = "patient_profile_v2";
+    public string SeedKey { get; init; } = "dev_data_v3";
 
-    public string PatientEmail { get; init; } = "seed.patient@drugsapp.local";
+    public string PatientEmail { get; init; } = "seed.client1@drugsapp.local";
 
     public string PatientPassword { get; init; } = "SeedPatient123!";
 

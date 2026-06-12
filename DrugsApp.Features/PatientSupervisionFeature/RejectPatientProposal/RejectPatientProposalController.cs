@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.RejectPatientProposal;
 
 [ApiController]
 [Route("api/supervision/patient/proposals")]
-[Tags("Supervision")]
+[Tags("Supervision Patient")]
 public sealed class RejectPatientProposalController(
     IMediator mediator,
     IValidator<RejectPatientProposalRequest> validator) : ControllerBase

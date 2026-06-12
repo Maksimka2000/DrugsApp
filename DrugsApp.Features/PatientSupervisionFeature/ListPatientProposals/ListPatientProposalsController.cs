@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ListPatientProposals;
 
 [ApiController]
 [Route("api/supervision/patient/proposals")]
-[Tags("Supervision")]
+[Tags("Supervision Patient")]
 public sealed class ListPatientProposalsController(
     IMediator mediator,
     IValidator<ListPatientProposalsRequest> validator) : ControllerBase
