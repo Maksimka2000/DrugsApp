@@ -10,14 +10,15 @@ namespace DrugsApp.Host.Auth.Authorization;
 // Permission groups (admin + member portal):
 //
 // SearchCatalog (Client, HealthcareProvider, Admin):
-// - DrugFeature: SearchDrugForms, SearchDrugSimilarities, RetrieveDrug
-// Public (anonymous):
-// - DrugFeature: SearchDrugs
+// - DrugFeature: SearchDrugForms, SearchDrugSimilarities
 // - VetDrugFeature: SearchVetDrugs, RetrieveVetDrug
 // - ActiveSubstanceFeature: SearchActiveSubstances
 // - ActiveSubstanceGroupFeature: SearchActiveSubstanceGroups
 // - FoodFeature: SearchFoods, SearchFoodGroups
 // - SupplementFeature: SearchSupplements, SearchSupplementGroups
+//
+// Public (anonymous):
+// - DrugFeature: SearchDrugs, RetrieveDrug
 //
 // SearchReferenceData (Client, HealthcareProvider, Admin):
 // - PharmaceuticalFormFeature: SearchPharmaceuticalForms
@@ -88,7 +89,6 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
     {
         "DrugsApp.Features.DrugFeature.SearchDrugForms",
         "DrugsApp.Features.DrugFeature.SearchDrugSimilarities",
-        "DrugsApp.Features.DrugFeature.RetrieveDrug",
         "DrugsApp.Features.VetDrugFeature.SearchVetDrugs",
         "DrugsApp.Features.VetDrugFeature.RetrieveVetDrug",
         "DrugsApp.Features.ActiveSubstanceFeature.SearchActiveSubstances",
@@ -212,7 +212,8 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         }
 
         if (controllerNamespace == "DrugsApp.Features.SupportFeature.SearchPublicFaqEntries"
-            || controllerNamespace == "DrugsApp.Features.DrugFeature.SearchDrugs")
+            || controllerNamespace == "DrugsApp.Features.DrugFeature.SearchDrugs"
+            || controllerNamespace == "DrugsApp.Features.DrugFeature.RetrieveDrug")
         {
             AllowAnonymous(controller);
             return;
