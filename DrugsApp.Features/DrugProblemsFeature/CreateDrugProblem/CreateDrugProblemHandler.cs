@@ -5,6 +5,7 @@ using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Repositories;
 using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.DrugProblemsFeature.Repositories;
+using DrugsApp.Domain.RegularDrugsFeature.Shared;
 using DrugsApp.Features.DrugProblemsFeature.Shared;
 using ErrorOr;
 using MediatR;
@@ -16,14 +17,14 @@ namespace DrugsApp.Features.DrugProblemsFeature.CreateDrugProblem;
 /// </summary>
 internal sealed class CreateDrugProblemHandler(
     IDrugProblemRepository _drugProblemRepository,
-    IDrugRepository _drugRepository)
+    IDrugFormRepository _drugFormRepository)
     : IRequestHandler<CreateDrugProblemCommand, ErrorOr<CreateDrugProblemResponse>>
 {
     public async Task<ErrorOr<CreateDrugProblemResponse>> Handle(
         CreateDrugProblemCommand command,
         CancellationToken cancellationToken)
     {
-        if (command.Request.DrugId is not null)
+        if (command.Request.DrugFormId is not null)
         {
             return await CreateDatabaseAsync(command, cancellationToken);
         }
@@ -35,45 +36,45 @@ internal sealed class CreateDrugProblemHandler(
         CreateDrugProblemCommand command,
         CancellationToken cancellationToken)
     {
-        Guid drugId = command.Request.DrugId!.Value;
+        Guid drugFormId = command.Request.DrugFormId!.Value;
 
-        Drug? drug = await _drugRepository.GetByIdAsync(drugId, cancellationToken);
-        if (drug is null)
+        DrugForm? drugForm = await _drugFormRepository.GetByIdAsync(drugFormId, cancellationToken);
+        if (drugForm is null)
         {
             return Error.NotFound(
-                description: "Drug not found.",
+                description: "Drug form not found.",
                 metadata: new()
                 {
-                    ["resourceType"] = "Drug",
-                    ["resourceId"] = drugId.ToString(),
+                    ["resourceType"] = "DrugForm",
+                    ["resourceId"] = drugFormId.ToString(),
                 });
         }
 
-        if (drug.TypeOfDrug != DrugType.Standard ||
-            drug.TypeOfProduct.Equals("Weterynaryjny", StringComparison.OrdinalIgnoreCase))
+        Drug drug = drugForm.Drug;
+        if (!RegularDrugEligibility.IsEligibleDrug(drug))
         {
             return Error.Validation(
-                description: "Selected drug is not eligible.",
+                description: "Selected drug form is not eligible.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
+                    ["field"] = "drugFormId",
                     ["reason"] = "eligibility",
                 });
         }
 
-        bool hasCatalogDuplicate = await _drugProblemRepository.ExistsForUserWithDrugIdAsync(
+        bool hasCatalogDuplicate = await _drugProblemRepository.ExistsForUserWithDrugFormIdAsync(
             command.UserId,
-            drugId,
+            drugFormId,
             excludeId: null,
             cancellationToken);
         if (hasCatalogDuplicate)
         {
             return Error.Conflict(
-                description: "Drug problem already exists for this drug.",
+                description: "Drug problem already exists for this drug form.",
                 metadata: new()
                 {
-                    ["conflictingResourceId"] = drugId.ToString(),
-                    ["field"] = "drugId",
+                    ["conflictingResourceId"] = drugFormId.ToString(),
+                    ["field"] = "drugFormId",
                 });
         }
 
@@ -97,14 +98,14 @@ internal sealed class CreateDrugProblemHandler(
 
         ErrorOr<DrugProblem> created = DrugProblem.CreateDatabase(
             command.UserId,
-            drugId,
+            drugFormId,
             command.Request.ProblemNote);
         if (created.IsError)
         {
             return created.Errors;
         }
 
-        created.Value.AttachDrug(drug);
+        created.Value.AttachDrugForm(drugForm);
 
         await _drugProblemRepository.AddAsync(created.Value, cancellationToken);
 
@@ -152,6 +153,9 @@ internal sealed class CreateDrugProblemHandler(
         ErrorOr<DrugProblem> created = DrugProblem.CreateCustom(
             command.UserId,
             customName,
+            command.Request.CustomActiveSubstances ?? string.Empty,
+            command.Request.CustomFormulationName ?? string.Empty,
+            command.Request.CustomDosage ?? string.Empty,
             command.Request.ProblemNote);
         if (created.IsError)
         {

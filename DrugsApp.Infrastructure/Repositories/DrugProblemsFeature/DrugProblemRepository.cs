@@ -25,18 +25,15 @@ public sealed class DrugProblemRepository : IDrugProblemRepository
         int take,
         CancellationToken cancellationToken)
     {
-        IQueryable<DrugProblem> query = _context.DrugProblems
-            .AsNoTracking()
-            .Where(drugProblem => drugProblem.UserId == userId)
-            .Include(drugProblem => drugProblem.Drug)
-                .ThenInclude(drug => drug!.ActiveSubstances);
+        IQueryable<DrugProblem> query = ApplyCatalogIncludes(_context.DrugProblems.AsNoTracking())
+            .Where(drugProblem => drugProblem.UserId == userId);
 
         query = query
             .OrderBy(drugProblem =>
                 drugProblem.CustomDrugName != null
                     ? drugProblem.CustomDrugName.ToLower()
-                    : drugProblem.Drug != null
-                        ? drugProblem.Drug.CommercialName.ToLower()
+                    : drugProblem.DrugForm != null && drugProblem.DrugForm.Drug != null
+                        ? drugProblem.DrugForm.Drug.CommercialName.ToLower()
                         : string.Empty)
             .ThenBy(drugProblem => drugProblem.Id);
 
@@ -60,10 +57,8 @@ public sealed class DrugProblemRepository : IDrugProblemRepository
         bool track,
         CancellationToken cancellationToken)
     {
-        IQueryable<DrugProblem> query = _context.DrugProblems
-            .Where(drugProblem => drugProblem.UserId == userId && drugProblem.Id == id)
-            .Include(drugProblem => drugProblem.Drug)
-                .ThenInclude(drug => drug!.ActiveSubstances);
+        IQueryable<DrugProblem> query = ApplyCatalogIncludes(_context.DrugProblems)
+            .Where(drugProblem => drugProblem.UserId == userId && drugProblem.Id == id);
 
         if (!track)
         {
@@ -83,9 +78,9 @@ public sealed class DrugProblemRepository : IDrugProblemRepository
         _context.DrugProblems.Remove(drugProblem);
     }
 
-    public async Task<bool> ExistsForUserWithDrugIdAsync(
+    public async Task<bool> ExistsForUserWithDrugFormIdAsync(
         Guid userId,
-        Guid drugId,
+        Guid drugFormId,
         Guid? excludeId,
         CancellationToken cancellationToken)
     {
@@ -93,7 +88,7 @@ public sealed class DrugProblemRepository : IDrugProblemRepository
             .AsNoTracking()
             .Where(drugProblem =>
                 drugProblem.UserId == userId &&
-                drugProblem.DrugId == drugId);
+                drugProblem.DrugFormId == drugFormId);
 
         if (excludeId.HasValue)
         {
@@ -130,13 +125,13 @@ public sealed class DrugProblemRepository : IDrugProblemRepository
         Guid? excludeId,
         CancellationToken cancellationToken)
     {
-        IQueryable<DrugProblem> query = _context.DrugProblems
-            .AsNoTracking()
+        IQueryable<DrugProblem> query = ApplyCatalogIncludes(_context.DrugProblems.AsNoTracking())
             .Where(drugProblem =>
                 drugProblem.UserId == userId &&
-                drugProblem.DrugId != null &&
-                drugProblem.Drug != null &&
-                EF.Functions.ILike(drugProblem.Drug.CommercialName, normalizedDrugDisplayName));
+                drugProblem.DrugFormId != null &&
+                drugProblem.DrugForm != null &&
+                drugProblem.DrugForm.Drug != null &&
+                EF.Functions.ILike(drugProblem.DrugForm.Drug.CommercialName, normalizedDrugDisplayName));
 
         if (excludeId.HasValue)
         {
@@ -168,4 +163,12 @@ public sealed class DrugProblemRepository : IDrugProblemRepository
             .Select(drugProblem => (Guid?)drugProblem.Id)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    private static IQueryable<DrugProblem> ApplyCatalogIncludes(IQueryable<DrugProblem> query) =>
+        query
+            .Include(drugProblem => drugProblem.DrugForm)
+                .ThenInclude(drugForm => drugForm!.Drug)
+                    .ThenInclude(drug => drug.ActiveSubstances)
+            .Include(drugProblem => drugProblem.DrugForm)
+                .ThenInclude(drugForm => drugForm!.PharmaceuticalForms);
 }

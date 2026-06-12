@@ -27,6 +27,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ApplicationServices;
 /// </summary>
 public sealed class MedicalChangeProposalDraftValidationService(
     IDrugRepository drugRepository,
+    IDrugFormRepository drugFormRepository,
     IFoodRepository foodRepository,
     ISupplementRepository supplementRepository,
     IHealthConditionRepository healthConditionRepository) : IMedicalChangeProposalDraftValidationService
@@ -249,16 +250,23 @@ public sealed class MedicalChangeProposalDraftValidationService(
             return Error.Validation(description: "Drug problem payload requires problem_note.");
         }
 
-        if (request.Value.DrugId is Guid drugId)
+        if (request.Value.DrugFormId is Guid drugFormId)
         {
-            if (await drugRepository.GetByIdAsync(drugId, cancellationToken) is null)
+            if (await drugFormRepository.GetByIdAsync(drugFormId, cancellationToken) is null)
             {
-                return Error.NotFound(description: "Drug not found.");
+                return Error.NotFound(description: "Drug form not found.");
             }
         }
         else if (string.IsNullOrWhiteSpace(request.Value.CustomDrugName))
         {
-            return Error.Validation(description: "Drug problem payload requires drug_id or custom_drug_name.");
+            return Error.Validation(description: "Drug problem payload requires drug_form_id or custom_drug_name.");
+        }
+        else if (string.IsNullOrWhiteSpace(request.Value.CustomActiveSubstances) ||
+                 string.IsNullOrWhiteSpace(request.Value.CustomFormulationName) ||
+                 string.IsNullOrWhiteSpace(request.Value.CustomDosage))
+        {
+            return Error.Validation(
+                description: "Custom drug problem payload requires custom_active_substances, custom_formulation_name, and custom_dosage.");
         }
 
         return Result.Success;

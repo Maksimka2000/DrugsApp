@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.AllergiesFeature.Entities;
@@ -6,6 +5,7 @@ using DrugsApp.Domain.AllergiesFeature.Enums;
 using DrugsApp.Domain.AllergiesFeature.Repositories;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Repositories;
+using DrugsApp.Domain.RegularDrugsFeature.Shared;
 using DrugsApp.Features.AllergiesFeature.Shared;
 using ErrorOr;
 using MediatR;
@@ -17,7 +17,7 @@ namespace DrugsApp.Features.AllergiesFeature.CreateDrugAllergy;
 /// </summary>
 internal sealed class CreateDrugAllergyHandler(
     IClientDrugAllergyRepository _drugAllergyRepository,
-    IDrugRepository _drugRepository)
+    IDrugFormRepository _drugFormRepository)
     : IRequestHandler<CreateDrugAllergyCommand, ErrorOr<CreatedDrugAllergyResponse>>
 {
     public async Task<ErrorOr<CreatedDrugAllergyResponse>> Handle(
@@ -47,44 +47,44 @@ internal sealed class CreateDrugAllergyHandler(
         CreateDrugAllergyCommand command,
         CancellationToken cancellationToken)
     {
-        Guid drugId = command.Request.DrugId!.Value;
+        Guid drugFormId = command.Request.DrugFormId!.Value;
 
-        Drug? drug = await _drugRepository.GetByIdAsync(drugId, cancellationToken);
-        if (drug is null)
+        DrugForm? drugForm = await _drugFormRepository.GetByIdAsync(drugFormId, cancellationToken);
+        if (drugForm is null)
         {
             return Error.NotFound(
-                description: "Drug not found.",
+                description: "Drug form not found.",
                 metadata: new()
                 {
-                    ["resourceType"] = "Drug",
-                    ["resourceId"] = drugId.ToString(),
+                    ["resourceType"] = "DrugForm",
+                    ["resourceId"] = drugFormId.ToString(),
                 });
         }
 
-        if (drug.TypeOfDrug != DrugType.Standard ||
-            drug.TypeOfProduct.Equals("Weterynaryjny", StringComparison.OrdinalIgnoreCase))
+        Drug drug = drugForm.Drug;
+        if (!RegularDrugEligibility.IsEligibleDrug(drug))
         {
             return Error.Validation(
-                description: "Selected drug is not eligible.",
+                description: "Selected drug form is not eligible.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
+                    ["field"] = "drugFormId",
                     ["reason"] = "eligibility",
                 });
         }
 
-        bool existsByDrugId = await _drugAllergyRepository.ExistsByDrugIdAsync(
+        bool existsByDrugFormId = await _drugAllergyRepository.ExistsByDrugFormIdAsync(
             command.UserId,
-            drugId,
+            drugFormId,
             cancellationToken);
-        if (existsByDrugId)
+        if (existsByDrugFormId)
         {
             return Error.Conflict(
-                description: "Drug allergy already exists for this drug.",
+                description: "Drug allergy already exists for this drug form.",
                 metadata: new()
                 {
-                    ["conflictingResourceId"] = drugId.ToString(),
-                    ["field"] = "drugId",
+                    ["conflictingResourceId"] = drugFormId.ToString(),
+                    ["field"] = "drugFormId",
                 });
         }
 
@@ -107,7 +107,7 @@ internal sealed class CreateDrugAllergyHandler(
 
         bool hasActiveSubstanceOverlap = await _drugAllergyRepository.HasActiveSubstanceOverlapAsync(
             command.UserId,
-            drugId,
+            drug.Id,
             cancellationToken);
         if (hasActiveSubstanceOverlap)
         {
@@ -115,23 +115,25 @@ internal sealed class CreateDrugAllergyHandler(
                 description: "An allergy to a drug with overlapping active substances already exists.",
                 metadata: new()
                 {
-                    ["field"] = "drugId",
+                    ["field"] = "drugFormId",
                     ["reason"] = "activeSubstanceOverlap",
                 });
         }
 
         ErrorOr<ClientDrugAllergy> created = ClientDrugAllergy.CreateDatabase(
             command.UserId,
-            drugId,
+            drugFormId,
             command.Request.Note);
         if (created.IsError)
         {
             return created.Errors;
         }
 
+        created.Value.AttachDrugForm(drugForm);
+
         await _drugAllergyRepository.AddAsync(created.Value, cancellationToken);
 
-        return created.Value.MapToDto(drug).MapToResponse();
+        return created.Value.MapToDto().MapToResponse();
     }
 
     private async Task<ErrorOr<CreatedDrugAllergyResponse>> CreateCustomAsync(
@@ -174,6 +176,9 @@ internal sealed class CreateDrugAllergyHandler(
         ErrorOr<ClientDrugAllergy> created = ClientDrugAllergy.CreateCustom(
             command.UserId,
             customName,
+            command.Request.CustomActiveSubstances ?? string.Empty,
+            command.Request.CustomFormulationName ?? string.Empty,
+            command.Request.CustomDosage ?? string.Empty,
             command.Request.Note);
         if (created.IsError)
         {

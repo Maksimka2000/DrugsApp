@@ -19,8 +19,11 @@ namespace DrugsApp.Features.DrugProblemsFeature.UpdateDrugProblem;
 /// Request model for updating a drug problem.
 /// </summary>
 public sealed record UpdateDrugProblemRequest(
-    Guid? DrugId,
+    Guid? DrugFormId,
     string? CustomDrugName,
+    string? CustomActiveSubstances,
+    string? CustomFormulationName,
+    string? CustomDosage,
     string? ProblemNote);
 
 /// <summary>

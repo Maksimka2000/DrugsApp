@@ -19,8 +19,11 @@ namespace DrugsApp.Features.AllergiesFeature.CreateDrugAllergy;
 /// Request model for creating a drug allergy.
 /// </summary>
 public sealed record CreateDrugAllergyRequest(
-    Guid? DrugId,
+    Guid? DrugFormId,
     string? CustomDrugName,
+    string? CustomActiveSubstances,
+    string? CustomFormulationName,
+    string? CustomDosage,
     string? Note,
     string Source);
 

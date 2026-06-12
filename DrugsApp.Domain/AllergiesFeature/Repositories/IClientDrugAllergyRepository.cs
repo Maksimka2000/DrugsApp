@@ -28,9 +28,9 @@ public interface IClientDrugAllergyRepository
 
     void Remove(ClientDrugAllergy allergy);
 
-    Task<bool> ExistsByDrugIdAsync(
+    Task<bool> ExistsByDrugFormIdAsync(
         Guid userId,
-        Guid drugId,
+        Guid drugFormId,
         CancellationToken cancellationToken);
 
     Task<bool> ExistsCustomNameNormalizedAsync(

@@ -71,42 +71,54 @@ public static class AllergySharedMappings
 
     public static ClientDrugAllergyDto MapToDto(this ClientDrugAllergy allergy)
     {
+        ClientDrugAllergyDrugFormSummaryDto? drugFormSummary = null;
+        IReadOnlyCollection<LookupDto> activeSubstances = Array.Empty<LookupDto>();
         string displayName = ResolveDrugDisplayName(allergy);
-        IReadOnlyCollection<LookupDto> activeSubstances = allergy.Source == AllergyRecordSource.Database &&
-                                                            allergy.Drug is not null
-            ? allergy.Drug.ActiveSubstances
+
+        if (allergy.Source == AllergyRecordSource.Database &&
+            allergy.DrugForm is not null &&
+            allergy.DrugForm.Drug is not null)
+        {
+            DrugForm drugForm = allergy.DrugForm;
+            Drug drug = drugForm.Drug;
+
+            activeSubstances = drug.ActiveSubstances
+                .OrderBy(activeSubstance => activeSubstance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(activeSubstance => activeSubstance.Id)
                 .Select(activeSubstance => new LookupDto(activeSubstance.Id, activeSubstance.ActiveSubstanceName))
-                .ToList()
-            : Array.Empty<LookupDto>();
+                .ToList();
+
+            drugFormSummary = new ClientDrugAllergyDrugFormSummaryDto(
+                drugForm.Id,
+                drug.Id,
+                drug.CommercialName,
+                drug.TypeOfProduct,
+                drug.TypeOfDrug,
+                activeSubstances,
+                BuildFormulationName(drugForm),
+                drugForm.Dosage);
+
+            displayName = BuildCatalogDisplayName(drug, drugForm);
+        }
+        else if (allergy.Source == AllergyRecordSource.Custom)
+        {
+            displayName = BuildCustomDisplayName(allergy);
+        }
 
         return new ClientDrugAllergyDto(
             Id: allergy.Id,
             Source: MapSource(allergy.Source),
-            DrugId: allergy.DrugId,
+            DrugFormId: allergy.DrugFormId,
             CustomDrugName: allergy.CustomDrugName,
+            CustomActiveSubstances: allergy.CustomActiveSubstances,
+            CustomFormulationName: allergy.CustomFormulationName,
+            CustomDosage: allergy.CustomDosage,
             DisplayName: displayName,
             Note: allergy.Note,
             ActiveSubstances: activeSubstances,
             CreatedAtUtc: allergy.CreatedAtUtc,
-            UpdatedAtUtc: allergy.UpdatedAtUtc);
-    }
-
-    public static ClientDrugAllergyDto MapToDto(this ClientDrugAllergy allergy, Drug drug)
-    {
-        IReadOnlyCollection<LookupDto> activeSubstances = drug.ActiveSubstances
-            .Select(activeSubstance => new LookupDto(activeSubstance.Id, activeSubstance.ActiveSubstanceName))
-            .ToList();
-
-        return new ClientDrugAllergyDto(
-            Id: allergy.Id,
-            Source: MapSource(allergy.Source),
-            DrugId: allergy.DrugId,
-            CustomDrugName: allergy.CustomDrugName,
-            DisplayName: drug.CommercialName,
-            Note: allergy.Note,
-            ActiveSubstances: activeSubstances,
-            CreatedAtUtc: allergy.CreatedAtUtc,
-            UpdatedAtUtc: allergy.UpdatedAtUtc);
+            UpdatedAtUtc: allergy.UpdatedAtUtc,
+            DrugFormSummary: drugFormSummary);
     }
 
     public static List<ClientDrugAllergyDto> MapToDrugDtoList(this IEnumerable<ClientDrugAllergy> allergies) =>
@@ -164,18 +176,92 @@ public static class AllergySharedMappings
 
     private static string ResolveDrugDisplayName(ClientDrugAllergy allergy)
     {
-        if (allergy.Source == AllergyRecordSource.Custom && allergy.CustomDrugName is not null)
+        if (allergy.Source == AllergyRecordSource.Custom)
         {
-            return allergy.CustomDrugName;
+            return BuildCustomDisplayName(allergy);
         }
 
-        if (allergy.Drug is not null)
+        if (allergy.DrugForm?.Drug is not null)
         {
-            return allergy.Drug.CommercialName;
+            return BuildCatalogDisplayName(allergy.DrugForm.Drug, allergy.DrugForm);
         }
 
-        return string.Empty;
+        return allergy.CustomDrugName ?? string.Empty;
     }
+
+    private static string BuildCustomDisplayName(ClientDrugAllergy allergy)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(allergy.CustomDrugName))
+        {
+            parts.Add(allergy.CustomDrugName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(allergy.CustomActiveSubstances))
+        {
+            parts.Add(allergy.CustomActiveSubstances);
+        }
+
+        if (!string.IsNullOrWhiteSpace(allergy.CustomFormulationName))
+        {
+            parts.Add(allergy.CustomFormulationName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(allergy.CustomDosage))
+        {
+            parts.Add(allergy.CustomDosage);
+        }
+
+        return string.Join(" | ", parts);
+    }
+
+    private static string BuildCatalogDisplayName(Drug drug, DrugForm drugForm)
+    {
+        var parts = new List<string> { drug.CommercialName };
+
+        string activeSubstanceSegment = string.Join(
+            ", ",
+            drug.ActiveSubstances
+                .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(substance => substance.Id)
+                .Select(substance => substance.ActiveSubstanceName));
+
+        if (!string.IsNullOrWhiteSpace(activeSubstanceSegment))
+        {
+            parts.Add(activeSubstanceSegment);
+        }
+
+        string formulationName = BuildFormulationName(drugForm);
+        if (!string.IsNullOrWhiteSpace(formulationName))
+        {
+            parts.Add(formulationName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(drugForm.Dosage))
+        {
+            parts.Add(drugForm.Dosage);
+        }
+
+        if (drug.TypeOfDrug is DrugType.Special or DrugType.Ophthalmic)
+        {
+            parts.Add(drug.TypeOfDrug.ToString());
+        }
+
+        if (drug.TypeOfProduct.Equals("Weterynaryjny", StringComparison.OrdinalIgnoreCase))
+        {
+            parts.Add(drug.TypeOfProduct);
+        }
+
+        return string.Join(" | ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
+    }
+
+    private static string BuildFormulationName(DrugForm drugForm) =>
+        string.Join(
+            ", ",
+            drugForm.PharmaceuticalForms
+                .Select(form => form.FormulationName)
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase));
 
     private static string ResolveSupplementDisplayName(ClientSupplementAllergy allergy)
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Features.DrugFeature.Shared;
 
 namespace DrugsApp.Features.AllergiesFeature.Shared;
@@ -18,18 +19,35 @@ public sealed record AllergySummaryResponse(
     DateTime? UpdatedAtUtc);
 
 /// <summary>
+/// Compact drug form summary for catalog-backed drug allergies.
+/// </summary>
+public sealed record ClientDrugAllergyDrugFormSummaryDto(
+    Guid DrugFormId,
+    Guid DrugId,
+    string CommercialName,
+    string TypeOfProduct,
+    DrugType TypeOfDrug,
+    IReadOnlyCollection<LookupDto> ActiveSubstances,
+    string FormulationName,
+    string? Dosage);
+
+/// <summary>
 /// Drug allergy list item DTO.
 /// </summary>
 public sealed record ClientDrugAllergyDto(
     Guid Id,
     string Source,
-    Guid? DrugId,
+    Guid? DrugFormId,
     string? CustomDrugName,
+    string? CustomActiveSubstances,
+    string? CustomFormulationName,
+    string? CustomDosage,
     string DisplayName,
     string? Note,
     IReadOnlyCollection<LookupDto> ActiveSubstances,
     DateTime CreatedAtUtc,
-    DateTime? UpdatedAtUtc);
+    DateTime? UpdatedAtUtc,
+    ClientDrugAllergyDrugFormSummaryDto? DrugFormSummary);
 
 /// <summary>
 /// Supplement allergy list item DTO.

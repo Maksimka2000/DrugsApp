@@ -24,6 +24,8 @@ public sealed class DrugFormRepository : IDrugFormRepository
     public async Task<DrugForm?> GetByIdAsync(Guid drugFormId, CancellationToken cancellationToken)
     {
         return await _context.DrugForms
+            .Include(df => df.Drug)
+                .ThenInclude(drug => drug.ActiveSubstances)
             .Include(df => df.RoutesOfAdministration)
             .Include(df => df.PharmaceuticalForms)
             .FirstOrDefaultAsync(df => df.Id == drugFormId, cancellationToken);

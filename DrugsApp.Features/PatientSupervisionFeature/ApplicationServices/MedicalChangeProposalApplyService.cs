@@ -16,6 +16,7 @@ using DrugsApp.Domain.RegularFoodFeature.Entities;
 using DrugsApp.Domain.RegularFoodFeature.Interfaces;
 using DrugsApp.Domain.RegularSupplementsFeature.Entities;
 using DrugsApp.Domain.RegularSupplementsFeature.Enums;
+using DrugsApp.Domain.RegularDrugsFeature.Shared;
 using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Repositories;
@@ -53,6 +54,7 @@ public sealed class MedicalChangeProposalApplyService(
     IClientFoodAllergyRepository clientFoodAllergyRepository,
     IClientOtherAllergyRepository clientOtherAllergyRepository,
     IDrugRepository drugRepository,
+    IDrugFormRepository drugFormRepository,
     IUserHealthConditionRepository userHealthConditionRepository,
     IHealthConditionRepository healthConditionRepository,
     IDrugProblemRepository drugProblemRepository,
@@ -294,32 +296,33 @@ public sealed class MedicalChangeProposalApplyService(
 
         if (source == AllergyRecordSource.Database)
         {
-            Guid drugId = requestResult.Value.DrugId!.Value;
-            Drug? drug = await drugRepository.GetByIdAsync(drugId, cancellationToken);
-            if (drug is null)
+            Guid drugFormId = requestResult.Value.DrugFormId!.Value;
+            DrugForm? drugForm = await drugFormRepository.GetByIdAsync(drugFormId, cancellationToken);
+            if (drugForm is null)
             {
-                return Error.NotFound(description: "Drug not found.");
+                return Error.NotFound(description: "Drug form not found.");
             }
 
-            if (drug.TypeOfDrug != DrugType.Standard ||
-                drug.TypeOfProduct.Equals("Weterynaryjny", StringComparison.OrdinalIgnoreCase))
+            if (!RegularDrugEligibility.IsEligibleDrug(drugForm.Drug))
             {
-                return Error.Validation(description: "Selected drug is not eligible.");
+                return Error.Validation(description: "Selected drug form is not eligible.");
             }
 
-            if (await clientDrugAllergyRepository.ExistsByDrugIdAsync(patientUserId, drugId, cancellationToken))
+            if (await clientDrugAllergyRepository.ExistsByDrugFormIdAsync(patientUserId, drugFormId, cancellationToken))
             {
-                return Error.Conflict(description: "Drug allergy already exists for this drug.");
+                return Error.Conflict(description: "Drug allergy already exists for this drug form.");
             }
 
             ErrorOr<ClientDrugAllergy> createdEntity = ClientDrugAllergy.CreateDatabase(
                 patientUserId,
-                drugId,
+                drugFormId,
                 requestResult.Value.Note);
             if (createdEntity.IsError)
             {
                 return createdEntity.Errors;
             }
+
+            createdEntity.Value.AttachDrugForm(drugForm);
 
             await clientDrugAllergyRepository.AddAsync(createdEntity.Value, cancellationToken);
         }
@@ -337,6 +340,9 @@ public sealed class MedicalChangeProposalApplyService(
             ErrorOr<ClientDrugAllergy> createdEntity = ClientDrugAllergy.CreateCustom(
                 patientUserId,
                 customName,
+                requestResult.Value.CustomActiveSubstances ?? string.Empty,
+                requestResult.Value.CustomFormulationName ?? string.Empty,
+                requestResult.Value.CustomDosage ?? string.Empty,
                 requestResult.Value.Note);
             if (createdEntity.IsError)
             {
@@ -611,29 +617,33 @@ public sealed class MedicalChangeProposalApplyService(
             return requestResult.Errors;
         }
 
-        if (requestResult.Value.DrugId is Guid drugId)
+        if (requestResult.Value.DrugFormId is Guid drugFormId)
         {
-            Drug? drug = await drugRepository.GetByIdAsync(drugId, cancellationToken);
-            if (drug is null)
+            DrugForm? drugForm = await drugFormRepository.GetByIdAsync(drugFormId, cancellationToken);
+            if (drugForm is null)
             {
-                return Error.NotFound(description: "Drug not found.");
+                return Error.NotFound(description: "Drug form not found.");
             }
 
-            if (await drugProblemRepository.ExistsForUserWithDrugIdAsync(patientUserId, drugId, excludeId: null, cancellationToken))
+            if (await drugProblemRepository.ExistsForUserWithDrugFormIdAsync(
+                    patientUserId,
+                    drugFormId,
+                    excludeId: null,
+                    cancellationToken))
             {
-                return Error.Conflict(description: "Drug problem already exists for this drug.");
+                return Error.Conflict(description: "Drug problem already exists for this drug form.");
             }
 
             ErrorOr<DrugProblem> createdEntity = DrugProblem.CreateDatabase(
                 patientUserId,
-                drugId,
+                drugFormId,
                 requestResult.Value.ProblemNote);
             if (createdEntity.IsError)
             {
                 return createdEntity.Errors;
             }
 
-            createdEntity.Value.AttachDrug(drug);
+            createdEntity.Value.AttachDrugForm(drugForm);
             await drugProblemRepository.AddAsync(createdEntity.Value, cancellationToken);
         }
         else
@@ -651,6 +661,9 @@ public sealed class MedicalChangeProposalApplyService(
             ErrorOr<DrugProblem> createdEntity = DrugProblem.CreateCustom(
                 patientUserId,
                 customName,
+                requestResult.Value.CustomActiveSubstances ?? string.Empty,
+                requestResult.Value.CustomFormulationName ?? string.Empty,
+                requestResult.Value.CustomDosage ?? string.Empty,
                 requestResult.Value.ProblemNote);
             if (createdEntity.IsError)
             {

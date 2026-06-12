@@ -15,10 +15,10 @@ public sealed class CreateDrugProblemRequestValidator : AbstractValidator<Create
             .WithMessage("problemNote must be provided.")
             .MaximumLength(2000);
 
-        When(request => request.DrugId is not null, () =>
+        When(request => request.DrugFormId is not null, () =>
         {
-            RuleFor(request => request.DrugId!.Value)
-                .NotEqual(Guid.Empty);
+            RuleFor(request => request.DrugFormId!.Value)
+                .NotEqual(System.Guid.Empty);
         });
 
         When(request => !string.IsNullOrWhiteSpace(request.CustomDrugName), () =>
@@ -26,12 +26,30 @@ public sealed class CreateDrugProblemRequestValidator : AbstractValidator<Create
             RuleFor(request => request.CustomDrugName!)
                 .NotEmpty()
                 .MaximumLength(300);
+
+            RuleFor(request => request.CustomActiveSubstances!)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .WithMessage("customActiveSubstances must be provided.")
+                .MaximumLength(300);
+
+            RuleFor(request => request.CustomFormulationName!)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .WithMessage("customFormulationName must be provided.")
+                .MaximumLength(300);
+
+            RuleFor(request => request.CustomDosage!)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .WithMessage("customDosage must be provided.")
+                .MaximumLength(200);
         });
 
         RuleFor(request => request)
             .Must(request =>
-                request.DrugId is not null && string.IsNullOrWhiteSpace(request.CustomDrugName) ||
-                request.DrugId is null && !string.IsNullOrWhiteSpace(request.CustomDrugName))
-            .WithMessage("Exactly one of drugId or customDrugName must be provided.");
+                request.DrugFormId is not null && string.IsNullOrWhiteSpace(request.CustomDrugName) ||
+                request.DrugFormId is null && !string.IsNullOrWhiteSpace(request.CustomDrugName))
+            .WithMessage("Exactly one of drugFormId or customDrugName must be provided.");
     }
 }

@@ -19,8 +19,11 @@ namespace DrugsApp.Features.DrugProblemsFeature.CreateDrugProblem;
 /// Request model for creating a drug problem.
 /// </summary>
 public sealed record CreateDrugProblemRequest(
-    Guid? DrugId,
+    Guid? DrugFormId,
     string? CustomDrugName,
+    string? CustomActiveSubstances,
+    string? CustomFormulationName,
+    string? CustomDosage,
     string ProblemNote);
 
 /// <summary>

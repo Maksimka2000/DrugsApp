@@ -16,7 +16,7 @@ public sealed record ReportSubsectionReadModel<TRow>(
 /// </summary>
 public sealed record DrugTargetSummaryReadModel(
     Guid DrugId,
-    Guid SelectedDrugFormId,
+    Guid DrugFormId,
     string DrugSummaryText,
     bool IsOral);
 
@@ -38,6 +38,14 @@ public sealed record SelectedDrugFormSummaryReadModel(
 public sealed record ActiveSubstanceRefReadModel(
     Guid Id,
     string Name);
+
+/// <summary>
+/// Duplication-friendly drug summary without form id [description].
+/// </summary>
+public sealed record DuplicationDrugSummaryReadModel(
+    Guid DrugId,
+    string OnlyDrugSummaryText,
+    bool IsOral);
 
 /// <summary>
 /// Expanded per-drug header for specific drug report blocks [description].
@@ -173,6 +181,7 @@ public sealed record OralGuidanceSubsectionReadModel(
 /// Per-substance oral guidance inside meal-time block [description].
 /// </summary>
 public sealed record ActiveSubstanceOralGuidanceRowReadModel(
+    Guid ActiveSubstanceId,
     string ActiveSubstanceName,
     string GuidanceText,
     string DisplayLine);
@@ -282,7 +291,7 @@ public sealed record AllDrugsInteractionsSectionReadModel(
 public sealed record ExactDuplicationRowReadModel(
     Guid ActiveSubstanceId,
     string ActiveSubstanceName,
-    IReadOnlyCollection<DrugTargetSummaryReadModel> AffectedDrugs,
+    IReadOnlyCollection<DuplicationDrugSummaryReadModel> AffectedDrugs,
     string DisplayLine,
     DuplicationKind DuplicationKind);
 
@@ -308,7 +317,7 @@ public sealed record GroupDuplicationRowReadModel(
     string GroupName,
     IReadOnlyCollection<GroupActiveSubstanceReadModel> GroupActiveSubstances,
     IReadOnlyCollection<AffectedActiveSubstanceReadModel> AffectedActiveSubstances,
-    IReadOnlyCollection<DrugTargetSummaryReadModel> AffectedDrugs,
+    IReadOnlyCollection<DuplicationDrugSummaryReadModel> AffectedDrugs,
     string DisplayLine,
     DuplicationKind DuplicationKind);
 
@@ -331,6 +340,7 @@ public sealed record MainWarningReadModel(
 /// Database health condition row [description].
 /// </summary>
 public sealed record HealthConditionRowReadModel(
+    Guid HealthConditionId,
     string HealthConditionName,
     string? UserNote,
     string DisplayLine);
@@ -355,7 +365,8 @@ public sealed record HealthConditionsGroupReadModel(
 /// </summary>
 public sealed record ProblematicDrugRowReadModel(
     Guid DrugId,
-    string DrugDisplayLine,
+    Guid DrugFormId,
+    string DrugSummaryText,
     string? UserNote,
     string DisplayLine);
 
@@ -363,7 +374,8 @@ public sealed record ProblematicDrugRowReadModel(
 /// Custom problematic drug row [description].
 /// </summary>
 public sealed record CustomProblematicDrugRowReadModel(
-    string CommercialName,
+    string CustomCommercialName,
+    string? OtherCustomData,
     string? UserNote,
     string DisplayLine);
 
@@ -379,7 +391,8 @@ public sealed record ProblematicDrugsGroupReadModel(
 /// </summary>
 public sealed record DrugAllergyRowReadModel(
     Guid DrugId,
-    string DrugDisplayLine,
+    Guid DrugFormId,
+    string DrugSummaryText,
     string? UserNote,
     string DisplayLine);
 
@@ -387,7 +400,8 @@ public sealed record DrugAllergyRowReadModel(
 /// Custom drug allergy row [description].
 /// </summary>
 public sealed record CustomDrugAllergyRowReadModel(
-    string CommercialName,
+    string CustomCommercialName,
+    string? OtherCustomData,
     string? UserNote,
     string DisplayLine);
 
