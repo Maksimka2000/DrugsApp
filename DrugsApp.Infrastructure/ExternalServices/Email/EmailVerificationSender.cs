@@ -68,4 +68,33 @@ public sealed class EmailVerificationSender(
             .Body(htmlBody, isHtml: true)
             .SendAsync(cancellationToken);
     }
+
+    public async Task SendPasswordResetAsync(
+        Guid userId,
+        string email,
+        string confirmationToken,
+        CancellationToken cancellationToken)
+    {
+        EmailSettings settings = _emailSettings.Value;
+
+        string clientBaseUrl = settings.ClientBaseUrl.TrimEnd('/');
+
+        string encodedToken = Uri.EscapeDataString(confirmationToken);
+
+        string resetUrl =
+            $"{clientBaseUrl}/auth/reset-password?userId={userId:D}&token={encodedToken}";
+
+        string htmlBody =
+            $"""
+             <p>To reset your password, click this link:</p>
+             <p><a href="{resetUrl}">Reset password</a></p>
+             """;
+
+        await _emailFactory
+            .Create()
+            .To(email)
+            .Subject("Reset your password")
+            .Body(htmlBody, isHtml: true)
+            .SendAsync(cancellationToken);
+    }
 }
