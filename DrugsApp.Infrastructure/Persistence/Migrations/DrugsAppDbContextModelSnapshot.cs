@@ -2638,6 +2638,9 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Property<bool>("PlanningToGetPregnant")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("PregnancyPlanningUnknown")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("UpdatedAtUtc");
