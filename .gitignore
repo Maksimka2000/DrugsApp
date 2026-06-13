@@ -42,6 +42,9 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
+# Production secrets — configure via Azure App Service or local override
+DrugsApp.Host/appsettings.Production.json
+
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages
