@@ -83,6 +83,7 @@ public sealed class ProviderPatientMedicalSummaryReadService(
                 HasProfile: false,
                 CurrentlyPregnant: null,
                 PlanningToGetPregnant: null,
+                PregnancyPlanningUnknown: null,
                 Menopause: null,
                 ContraceptionMethodCode: null);
         }
@@ -91,6 +92,7 @@ public sealed class ProviderPatientMedicalSummaryReadService(
             HasProfile: true,
             CurrentlyPregnant: profile.CurrentlyPregnant,
             PlanningToGetPregnant: profile.PlanningToGetPregnant,
+            PregnancyPlanningUnknown: profile.PregnancyPlanningUnknown,
             Menopause: profile.Menopause,
             ContraceptionMethodCode: profile.ContraceptionMethodCode?.ToString());
     }

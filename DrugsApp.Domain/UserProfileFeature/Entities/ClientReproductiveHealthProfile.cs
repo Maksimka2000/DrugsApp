@@ -27,6 +27,12 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
     public bool PlanningToGetPregnant { get; private set; }
 
     /// <summary>
+    /// Indicates whether pregnancy planning status is explicitly unknown.
+    /// When true, <see cref="CurrentlyPregnant"/> and <see cref="PlanningToGetPregnant"/> are false.
+    /// </summary>
+    public bool PregnancyPlanningUnknown { get; private set; }
+
+    /// <summary>
     /// Indicates whether the user declares menopause.
     /// </summary>
     public bool Menopause { get; private set; }
@@ -46,12 +52,14 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
         Guid userId,
         bool currentlyPregnant,
         bool planningToGetPregnant,
+        bool pregnancyPlanningUnknown,
         bool menopause,
         ContraceptionMethodCode? contraceptionMethodCode) : this()
     {
         UserId = userId;
         CurrentlyPregnant = currentlyPregnant;
         PlanningToGetPregnant = planningToGetPregnant;
+        PregnancyPlanningUnknown = pregnancyPlanningUnknown;
         Menopause = menopause;
         ContraceptionMethodCode = contraceptionMethodCode;
     }
@@ -71,13 +79,15 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
         Guid userId,
         bool currentlyPregnant,
         bool planningToGetPregnant,
+        bool pregnancyPlanningUnknown,
         bool menopause,
         ContraceptionMethodCode? contraceptionMethodCode)
     {
-        ErrorOr<(bool CurrentlyPregnant, bool PlanningToGetPregnant, ContraceptionMethodCode? ContraceptionMethodCode)> normalized = NormalizeState(
+        ErrorOr<(bool CurrentlyPregnant, bool PlanningToGetPregnant, bool PregnancyPlanningUnknown, ContraceptionMethodCode? ContraceptionMethodCode)> normalized = NormalizeState(
             userId,
             currentlyPregnant,
             planningToGetPregnant,
+            pregnancyPlanningUnknown,
             contraceptionMethodCode);
 
         if (normalized.IsError)
@@ -89,6 +99,7 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
             userId,
             normalized.Value.CurrentlyPregnant,
             normalized.Value.PlanningToGetPregnant,
+            normalized.Value.PregnancyPlanningUnknown,
             menopause,
             normalized.Value.ContraceptionMethodCode);
     }
@@ -104,13 +115,15 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
     public ErrorOr<Success> Update(
         bool currentlyPregnant,
         bool planningToGetPregnant,
+        bool pregnancyPlanningUnknown,
         bool menopause,
         ContraceptionMethodCode? contraceptionMethodCode)
     {
-        ErrorOr<(bool CurrentlyPregnant, bool PlanningToGetPregnant, ContraceptionMethodCode? ContraceptionMethodCode)> normalized = NormalizeState(
+        ErrorOr<(bool CurrentlyPregnant, bool PlanningToGetPregnant, bool PregnancyPlanningUnknown, ContraceptionMethodCode? ContraceptionMethodCode)> normalized = NormalizeState(
             UserId,
             currentlyPregnant,
             planningToGetPregnant,
+            pregnancyPlanningUnknown,
             contraceptionMethodCode);
 
         if (normalized.IsError)
@@ -120,16 +133,18 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
 
         CurrentlyPregnant = normalized.Value.CurrentlyPregnant;
         PlanningToGetPregnant = normalized.Value.PlanningToGetPregnant;
+        PregnancyPlanningUnknown = normalized.Value.PregnancyPlanningUnknown;
         Menopause = menopause;
         ContraceptionMethodCode = normalized.Value.ContraceptionMethodCode;
 
         return Result.Success;
     }
 
-    private static ErrorOr<(bool CurrentlyPregnant, bool PlanningToGetPregnant, ContraceptionMethodCode? ContraceptionMethodCode)> NormalizeState(
+    private static ErrorOr<(bool CurrentlyPregnant, bool PlanningToGetPregnant, bool PregnancyPlanningUnknown, ContraceptionMethodCode? ContraceptionMethodCode)> NormalizeState(
         Guid userId,
         bool currentlyPregnant,
         bool planningToGetPregnant,
+        bool pregnancyPlanningUnknown,
         ContraceptionMethodCode? contraceptionMethodCode)
     {
         if (userId == Guid.Empty)
@@ -154,6 +169,22 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
                 });
         }
 
+        if (pregnancyPlanningUnknown && (currentlyPregnant || planningToGetPregnant))
+        {
+            return Error.Validation(
+                code: "ClientReproductiveHealthProfile.PregnancyPlanningConflict",
+                description: "Pregnancy planning cannot be unknown when pregnancy status is declared.",
+                metadata: new()
+                {
+                    ["field"] = "pregnancyPlanningUnknown"
+                });
+        }
+
+        if (pregnancyPlanningUnknown)
+        {
+            return (false, false, true, contraceptionMethodCode);
+        }
+
         bool effectiveCurrentlyPregnant = currentlyPregnant;
         bool effectivePlanningToGetPregnant = planningToGetPregnant;
         ContraceptionMethodCode? effectiveContraception = contraceptionMethodCode;
@@ -164,6 +195,6 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
             effectiveContraception = null;
         }
 
-        return (effectiveCurrentlyPregnant, effectivePlanningToGetPregnant, effectiveContraception);
+        return (effectiveCurrentlyPregnant, effectivePlanningToGetPregnant, false, effectiveContraception);
     }
 }
