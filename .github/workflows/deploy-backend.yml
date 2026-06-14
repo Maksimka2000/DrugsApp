@@ -2,13 +2,14 @@ name: Deploy Backend
 
 on:
   push:
-    branches: ["main"]
+    branches: ["deploy-azure"]
   workflow_dispatch:
 
 env:
   ACR_NAME: acrlinkmed
   ACR_LOGIN_SERVER: acrlinkmed.azurecr.io
   IMAGE_REPOSITORY: linkmed-backend
+  IMAGE_TAG: deploy-azure
   RESOURCE_GROUP: rg-linkmed
   APP_NAME: app-linkmed-backend
 
@@ -36,14 +37,14 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          IMAGE=${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:main
+          IMAGE=${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
           docker build -f DrugsApp.Host/Dockerfile -t $IMAGE .
           docker push $IMAGE
 
       - name: Deploy image to App Service
         run: |
-          IMAGE=${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:main
+          IMAGE=${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
           az webapp config container set \
             --resource-group ${{ env.RESOURCE_GROUP }} \
