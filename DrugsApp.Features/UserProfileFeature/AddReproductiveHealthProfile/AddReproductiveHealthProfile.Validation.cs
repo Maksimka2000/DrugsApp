@@ -13,7 +13,7 @@ public sealed class AddReproductiveHealthProfileRequestValidator : AbstractValid
 
         RuleFor(r => r.PregnancyPlanningUnknown)
             .Must((request, unknown) =>
-                !unknown || (!request.CurrentlyPregnant && !request.PlanningToGetPregnant))
+                !unknown || !request.CurrentlyPregnant && !request.PlanningToGetPregnant)
             .WithMessage(
                 "Pregnancy planning cannot be unknown when pregnancy status is declared.");
     }
