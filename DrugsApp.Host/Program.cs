@@ -95,6 +95,11 @@ builder.Services.AddAuthentication(options =>
                 }
 
                 string? accessToken = context.Request.Query["access_token"];
+                if (string.IsNullOrWhiteSpace(accessToken))
+                {
+                    accessToken = context.Request.Cookies[HangfireDashboardAccessTokenMiddleware.CookieName];
+                }
+
                 if (!string.IsNullOrWhiteSpace(accessToken))
                 {
                     context.Token = accessToken;
@@ -159,6 +164,7 @@ app.UseMiddleware<RequestLogContextMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseMiddleware<HangfireDashboardAccessTokenMiddleware>();
 app.UseAuthentication();
 // Authorization
 app.UseAuthorization();
