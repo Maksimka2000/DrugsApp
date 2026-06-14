@@ -83,7 +83,7 @@ public static class HangfireConfigurationExtensions
             settings.DashboardPath,
             new DashboardOptions
             {
-                Authorization = new[] { new AllowAllDashboardFilter() }
+                Authorization = new[] { new AdminDashboardAuthorizationFilter() }
             });
         return app;
     }

@@ -63,6 +63,7 @@ if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
 }
 // JwtTokenProvider registration
 builder.Services.AddScoped<IJwtTokenProvider, JwtTokenProvider>();
+string hangfireDashboardPath = builder.Configuration.GetSection("Hangfire:DashboardPath").Get<string>() ?? "/hangfire";
 // Authentication configuration
 builder.Services.AddAuthentication(options =>
 {
@@ -82,6 +83,25 @@ builder.Services.AddAuthentication(options =>
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero,
             NameClaimType = "sub"
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (!context.Request.Path.StartsWithSegments(hangfireDashboardPath))
+                {
+                    return Task.CompletedTask;
+                }
+
+                string? accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrWhiteSpace(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -137,14 +157,13 @@ app.UseCors();
 // Logging
 app.UseMiddleware<RequestLogContextMiddleware>();
 app.UseSerilogRequestLogging();
-// Hangfire dashboard
-app.UseConfiguredHangfireDashboard();
-// Routing
 app.UseHttpsRedirection();
-// Authentication
+app.UseRouting();
 app.UseAuthentication();
 // Authorization
 app.UseAuthorization();
+// hangfire dashboard
+app.UseConfiguredHangfireDashboard();
 app.MapControllers();
 
 WeeklyHealthDataReminderJobSettings weeklyHealthReminderSettings = app.Services
