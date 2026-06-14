@@ -52,6 +52,7 @@ internal sealed class ReproductiveHealthProfileApplicationService(
                 userId,
                 request.CurrentlyPregnant,
                 request.PlanningToGetPregnant,
+                request.PregnancyPlanningUnknown,
                 request.Menopause,
                 request.ContraceptionMethodCode);
 
@@ -68,6 +69,7 @@ internal sealed class ReproductiveHealthProfileApplicationService(
         ErrorOr<Success> updateResult = existing.Update(
             request.CurrentlyPregnant,
             request.PlanningToGetPregnant,
+            request.PregnancyPlanningUnknown,
             request.Menopause,
             request.ContraceptionMethodCode);
 

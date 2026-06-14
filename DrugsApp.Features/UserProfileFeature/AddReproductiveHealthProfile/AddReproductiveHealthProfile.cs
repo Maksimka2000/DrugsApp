@@ -13,14 +13,9 @@ namespace DrugsApp.Features.UserProfileFeature.AddReproductiveHealthProfile;
 public sealed record AddReproductiveHealthProfileRequest(
     bool CurrentlyPregnant,
     bool PlanningToGetPregnant,
+    bool PregnancyPlanningUnknown,
     bool Menopause,
-    ContraceptionMethodCode? ContraceptionMethodCode)
-{
-    public AddReproductiveHealthProfileCommand MapToCommand(Guid userId)
-    {
-        throw new NotImplementedException();
-    }
-}
+    ContraceptionMethodCode? ContraceptionMethodCode);
 
 public sealed record AddReproductiveHealthProfileCommand(
     Guid UserId,
@@ -73,6 +68,7 @@ internal sealed class AddReproductiveHealthProfileHandler(
             command.UserId,
             command.Request.CurrentlyPregnant,
             command.Request.PlanningToGetPregnant,
+            command.Request.PregnancyPlanningUnknown,
             command.Request.Menopause,
             command.Request.ContraceptionMethodCode);
 
