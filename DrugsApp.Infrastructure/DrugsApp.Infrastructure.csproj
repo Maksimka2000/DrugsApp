@@ -3,6 +3,7 @@
   
 
   <ItemGroup>
+    <PackageReference Include="Azure.Communication.Email" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="FluentEmail.Core" />
     <PackageReference Include="FluentEmail.Smtp" />
