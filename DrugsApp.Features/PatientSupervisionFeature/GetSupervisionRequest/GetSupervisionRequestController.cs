@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.GetSupervisionRequest;
 
 [ApiController]
 [Route("api/supervision/requests")]
-[Tags("Supervision Patient")]
+[Tags("Supervision request")]
 public sealed class GetSupervisionRequestController(
     IMediator mediator,
     IValidator<GetSupervisionRequestRequest> validator) : ControllerBase
@@ -35,7 +35,10 @@ public sealed class GetSupervisionRequestController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         var query = new GetSupervisionRequestQuery(patientUserId, request_id);
         ErrorOr<SupervisionRequestDetailDto> result = await mediator.Send(query, cancellationToken);

@@ -35,7 +35,10 @@ public sealed class GetPatientHealthcareProfessionalController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         var query = new GetPatientHealthcareProfessionalQuery(patientUserId, healthcare_professional_user_id);
         ErrorOr<PatientHealthcareProfessionalDetailDto> result = await mediator.Send(query, cancellationToken);

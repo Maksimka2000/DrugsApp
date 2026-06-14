@@ -14,7 +14,7 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CancelProvide
 
 [ApiController]
 [Route("api/supervision/requests")]
-[Tags("Supervision Healthcare Specialist")]
+[Tags("Supervision Healthcare request")]
 public sealed class CancelProviderRequestController(
     IMediator mediator,
     IValidator<CancelProviderRequestRequest> validator) : ControllerBase
@@ -35,7 +35,10 @@ public sealed class CancelProviderRequestController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var providerUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid providerUserId))
+        {
+            return Unauthorized();
+        }
 
         var command = new CancelProviderRequestCommand(providerUserId, request.RequestId);
         ErrorOr<CancelProviderRequestResponseDto> result = await mediator.Send(command, cancellationToken);

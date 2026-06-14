@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.RemoveSupervisionConnectio
 
 [ApiController]
 [Route("api/supervision/connections")]
-[Tags("Supervision Patient")]
+[Tags("Supervision request")]
 public sealed class RemoveSupervisionConnectionController(
     IMediator mediator,
     IValidator<RemoveSupervisionConnectionRequest> validator) : ControllerBase
@@ -35,13 +35,14 @@ public sealed class RemoveSupervisionConnectionController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var callerUserId = Guid.Parse(User.FindFirst("sub")!.Value);
-        bool isProvider = User.IsInRole(AuthRoles.HealthcareProvider);
+        if (!User.TryGetUserId(out Guid callerUserId))
+        {
+            return Unauthorized();
+        }
 
         var command = new RemoveSupervisionConnectionCommand(
             CallerUserId: callerUserId,
-            ConnectionId: request.ConnectionId,
-            CallerIsProvider: isProvider);
+            ConnectionId: request.ConnectionId);
 
         ErrorOr<RemoveSupervisionConnectionResponseDto> result = await mediator.Send(command, cancellationToken);
 

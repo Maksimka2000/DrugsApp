@@ -87,13 +87,9 @@ public sealed class NotificationProjectionApplicationService(
 
         if (existing is null)
         {
-            return Error.NotFound(
-                code: "NotificationProjection.NotFound",
-                description: "Notification projection was not found.",
-                metadata: new()
-                {
-                    ["sourceEventKey"] = normalizedSourceEventKey
-                });
+            // Inbox row may be absent (e.g. legacy seed data or projection skipped on create).
+            // Sync is best-effort; missing projection is already the desired end state.
+            return Result.Success;
         }
 
         return existing.SyncActionState(actionState, requiresAction);

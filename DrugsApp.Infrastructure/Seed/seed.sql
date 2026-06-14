@@ -1842,3 +1842,8 @@ VALUES
     ('ab031000-0000-4000-8000-000000000005'::uuid, 'ab030000-0000-4000-8000-000000000003'::uuid, 'RegularDrug', 'Database', 'a1000000-0000-4000-8000-000000000012'::uuid, 'Simvacard 20 mg', '{}'::jsonb, 1, (NOW() AT TIME ZONE 'utc')),
     ('ab031000-0000-4000-8000-000000000006'::uuid, 'ab030000-0000-4000-8000-000000000003'::uuid, 'RegularDrug', 'Database', 'a1000000-0000-4000-8000-000000000004'::uuid, 'Atorvasterol 20 mg', '{}'::jsonb, 2, (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
+
+-- Align supervision notification projections with runtime source event keys
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000001', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000001' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000005' AND "TypeCode" = 'SupervisionRequest';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000002', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000002' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000004' AND "TypeCode" = 'SupervisionRequest';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000001', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000001' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000001' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';

@@ -33,7 +33,10 @@ public sealed class ListPatientHealthcareProfessionalsController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         SearchPatientHealthcareProfessionalsQuery query = request.MapToQuery(patientUserId);
         ErrorOr<PatientHealthcareProfessionalListResponse> result = await mediator.Send(query, cancellationToken);

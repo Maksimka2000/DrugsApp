@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.UpdateSupervisionAccessLev
 
 [ApiController]
 [Route("api/supervision/connections")]
-[Tags("Supervision Patient")]
+[Tags("Supervision request")]
 public sealed class UpdateSupervisionAccessLevelController(
     IMediator mediator,
     IValidator<UpdateSupervisionAccessLevelRequest> validator) : ControllerBase
@@ -22,7 +22,7 @@ public sealed class UpdateSupervisionAccessLevelController(
     public const string RouteName = "UpdateSupervisionAccessLevel";
 
     [HttpPut("{connection_id:guid}/access-level", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.MemberRoles)]
+    [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<UpdateSupervisionAccessLevelResponseDto>> Update(
         [FromRoute] Guid connection_id,
         [FromBody] UpdateSupervisionAccessLevelRequest body,
@@ -36,7 +36,10 @@ public sealed class UpdateSupervisionAccessLevelController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         var command = new UpdateSupervisionAccessLevelCommand(
             PatientUserId: patientUserId,

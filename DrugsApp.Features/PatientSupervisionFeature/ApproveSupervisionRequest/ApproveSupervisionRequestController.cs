@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ApproveSupervisionRequest;
 
 [ApiController]
 [Route("api/supervision/requests")]
-[Tags("Supervision Patient")]
+[Tags("Supervision request")]
 public sealed class ApproveSupervisionRequestController(
     IMediator mediator,
     IValidator<ApproveSupervisionRequestRequest> validator) : ControllerBase
@@ -37,7 +37,10 @@ public sealed class ApproveSupervisionRequestController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         var command = new ApproveSupervisionRequestCommand(
             PatientUserId: patientUserId,

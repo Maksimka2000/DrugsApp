@@ -33,7 +33,10 @@ public sealed class SubmitProviderProposalController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var providerUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid providerUserId))
+        {
+            return Unauthorized();
+        }
 
         SubmitProviderProposalCommand command = request.MapToCommand(providerUserId, connectionId);
 

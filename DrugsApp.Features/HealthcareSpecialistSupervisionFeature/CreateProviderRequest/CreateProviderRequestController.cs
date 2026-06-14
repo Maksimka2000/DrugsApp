@@ -33,7 +33,10 @@ public sealed class CreateProviderRequestController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var providerUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid providerUserId))
+        {
+            return Unauthorized();
+        }
 
         CreateProviderRequestCommand command = request.MapToCommand(providerUserId);
         ErrorOr<CreateProviderRequestResponseDto> result = await mediator.Send(command, cancellationToken);
