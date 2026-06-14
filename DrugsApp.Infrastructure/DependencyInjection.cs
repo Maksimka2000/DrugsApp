@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Mail;
+using Azure.Communication.Email;
 using Azure.Storage.Blobs;
 using DrugsApp.Domain.Common;
 using DrugsApp.Domain.ActiveSubstanceFeature.Repositories;
@@ -168,25 +169,40 @@ public static class DependencyInjection
         // Register Email External services here
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
         EmailSettings emailSettings = configuration.GetSection(EmailSettings.SectionName).Get<EmailSettings>() ?? new();
-        services
-            .AddFluentEmail(emailSettings.SenderEmail, emailSettings.SenderName)
-            .AddSmtpSender(() =>
+
+        if (emailSettings.UsesAzureCommunicationServices)
+        {
+            if (string.IsNullOrWhiteSpace(emailSettings.ConnectionString))
             {
-                var client = new SmtpClient(emailSettings.SmtpHost, emailSettings.SmtpPort);
+                throw new InvalidOperationException(
+                    "Email:ConnectionString must be configured when Email:Provider is AzureCommunicationServices.");
+            }
 
-                if (!string.IsNullOrWhiteSpace(emailSettings.SmtpUsername) &&
-                    !string.IsNullOrWhiteSpace(emailSettings.SmtpPassword))
+            services.AddSingleton(_ => new EmailClient(emailSettings.ConnectionString));
+            services.AddScoped<IEmailVerificationSender, AzureCommunicationEmailVerificationSender>();
+        }
+        else
+        {
+            services
+                .AddFluentEmail(emailSettings.SenderEmail, emailSettings.SenderName)
+                .AddSmtpSender(() =>
                 {
-                    client.Credentials = new NetworkCredential(
-                        emailSettings.SmtpUsername,
-                        emailSettings.SmtpPassword);
-                    client.EnableSsl = true;
-                }
+                    var client = new SmtpClient(emailSettings.SmtpHost, emailSettings.SmtpPort);
 
-                return client;
-            });
+                    if (!string.IsNullOrWhiteSpace(emailSettings.SmtpUsername) &&
+                        !string.IsNullOrWhiteSpace(emailSettings.SmtpPassword))
+                    {
+                        client.Credentials = new NetworkCredential(
+                            emailSettings.SmtpUsername,
+                            emailSettings.SmtpPassword);
+                        client.EnableSsl = true;
+                    }
 
-        services.AddScoped<IEmailVerificationSender, EmailVerificationSender>();
+                    return client;
+                });
+
+            services.AddScoped<IEmailVerificationSender, EmailVerificationSender>();
+        }
         services.Configure<SuperAdminSettings>(configuration.GetSection(SuperAdminSettings.SectionName));
         services.AddScoped<IIdentityAuthenticationService, IdentityAuthenticationService>();
         services.AddScoped<IIdentityUserManagementService, IdentityUserManagementService>();
