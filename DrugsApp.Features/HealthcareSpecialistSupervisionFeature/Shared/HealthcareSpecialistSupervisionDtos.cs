@@ -68,6 +68,7 @@ public sealed record ProviderWomenSpecificSummaryDto(
     bool HasProfile,
     bool? CurrentlyPregnant,
     bool? PlanningToGetPregnant,
+    bool? PregnancyPlanningUnknown,
     bool? Menopause,
     string? ContraceptionMethodCode);
 

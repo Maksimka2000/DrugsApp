@@ -12,6 +12,7 @@ namespace DrugsApp.Features.UserProfileFeature.UpdateReproductiveHealthProfile;
 public sealed record UpdateReproductiveHealthProfileRequest(
     bool CurrentlyPregnant,
     bool PlanningToGetPregnant,
+    bool PregnancyPlanningUnknown,
     bool Menopause,
     ContraceptionMethodCode? ContraceptionMethodCode);
 
@@ -30,6 +31,7 @@ internal sealed class UpdateReproductiveHealthProfileHandler(
             new ReproductiveHealthProfileUpsertRequest(
                 command.Request.CurrentlyPregnant,
                 command.Request.PlanningToGetPregnant,
+                command.Request.PregnancyPlanningUnknown,
                 command.Request.Menopause,
                 command.Request.ContraceptionMethodCode),
             cancellationToken);

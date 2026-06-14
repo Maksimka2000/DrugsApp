@@ -23,11 +23,13 @@ public interface IReproductiveHealthProfileApplicationService
 /// </summary>
 /// <param name="CurrentlyPregnant">Whether the user is currently pregnant.</param>
 /// <param name="PlanningToGetPregnant">Whether the user plans pregnancy.</param>
+/// <param name="PregnancyPlanningUnknown">Whether pregnancy planning status is explicitly unknown.</param>
 /// <param name="Menopause">Whether the user declares menopause.</param>
 /// <param name="ContraceptionMethodCode">Optional contraception method code.</param>
 public sealed record ReproductiveHealthProfileUpsertRequest(
     bool CurrentlyPregnant,
     bool PlanningToGetPregnant,
+    bool PregnancyPlanningUnknown,
     bool Menopause,
     ContraceptionMethodCode? ContraceptionMethodCode);
 
