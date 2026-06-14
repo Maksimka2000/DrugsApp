@@ -4,7 +4,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ApproveSupervisionRequest;
 
 public sealed class ApproveSupervisionRequestRequestValidator : AbstractValidator<ApproveSupervisionRequestRequest>
 {
-    private static readonly string[] AllowedAccessLevels = { "view_and_modify", "view_only", "restricted_view", "block_access" };
+    private static readonly string[] AllowedAccessLevels = { "ViewAndModify", "ViewOnly", "RestrictedView", "BlockAccess" };
 
     public ApproveSupervisionRequestRequestValidator()
     {
@@ -14,6 +14,6 @@ public sealed class ApproveSupervisionRequestRequestValidator : AbstractValidato
         RuleFor(x => x.AccessLevelCode)
             .NotEmpty()
             .Must(x => AllowedAccessLevels.Contains(x.ToLower()))
-            .WithMessage("access_level_code must be one of view_and_modify|view_only|restricted_view|block_access.");
+            .WithMessage("access_level_code must be one of ViewAndModify|ViewOnly|RestrictedView|BlockAccess.");
     }
 }

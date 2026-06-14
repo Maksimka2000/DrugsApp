@@ -33,7 +33,10 @@ public sealed class ListProviderPatientsController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var providerUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid providerUserId))
+        {
+            return Unauthorized();
+        }
 
         ListProviderPatientsQuery query = request.MapToQuery(providerUserId);
         ErrorOr<ProviderPatientListResponse> result = await mediator.Send(query, cancellationToken);

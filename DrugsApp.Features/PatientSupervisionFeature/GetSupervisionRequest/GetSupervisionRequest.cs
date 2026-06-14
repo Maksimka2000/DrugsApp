@@ -54,7 +54,7 @@ internal sealed class GetSupervisionRequestHandler(
             RequestState: isExpired ? SupervisionRequestState.Expired.ToString() : request.RequestState.ToString(),
             ExpiresAtUtc: request.ExpiresAtUtc,
             HealthcareProfessionalSummary: healthcareProfessionalSummary,
-            AvailableAccessLevels: new List<string> { "view_and_modify", "view_only", "restricted_view", "block_access" },
+            AvailableAccessLevels: new List<string> { "ViewAndModify", "ViewOnly", "RestrictedView", "BlockAccess" },
             PrivacyWarningText: "Sharing grants provider access per selected level.");
 
         return dto;

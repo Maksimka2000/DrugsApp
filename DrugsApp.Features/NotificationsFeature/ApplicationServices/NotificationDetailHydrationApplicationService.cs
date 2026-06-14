@@ -39,6 +39,8 @@ public sealed class NotificationDetailHydrationApplicationService(
             UserNotificationType.MedicalChangeProposal => await BuildMedicalChangeProposalAsync(notification, userId, cancellationToken),
             UserNotificationType.SupervisionRemovedByDoctor or UserNotificationType.SupervisionRemovedByPatient
                 => await BuildRelationshipChangeAsync(notification, userId, cancellationToken),
+            UserNotificationType.SupervisionAccessLevelChanged
+                => BuildInformational(notification),
             UserNotificationType.SystemAnnouncement => await BuildSystemAnnouncementAsync(notification, cancellationToken),
             UserNotificationType.WeeklyHealthDataReminder
                 or UserNotificationType.SurveyReminder

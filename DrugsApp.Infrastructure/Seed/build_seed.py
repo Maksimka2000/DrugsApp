@@ -727,6 +727,23 @@ def supervision() -> None:
         'INSERT INTO medical_change_proposal_items ("Id", proposal_id, category_code, source, related_catalog_id, display_name_snapshot, apply_payload, sort_order, "CreatedAtUtc")\n'
         "VALUES\n" + ",\n".join(ivals) + '\nON CONFLICT ("Id") DO NOTHING;'
     )
+    w("")
+    w("-- Align supervision notification projections with runtime source event keys")
+    w(
+        f'UPDATE "UserNotifications" SET "SourceEventKey" = \'supervision-request:{uid(SUPERVISION_REQUEST, 1)}\', '
+        f'"RelatedAggregateType" = \'supervision_request\', "RelatedAggregateId" = \'{uid(SUPERVISION_REQUEST, 1)}\' '
+        f'WHERE "UserId" = \'{clients[4]}\' AND "TypeCode" = \'SupervisionRequest\';'
+    )
+    w(
+        f'UPDATE "UserNotifications" SET "SourceEventKey" = \'supervision-request:{uid(SUPERVISION_REQUEST, 2)}\', '
+        f'"RelatedAggregateType" = \'supervision_request\', "RelatedAggregateId" = \'{uid(SUPERVISION_REQUEST, 2)}\' '
+        f'WHERE "UserId" = \'{clients[3]}\' AND "TypeCode" = \'SupervisionRequest\';'
+    )
+    w(
+        f'UPDATE "UserNotifications" SET "SourceEventKey" = \'medical-change-proposal:{uid(MEDICAL_PROPOSAL, 1)}\', '
+        f'"RelatedAggregateType" = \'medical_change_proposal\', "RelatedAggregateId" = \'{uid(MEDICAL_PROPOSAL, 1)}\' '
+        f'WHERE "UserId" = \'{clients[0]}\' AND "TypeCode" = \'MedicalChangeProposal\' AND "ActionState" = \'Pending\';'
+    )
 
 
 def main() -> None:

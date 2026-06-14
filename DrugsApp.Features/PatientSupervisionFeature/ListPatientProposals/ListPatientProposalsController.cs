@@ -33,7 +33,10 @@ public sealed class ListPatientProposalsController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         ListPatientProposalsQuery query = request.MapToQuery(patientUserId);
         ErrorOr<PatientProposalListResponse> result = await mediator.Send(query, cancellationToken);
