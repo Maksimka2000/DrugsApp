@@ -28,6 +28,9 @@ internal sealed class ClientReproductiveHealthProfileConfiguration : BaseEntityC
         builder.Property(profile => profile.PlanningToGetPregnant)
             .IsRequired();
 
+        builder.Property(profile => profile.PregnancyPlanningUnknown)
+            .IsRequired();
+
         builder.Property(profile => profile.Menopause)
             .IsRequired();
 
