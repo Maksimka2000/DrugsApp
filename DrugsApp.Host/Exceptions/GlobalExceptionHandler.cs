@@ -31,7 +31,12 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
             return false;
         }
 
-        _logger.LogError(exception, "An unhandled exception occurred while processing the request.");
+        _logger.LogError(
+            exception,
+            "Unhandled exception. traceId={TraceId} {Method} {Path}",
+            httpContext.TraceIdentifier,
+            httpContext.Request.Method,
+            httpContext.Request.Path);
 
         ObjectResult problem = ErrorOrExtensions.MapToGlobalProblem(httpContext);
 
