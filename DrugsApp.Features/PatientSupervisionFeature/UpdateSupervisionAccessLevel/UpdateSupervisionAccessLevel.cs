@@ -1,3 +1,4 @@
+using DrugsApp.Domain.PatientSupervisionFeature;
 using DrugsApp.Domain.PatientSupervisionFeature.Entities;
 using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
@@ -10,7 +11,7 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.UpdateSupervisionAccessLevel;
 
-public sealed record UpdateSupervisionAccessLevelRequest(Guid ConnectionId, string AccessLevelCode);
+public sealed record UpdateSupervisionAccessLevelRequest(string AccessLevelCode);
 
 public sealed record UpdateSupervisionAccessLevelCommand(
     Guid PatientUserId,
@@ -44,7 +45,7 @@ internal sealed class UpdateSupervisionAccessLevelHandler(
                 });
         }
 
-        if (!Enum.TryParse<SupervisionAccessLevel>(command.AccessLevelCode, ignoreCase: true, out SupervisionAccessLevel accessLevel))
+        if (!SupervisionAccessLevelCatalog.TryParse(command.AccessLevelCode, out SupervisionAccessLevel accessLevel))
         {
             return Error.Validation(description: "Invalid access level code.");
         }
@@ -86,10 +87,10 @@ internal sealed class UpdateSupervisionAccessLevelHandler(
     private static string ToApiAccessLevelCode(SupervisionAccessLevel accessLevel) =>
         accessLevel switch
         {
-            SupervisionAccessLevel.ViewAndModify => "view_and_modify",
-            SupervisionAccessLevel.ViewOnly => "view_only",
-            SupervisionAccessLevel.RestrictedView => "restricted_view",
-            SupervisionAccessLevel.BlockAccess => "block_access",
+            SupervisionAccessLevel.ViewAndModify => "ViewAndModify",
+            SupervisionAccessLevel.ViewOnly => "ViewOnly",
+            SupervisionAccessLevel.RestrictedView => "RestrictedView",
+            SupervisionAccessLevel.BlockAccess => "BlockAccess",
             _ => accessLevel.ToString()
         };
 }

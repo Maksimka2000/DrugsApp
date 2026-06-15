@@ -10,7 +10,9 @@ public sealed record GetPatientProposalRequest(Guid ProposalId);
 public sealed record GetPatientProposalQuery(Guid PatientUserId, Guid ProposalId)
     : IRequest<ErrorOr<PatientProposalDetailResponse>>;
 
-internal sealed class GetPatientProposalHandler(IMedicalChangeProposalRepository proposalRepository)
+internal sealed class GetPatientProposalHandler(
+    IMedicalChangeProposalRepository proposalRepository,
+    ISupervisionReadRepository supervisionReadRepository)
     : IRequestHandler<GetPatientProposalQuery, ErrorOr<PatientProposalDetailResponse>>
 {
     public async Task<ErrorOr<PatientProposalDetailResponse>> Handle(
@@ -33,28 +35,29 @@ internal sealed class GetPatientProposalHandler(IMedicalChangeProposalRepository
                 });
         }
 
-        var sections = detail.Sections
-            .Select(section => new PatientProposalDetailSectionDto(
-                section.SectionCode,
-                section.Items.Select(item => new PatientProposalDetailSectionItemDto(
-                    item.CategoryCode,
-                    item.Source,
-                    item.RelatedCatalogId,
-                    item.CustomValue,
-                    item.DisplayName,
-                    item.SecondaryText,
-                    item.StartDate,
-                    item.EndDate,
-                    item.Note,
-                    item.IntakeTimes)).ToList()))
-            .ToList();
+        PatientHealthcareProfessionalDetail? providerDetail =
+            await supervisionReadRepository.GetPatientHealthcareProfessionalDetailAsync(
+                query.PatientUserId,
+                detail.HealthcareProfessionalUserId,
+                cancellationToken);
+
+        var healthcareProfessional = new SupervisionRequestHealthcareProfessionalDto(
+            HealthcareProfessionalUserId: detail.HealthcareProfessionalUserId,
+            ProfilePhotoUrl: MemberProfilePhotoUrls.Build(
+                detail.HealthcareProfessionalUserId,
+                providerDetail?.ProfilePhotoStorageKey),
+            FirstName: providerDetail?.FirstName ?? string.Empty,
+            LastName: providerDetail?.LastName ?? string.Empty,
+            ProfessionLabel: providerDetail?.ProfessionLabel,
+            WorkplaceLabel: providerDetail?.WorkplaceLabel,
+            ShortDescription: providerDetail?.ShortDescription);
 
         return new PatientProposalDetailResponse(
             ProposalId: detail.ProposalId,
             ProposalState: detail.ProposalState,
             ProposalSummary: detail.ProposalSummary,
             SubmittedAtUtc: detail.SubmittedAtUtc,
-            HealthcareProfessionalSummary: "Healthcare professional", // placeholder summary
-            Sections: sections);
+            HealthcareProfessional: healthcareProfessional,
+            DraftItems: detail.DraftItems.Select(item => item.MapToDto()).ToList());
     }
 }

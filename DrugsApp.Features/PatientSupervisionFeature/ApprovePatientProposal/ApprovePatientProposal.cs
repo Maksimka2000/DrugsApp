@@ -93,7 +93,10 @@ internal sealed class ApprovePatientProposalHandler(
             ProposalId: proposal.Id,
             ProposalState: proposal.ProposalState.ToString(),
             ResolvedAtUtc: nowUtc,
-            CreatedRecordCounts: applyResult.Value.CreatedCounts,
+            CreatedRecordCounts: new ProposalCreatedRecordCountsDto(
+                RegularDrug: applyResult.Value.RegularDrugCount,
+                RegularSupplement: applyResult.Value.RegularSupplementCount,
+                RegularFood: applyResult.Value.RegularFoodCount),
             InvalidatedReason: applyResult.Value.InvalidatedReason);
     }
 }

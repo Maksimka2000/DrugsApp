@@ -25,10 +25,5 @@ public sealed class MedicalChangeProposalItemIntakeTimeConfiguration : BaseEntit
         builder.HasIndex(x => new { x.ProposalItemId, x.IntakeTime })
             .HasDatabaseName("ux_medical_change_proposal_item_times_item_time")
             .IsUnique();
-
-        builder.HasOne<MedicalChangeProposalItem>()
-            .WithMany()
-            .HasForeignKey(x => x.ProposalItemId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

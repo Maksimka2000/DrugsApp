@@ -1,7 +1,8 @@
+using DrugsApp.Domain.PatientSupervisionFeature;
+using DrugsApp.Domain.PatientSupervisionFeature.Entities;
 using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
-using DrugsApp.Domain.UserProfileFeature.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrugsApp.Infrastructure.Repositories.PatientSupervisionFeature;
@@ -10,11 +11,56 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
 {
     public async Task<SearchPatientHealthcareProfessionalsResult> SearchPatientHealthcareProfessionalsAsync(
         Guid patientUserId,
-        string? relationshipState,
-        string? sortBy,
+        string? searchQuery,
+        PatientHealthcareProfessionalSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
+        PatientHealthcareProfessionalSortField sortField,
         bool ascending,
         int skip,
         int take,
+        CancellationToken cancellationToken)
+    {
+        List<PatientHealthcareProfessionalListRow> combined = await BuildPatientHealthcareProfessionalRowsAsync(
+            patientUserId,
+            cancellationToken);
+
+        IEnumerable<PatientHealthcareProfessionalListRow> filtered = ApplyPatientHealthcareProfessionalStatusFilter(
+            combined,
+            statuses);
+        filtered = ApplyPatientHealthcareProfessionalSearch(filtered, searchQuery, searchField);
+        filtered = ApplyPatientHealthcareProfessionalSort(filtered, sortField, ascending);
+
+        int totalCount = filtered.Count();
+
+        var page = filtered
+            .Skip(skip)
+            .Take(take)
+            .ToList();
+
+        return new SearchPatientHealthcareProfessionalsResult(page, totalCount);
+    }
+
+    public async Task<int> CountPatientHealthcareProfessionalsAsync(
+        Guid patientUserId,
+        string? searchQuery,
+        PatientHealthcareProfessionalSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
+        CancellationToken cancellationToken)
+    {
+        List<PatientHealthcareProfessionalListRow> combined = await BuildPatientHealthcareProfessionalRowsAsync(
+            patientUserId,
+            cancellationToken);
+
+        IEnumerable<PatientHealthcareProfessionalListRow> filtered = ApplyPatientHealthcareProfessionalStatusFilter(
+            combined,
+            statuses);
+        filtered = ApplyPatientHealthcareProfessionalSearch(filtered, searchQuery, searchField);
+
+        return filtered.Count();
+    }
+
+    private async Task<List<PatientHealthcareProfessionalListRow>> BuildPatientHealthcareProfessionalRowsAsync(
+        Guid patientUserId,
         CancellationToken cancellationToken)
     {
         var providerProfiles = await context.HealthcareProviderProfiles
@@ -25,6 +71,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 (provider, profile) => new
                 {
                     provider.UserId,
+                    profile.Email,
                     profile.FirstName,
                     profile.LastName,
                     profile.ProfilePhotoStorageKey,
@@ -35,7 +82,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 })
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
 
-        var pendingProposalCounts = await context.MedicalChangeProposals
+        Dictionary<Guid, int> pendingProposalCounts = await context.MedicalChangeProposals
             .AsNoTracking()
             .Where(p => p.PatientUserId == patientUserId && p.ProposalState == MedicalChangeProposalState.Pending)
             .GroupBy(p => p.HealthcareProfessionalUserId)
@@ -44,7 +91,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
 
         var requestRows = await context.SupervisionRequests
             .AsNoTracking()
-            .Where(x => x.PatientUserId == patientUserId)
+            .Where(x => x.PatientUserId == patientUserId && x.RequestState == SupervisionRequestState.Pending)
             .Select(r => new
             {
                 r.Id,
@@ -56,7 +103,8 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
 
         var connectionRows = await context.SupervisionConnections
             .AsNoTracking()
-            .Where(x => x.PatientUserId == patientUserId)
+            .Where(x => x.PatientUserId == patientUserId
+                        && x.ConnectionState == SupervisionConnectionState.Active)
             .Select(c => new
             {
                 c.Id,
@@ -81,6 +129,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 ConnectionId: null,
                 RelationshipState: r.RequestState.ToString(),
                 AccessLevelCode: null,
+                Email: profile?.Email ?? string.Empty,
                 FirstName: profile?.FirstName ?? string.Empty,
                 LastName: profile?.LastName ?? string.Empty,
                 ProfessionLabel: profile?.ProfessionCode?.ToString() ?? profile?.OtherProfessionLabel,
@@ -90,7 +139,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 PendingProposalCount: pendingProposals == 0 ? null : pendingProposals,
                 RequestedAtUtc: r.RequestedAtUtc,
                 ApprovedAtUtc: null,
-                HasProfilePhoto: profile?.ProfilePhotoStorageKey is not null));
+                ProfilePhotoStorageKey: profile?.ProfilePhotoStorageKey));
         }
 
         foreach (var c in connectionRows)
@@ -105,6 +154,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 ConnectionId: c.Id,
                 RelationshipState: c.ConnectionState.ToString(),
                 AccessLevelCode: c.AccessLevelCode.ToString(),
+                Email: profile?.Email ?? string.Empty,
                 FirstName: profile?.FirstName ?? string.Empty,
                 LastName: profile?.LastName ?? string.Empty,
                 ProfessionLabel: profile?.ProfessionCode?.ToString() ?? profile?.OtherProfessionLabel,
@@ -114,18 +164,66 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 PendingProposalCount: pendingProposals == 0 ? null : pendingProposals,
                 RequestedAtUtc: c.ApprovedAtUtc,
                 ApprovedAtUtc: c.ApprovedAtUtc,
-                HasProfilePhoto: profile?.ProfilePhotoStorageKey is not null));
+                ProfilePhotoStorageKey: profile?.ProfilePhotoStorageKey));
         }
 
-        IEnumerable<PatientHealthcareProfessionalListRow> filtered = combined;
-        if (!string.IsNullOrWhiteSpace(relationshipState) && !relationshipState.Equals("all", StringComparison.OrdinalIgnoreCase))
+        return combined;
+    }
+
+    private static IEnumerable<PatientHealthcareProfessionalListRow> ApplyPatientHealthcareProfessionalStatusFilter(
+        IEnumerable<PatientHealthcareProfessionalListRow> rows,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses)
+    {
+        if (statuses is null || statuses.Count == 0)
         {
-            string state = relationshipState.ToLower();
-            filtered = filtered.Where(x => x.RelationshipState.ToLower() == state);
+            return rows;
         }
 
-        int totalCount = filtered.Count();
+        var selected = statuses.ToHashSet();
+        return rows.Where(row =>
+            selected.Contains(PatientHealthcareProfessionalSearchCatalog.MapRelationshipState(row.RelationshipState)));
+    }
 
+    private static IEnumerable<PatientHealthcareProfessionalListRow> ApplyPatientHealthcareProfessionalSearch(
+        IEnumerable<PatientHealthcareProfessionalListRow> rows,
+        string? searchQuery,
+        PatientHealthcareProfessionalSearchField searchField)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery) || searchField == PatientHealthcareProfessionalSearchField.None)
+        {
+            return rows;
+        }
+
+        string trimmedQuery = searchQuery.Trim();
+        return rows.Where(row => MatchesPatientHealthcareProfessionalSearch(row, trimmedQuery, searchField));
+    }
+
+    private static bool MatchesPatientHealthcareProfessionalSearch(
+        PatientHealthcareProfessionalListRow row,
+        string searchQuery,
+        PatientHealthcareProfessionalSearchField searchField)
+    {
+        return searchField switch
+        {
+            PatientHealthcareProfessionalSearchField.Email =>
+                row.Email.Contains(searchQuery, StringComparison.OrdinalIgnoreCase),
+            PatientHealthcareProfessionalSearchField.DisplayName =>
+                row.FirstName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+                || row.LastName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+                || $"{row.FirstName} {row.LastName}".Contains(searchQuery, StringComparison.OrdinalIgnoreCase),
+            PatientHealthcareProfessionalSearchField.ProfessionLabel =>
+                row.ProfessionLabel?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false,
+            PatientHealthcareProfessionalSearchField.WorkplaceLabel =>
+                row.WorkplaceLabel?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false,
+            _ => true
+        };
+    }
+
+    private static IEnumerable<PatientHealthcareProfessionalListRow> ApplyPatientHealthcareProfessionalSort(
+        IEnumerable<PatientHealthcareProfessionalListRow> rows,
+        PatientHealthcareProfessionalSortField sortField,
+        bool ascending)
+    {
         Func<PatientHealthcareProfessionalListRow, int> statusPriority = row =>
         {
             if (row.EntryType == "pending_request")
@@ -143,25 +241,20 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
             };
         };
 
-        filtered = (sortBy ?? "status") switch
+        return sortField switch
         {
-            "date_added" => ascending
-                ? filtered.OrderBy(x => x.RequestedAtUtc).ThenBy(x => x.HealthcareProfessionalUserId)
-                : filtered.OrderByDescending(x => x.RequestedAtUtc).ThenBy(x => x.HealthcareProfessionalUserId),
-            "display_name" => ascending
-                ? filtered.OrderBy(x => x.LastName).ThenBy(x => x.FirstName)
-                : filtered.OrderByDescending(x => x.LastName).ThenByDescending(x => x.FirstName),
+            PatientHealthcareProfessionalSortField.DateAdded => ascending
+                ? rows.OrderBy(x => x.RequestedAtUtc).ThenBy(x => x.HealthcareProfessionalUserId)
+                : rows.OrderByDescending(x => x.RequestedAtUtc).ThenBy(x => x.HealthcareProfessionalUserId),
+            PatientHealthcareProfessionalSortField.DisplayName => ascending
+                ? rows.OrderBy(x => x.LastName).ThenBy(x => x.FirstName).ThenBy(x => x.HealthcareProfessionalUserId)
+                : rows.OrderByDescending(x => x.LastName).ThenByDescending(x => x.FirstName)
+                    .ThenBy(x => x.HealthcareProfessionalUserId),
             _ => ascending
-                ? filtered.OrderBy(statusPriority).ThenBy(x => x.LastName).ThenBy(x => x.FirstName)
-                : filtered.OrderByDescending(statusPriority).ThenByDescending(x => x.LastName).ThenByDescending(x => x.FirstName)
+                ? rows.OrderBy(statusPriority).ThenBy(x => x.LastName).ThenBy(x => x.FirstName)
+                : rows.OrderByDescending(statusPriority).ThenByDescending(x => x.LastName)
+                    .ThenByDescending(x => x.FirstName)
         };
-
-        var page = filtered
-            .Skip(skip)
-            .Take(take + 1)
-            .ToList();
-
-        return new SearchPatientHealthcareProfessionalsResult(page, totalCount);
     }
 
     public async Task<PatientHealthcareProfessionalDetail?> GetPatientHealthcareProfessionalDetailAsync(Guid patientUserId, Guid healthcareProfessionalUserId, CancellationToken cancellationToken)
@@ -183,13 +276,17 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 })
             .SingleOrDefaultAsync(x => x.UserId == healthcareProfessionalUserId, cancellationToken);
 
-        var request = await context.SupervisionRequests.AsNoTracking()
-            .Where(x => x.PatientUserId == patientUserId && x.HealthcareProfessionalUserId == healthcareProfessionalUserId)
+        SupervisionRequest? request = await context.SupervisionRequests.AsNoTracking()
+            .Where(x => x.PatientUserId == patientUserId
+                        && x.HealthcareProfessionalUserId == healthcareProfessionalUserId
+                        && x.RequestState == SupervisionRequestState.Pending)
             .OrderByDescending(x => x.RequestedAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
 
-        var connection = await context.SupervisionConnections.AsNoTracking()
-            .Where(x => x.PatientUserId == patientUserId && x.HealthcareProfessionalUserId == healthcareProfessionalUserId)
+        SupervisionConnection? connection = await context.SupervisionConnections.AsNoTracking()
+            .Where(x => x.PatientUserId == patientUserId
+                        && x.HealthcareProfessionalUserId == healthcareProfessionalUserId
+                        && x.ConnectionState == SupervisionConnectionState.Active)
             .OrderByDescending(x => x.ApprovedAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -206,7 +303,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
 
         return new PatientHealthcareProfessionalDetail(
             HealthcareProfessionalUserId: healthcareProfessionalUserId,
-            HasProfilePhoto: profileJoin?.ProfilePhotoStorageKey is not null,
+            ProfilePhotoStorageKey: profileJoin?.ProfilePhotoStorageKey,
             FirstName: profileJoin?.FirstName ?? string.Empty,
             LastName: profileJoin?.LastName ?? string.Empty,
             ProfessionLabel: profileJoin?.ProfessionCode?.ToString() ?? profileJoin?.OtherProfessionLabel,
@@ -222,25 +319,65 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
 
     public async Task<SearchProviderPatientsResult> SearchProviderPatientsAsync(
         Guid providerUserId,
-        string? relationshipState,
-        string? sortBy,
+        string? searchQuery,
+        ProviderPatientSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
+        ProviderPatientSortField sortField,
         bool ascending,
         int skip,
         int take,
+        CancellationToken cancellationToken)
+    {
+        List<ProviderPatientListRow> combined = await BuildProviderPatientRowsAsync(providerUserId, cancellationToken);
+
+        IEnumerable<ProviderPatientListRow> filtered = ApplyProviderPatientStatusFilter(combined, statuses);
+        filtered = ApplyProviderPatientSearch(filtered, searchQuery, searchField);
+        filtered = ApplyProviderPatientSort(filtered, sortField, ascending);
+
+        int totalCount = filtered.Count();
+
+        var page = filtered
+            .Skip(skip)
+            .Take(take)
+            .ToList();
+
+        return new SearchProviderPatientsResult(page, totalCount);
+    }
+
+    public async Task<int> CountProviderPatientsAsync(
+        Guid providerUserId,
+        string? searchQuery,
+        ProviderPatientSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
+        CancellationToken cancellationToken)
+    {
+        List<ProviderPatientListRow> combined = await BuildProviderPatientRowsAsync(providerUserId, cancellationToken);
+
+        IEnumerable<ProviderPatientListRow> filtered = ApplyProviderPatientStatusFilter(combined, statuses);
+        filtered = ApplyProviderPatientSearch(filtered, searchQuery, searchField);
+
+        return filtered.Count();
+    }
+
+    private async Task<List<ProviderPatientListRow>> BuildProviderPatientRowsAsync(
+        Guid providerUserId,
         CancellationToken cancellationToken)
     {
         var patientProfiles = await context.UserProfiles.AsNoTracking()
             .Select(p => new
             {
                 p.Id,
+                p.Email,
                 p.FirstName,
                 p.LastName,
                 p.ProfilePhotoStorageKey
             })
             .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-        var requests = await context.SupervisionRequests.AsNoTracking()
-            .Where(x => x.HealthcareProfessionalUserId == providerUserId)
+        var requests = await context.SupervisionRequests
+            .AsNoTracking()
+            .Where(x => x.HealthcareProfessionalUserId == providerUserId
+                        && x.RequestState == SupervisionRequestState.Pending)
             .Select(r => new
             {
                 r.Id,
@@ -250,8 +387,10 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
             })
             .ToListAsync(cancellationToken);
 
-        var connections = await context.SupervisionConnections.AsNoTracking()
-            .Where(x => x.HealthcareProfessionalUserId == providerUserId)
+        var connections = await context.SupervisionConnections
+            .AsNoTracking()
+            .Where(x => x.HealthcareProfessionalUserId == providerUserId
+                        && x.ConnectionState == SupervisionConnectionState.Active)
             .Select(c => new
             {
                 c.Id,
@@ -275,6 +414,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 ConnectionId: null,
                 RelationshipState: r.RequestState.ToString(),
                 AccessLevelCode: null,
+                Email: profile?.Email ?? string.Empty,
                 FirstName: profile?.FirstName ?? string.Empty,
                 LastName: profile?.LastName ?? string.Empty,
                 HasProfilePhoto: profile?.ProfilePhotoStorageKey is not null,
@@ -293,6 +433,7 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 ConnectionId: c.Id,
                 RelationshipState: c.ConnectionState.ToString(),
                 AccessLevelCode: c.AccessLevelCode.ToString(),
+                Email: profile?.Email ?? string.Empty,
                 FirstName: profile?.FirstName ?? string.Empty,
                 LastName: profile?.LastName ?? string.Empty,
                 HasProfilePhoto: profile?.ProfilePhotoStorageKey is not null,
@@ -300,15 +441,59 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
                 ApprovedAtUtc: c.ApprovedAtUtc));
         }
 
-        IEnumerable<ProviderPatientListRow> filtered = combined;
-        if (!string.IsNullOrWhiteSpace(relationshipState) && !relationshipState.Equals("all", StringComparison.OrdinalIgnoreCase))
+        return combined;
+    }
+
+    private static IEnumerable<ProviderPatientListRow> ApplyProviderPatientStatusFilter(
+        IEnumerable<ProviderPatientListRow> rows,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses)
+    {
+        if (statuses is null || statuses.Count == 0)
         {
-            string state = relationshipState.ToLower();
-            filtered = filtered.Where(x => x.RelationshipState.ToLower() == state);
+            return rows;
         }
 
-        int totalCount = filtered.Count();
+        var selected = statuses.ToHashSet();
+        return rows.Where(row =>
+            selected.Contains(ProviderPatientSearchCatalog.MapRelationshipState(row.RelationshipState)));
+    }
 
+    private static IEnumerable<ProviderPatientListRow> ApplyProviderPatientSearch(
+        IEnumerable<ProviderPatientListRow> rows,
+        string? searchQuery,
+        ProviderPatientSearchField searchField)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery) || searchField == ProviderPatientSearchField.None)
+        {
+            return rows;
+        }
+
+        string trimmedQuery = searchQuery.Trim();
+        return rows.Where(row => MatchesProviderPatientSearch(row, trimmedQuery, searchField));
+    }
+
+    private static bool MatchesProviderPatientSearch(
+        ProviderPatientListRow row,
+        string searchQuery,
+        ProviderPatientSearchField searchField)
+    {
+        return searchField switch
+        {
+            ProviderPatientSearchField.Email =>
+                row.Email.Contains(searchQuery, StringComparison.OrdinalIgnoreCase),
+            ProviderPatientSearchField.DisplayName =>
+                row.FirstName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+                || row.LastName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+                || $"{row.FirstName} {row.LastName}".Contains(searchQuery, StringComparison.OrdinalIgnoreCase),
+            _ => true
+        };
+    }
+
+    private static IEnumerable<ProviderPatientListRow> ApplyProviderPatientSort(
+        IEnumerable<ProviderPatientListRow> rows,
+        ProviderPatientSortField sortField,
+        bool ascending)
+    {
         Func<ProviderPatientListRow, int> statusPriority = row =>
         {
             if (row.EntryType == "pending_request")
@@ -326,24 +511,91 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
             };
         };
 
-        filtered = (sortBy ?? "status") switch
+        return sortField switch
         {
-            "date_added" => ascending
-                ? filtered.OrderBy(x => x.RequestedAtUtc).ThenBy(x => x.PatientUserId)
-                : filtered.OrderByDescending(x => x.RequestedAtUtc).ThenBy(x => x.PatientUserId),
-            "patient_name" => ascending
-                ? filtered.OrderBy(x => x.LastName).ThenBy(x => x.FirstName)
-                : filtered.OrderByDescending(x => x.LastName).ThenByDescending(x => x.FirstName),
+            ProviderPatientSortField.DateAdded => ascending
+                ? rows.OrderBy(x => x.RequestedAtUtc).ThenBy(x => x.PatientUserId)
+                : rows.OrderByDescending(x => x.RequestedAtUtc).ThenBy(x => x.PatientUserId),
+            ProviderPatientSortField.DisplayName => ascending
+                ? rows.OrderBy(x => x.LastName).ThenBy(x => x.FirstName).ThenBy(x => x.PatientUserId)
+                : rows.OrderByDescending(x => x.LastName).ThenByDescending(x => x.FirstName)
+                    .ThenBy(x => x.PatientUserId),
             _ => ascending
-                ? filtered.OrderBy(statusPriority).ThenBy(x => x.LastName).ThenBy(x => x.FirstName)
-                : filtered.OrderByDescending(statusPriority).ThenByDescending(x => x.LastName).ThenByDescending(x => x.FirstName)
+                ? rows.OrderBy(statusPriority).ThenBy(x => x.LastName).ThenBy(x => x.FirstName)
+                : rows.OrderByDescending(statusPriority).ThenByDescending(x => x.LastName)
+                    .ThenByDescending(x => x.FirstName)
         };
+    }
 
-        var page = filtered
+    public async Task<IReadOnlyCollection<PatientSupervisionRequestListRow>> ListPatientSupervisionRequestsAsync(
+        Guid patientUserId,
+        bool ascending,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        var providerProfiles = await context.HealthcareProviderProfiles
+            .AsNoTracking()
+            .Join(context.UserProfiles.AsNoTracking(),
+                provider => provider.UserId,
+                profile => profile.Id,
+                (provider, profile) => new
+                {
+                    provider.UserId,
+                    profile.FirstName,
+                    profile.LastName,
+                    profile.ProfilePhotoStorageKey,
+                    provider.ProfessionCode,
+                    provider.OtherProfessionLabel,
+                    provider.WorkplaceLabel,
+                    provider.ShortDescription
+                })
+            .ToDictionaryAsync(x => x.UserId, cancellationToken);
+
+        IQueryable<SupervisionRequest> query = context.SupervisionRequests
+            .AsNoTracking()
+            .Where(x => x.PatientUserId == patientUserId);
+
+        query = ascending
+            ? query.OrderBy(x => x.RequestedAtUtc).ThenBy(x => x.Id)
+            : query.OrderByDescending(x => x.RequestedAtUtc).ThenByDescending(x => x.Id);
+
+        var requests = await query
             .Skip(skip)
             .Take(take + 1)
-            .ToList();
+            .Select(r => new
+            {
+                r.Id,
+                r.HealthcareProfessionalUserId,
+                r.RequestState,
+                r.RequestedAtUtc
+            })
+            .ToListAsync(cancellationToken);
 
-        return new SearchProviderPatientsResult(page, totalCount);
+        return requests
+            .Select(r =>
+            {
+                providerProfiles.TryGetValue(r.HealthcareProfessionalUserId, out var profile);
+
+                return new PatientSupervisionRequestListRow(
+                    RequestId: r.Id,
+                    HealthcareProfessionalUserId: r.HealthcareProfessionalUserId,
+                    RequestState: r.RequestState,
+                    RequestedAtUtc: r.RequestedAtUtc,
+                    ProfilePhotoStorageKey: profile?.ProfilePhotoStorageKey,
+                    FirstName: profile?.FirstName ?? string.Empty,
+                    LastName: profile?.LastName ?? string.Empty,
+                    ProfessionLabel: profile?.ProfessionCode?.ToString() ?? profile?.OtherProfessionLabel,
+                    WorkplaceLabel: profile?.WorkplaceLabel,
+                    ShortDescription: profile?.ShortDescription);
+            })
+            .ToList();
     }
+
+    public Task<int> CountPatientSupervisionRequestsAsync(
+        Guid patientUserId,
+        CancellationToken cancellationToken) =>
+        context.SupervisionRequests
+            .AsNoTracking()
+            .CountAsync(x => x.PatientUserId == patientUserId, cancellationToken);
 }

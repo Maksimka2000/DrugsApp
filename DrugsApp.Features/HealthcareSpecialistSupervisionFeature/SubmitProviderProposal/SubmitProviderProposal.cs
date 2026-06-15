@@ -1,3 +1,4 @@
+using DrugsApp.Domain.PatientSupervisionFeature;
 using DrugsApp.Domain.PatientSupervisionFeature.Entities;
 using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Domain.PatientSupervisionFeature.Interfaces;
@@ -17,13 +18,14 @@ public sealed record SubmitProviderProposalRequest(
 
 public sealed record SubmitProviderProposalCommand(
     Guid ProviderUserId,
-    Guid ConnectionId,
+    Guid PatientId,
     IReadOnlyCollection<ProposalDraftItemDto> DraftItems)
     : IRequest<ErrorOr<SubmitProviderProposalResponseDto>>;
 
 internal sealed class SubmitProviderProposalHandler(
     IHealthcareProviderProfileRepository healthcareProviderProfileRepository,
     ISupervisionConnectionRepository supervisionConnectionRepository,
+    IProposalDraftItemComposer proposalDraftItemComposer,
     IMedicalChangeProposalDraftValidationService draftValidationService,
     IMedicalChangeProposalRepository proposalRepository,
     INotificationProjectionService notificationProjectionService)
@@ -42,20 +44,20 @@ internal sealed class SubmitProviderProposalHandler(
             return profileGuard.Errors;
         }
 
-        SupervisionConnection? connection = await supervisionConnectionRepository.GetByIdForProviderAsync(
+        SupervisionConnection? connection = await supervisionConnectionRepository.GetActiveForProviderAndPatientAsync(
             command.ProviderUserId,
-            command.ConnectionId,
+            command.PatientId,
             track: false,
             cancellationToken);
 
-        if (connection is null || connection.ConnectionState != SupervisionConnectionState.Active)
+        if (connection is null)
         {
             return Error.NotFound(
-                description: "Active supervision connection not found.",
+                description: "Active supervision connection not found for patient.",
                 metadata: new()
                 {
                     ["resourceType"] = "SupervisionConnection",
-                    ["resourceId"] = command.ConnectionId.ToString()
+                    ["resourceId"] = command.PatientId.ToString()
                 });
         }
 
@@ -64,14 +66,22 @@ internal sealed class SubmitProviderProposalHandler(
             return Error.Forbidden(description: "Provider lacks modify access level.");
         }
 
-        IReadOnlyCollection<ProposalDraftItem> draftItems = command.DraftItems
-            .Select((item, index) => new ProposalDraftItem(
-                Enum.Parse<MedicalChangeProposalCategory>(item.CategoryCode, ignoreCase: true),
-                Enum.Parse<MedicalChangeProposalSource>(item.Source, ignoreCase: true),
-                item.RelatedCatalogId,
-                item.CustomValue,
-                item.ApplyPayload,
-                item.IntakeTimes))
+        IReadOnlyCollection<ProposalDraftItemInput> draftInputs = command.DraftItems
+            .Select(item => item.MapToInput())
+            .ToArray();
+
+        ErrorOr<IReadOnlyCollection<ComposedProposalDraftItem>> composedResult =
+            await proposalDraftItemComposer.ComposeAsync(
+                connection.PatientUserId,
+                draftInputs,
+                cancellationToken);
+        if (composedResult.IsError)
+        {
+            return composedResult.Errors;
+        }
+
+        IReadOnlyCollection<ProposalDraftItem> draftItems = composedResult.Value
+            .Select(item => item.Draft)
             .ToArray();
 
         ErrorOr<Success> validationResult = await draftValidationService.ValidateAsync(
@@ -85,14 +95,11 @@ internal sealed class SubmitProviderProposalHandler(
 
         DateTime nowUtc = DateTime.UtcNow;
 
-        // Build items
         List<MedicalChangeProposalItem> items = new();
-        foreach ((ProposalDraftItem item, int idx) draft in draftItems.Select((item, idx) => (item, idx)))
+        foreach ((ComposedProposalDraftItem composed, int idx) entry in composedResult.Value.Select((item, idx) => (item, idx)))
         {
-            // Placeholder mapping until real display names and details are wired
-            string displayName = draft.item.CustomValue ?? draft.item.CategoryCode.ToString();
-            string? secondaryText = null;
-            var intakeTimes = (draft.item.IntakeTimes ?? Array.Empty<TimeOnly>())
+            ProposalDraftItem draft = entry.composed.Draft;
+            var intakeTimes = (draft.IntakeTimes ?? Array.Empty<TimeOnly>())
                 .Select(time => MedicalChangeProposalItemIntakeTime.Create(Guid.Empty, time))
                 .Select(result => result.Match(
                     success => success,
@@ -101,17 +108,17 @@ internal sealed class SubmitProviderProposalHandler(
 
             ErrorOr<MedicalChangeProposalItem> itemResult = MedicalChangeProposalItem.Create(
                 proposalId: Guid.Empty,
-                categoryCode: draft.item.CategoryCode,
-                source: draft.item.Source,
-                relatedCatalogId: draft.item.RelatedCatalogId,
-                customValue: draft.item.CustomValue,
-                displayNameSnapshot: displayName,
-                secondaryTextSnapshot: secondaryText,
-                startDate: null,
-                endDate: null,
-                note: null,
-                applyPayload: draft.item.ApplyPayload,
-                sortOrder: draft.idx,
+                categoryCode: draft.CategoryCode,
+                source: draft.Source,
+                relatedCatalogId: draft.RelatedCatalogId,
+                customValue: draft.CustomValue,
+                displayNameSnapshot: entry.composed.DisplayName,
+                secondaryTextSnapshot: null,
+                startDate: draft.StartDate,
+                endDate: draft.EndDate,
+                note: draft.Note,
+                applyPayload: draft.ApplyPayload,
+                sortOrder: entry.idx,
                 intakeTimes: intakeTimes);
 
             if (itemResult.IsError)
@@ -127,7 +134,7 @@ internal sealed class SubmitProviderProposalHandler(
             patientUserId: connection.PatientUserId,
             healthcareProfessionalUserId: connection.HealthcareProfessionalUserId,
             accessLevelSnapshot: connection.AccessLevelCode,
-            proposalSummary: $"Proposal submitted on {nowUtc:O}",
+            proposalSummary: BuildProposalSummary(items),
             submittedAtUtc: nowUtc,
             items: items);
 
@@ -138,7 +145,6 @@ internal sealed class SubmitProviderProposalHandler(
 
         MedicalChangeProposal proposal = proposalResult.Value;
 
-        // Back-fill generated IDs into children before persistence.
         foreach (MedicalChangeProposalItem item in items)
         {
             item.BindToProposal(proposal.Id);
@@ -166,5 +172,15 @@ internal sealed class SubmitProviderProposalHandler(
             ProposalState: proposal.ProposalState.ToString(),
             SubmittedAtUtc: proposal.SubmittedAtUtc,
             ProposalSummary: proposal.ProposalSummary);
+    }
+
+    private static string BuildProposalSummary(IReadOnlyCollection<MedicalChangeProposalItem> items)
+    {
+        if (items.Count == 1)
+        {
+            return $"Proposed addition: {items.First().DisplayNameSnapshot}";
+        }
+
+        return $"Proposed {items.Count} medical additions";
     }
 }

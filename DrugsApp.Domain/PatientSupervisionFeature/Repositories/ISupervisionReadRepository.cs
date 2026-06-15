@@ -1,16 +1,27 @@
 using DrugsApp.Domain.PatientSupervisionFeature.Entities;
 
+using DrugsApp.Domain.PatientSupervisionFeature.Enums;
+
 namespace DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 
 public interface ISupervisionReadRepository
 {
     Task<SearchPatientHealthcareProfessionalsResult> SearchPatientHealthcareProfessionalsAsync(
         Guid patientUserId,
-        string? relationshipState,
-        string? sortBy,
+        string? searchQuery,
+        PatientHealthcareProfessionalSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
+        PatientHealthcareProfessionalSortField sortField,
         bool ascending,
         int skip,
         int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountPatientHealthcareProfessionalsAsync(
+        Guid patientUserId,
+        string? searchQuery,
+        PatientHealthcareProfessionalSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
         CancellationToken cancellationToken);
 
     Task<PatientHealthcareProfessionalDetail?> GetPatientHealthcareProfessionalDetailAsync(
@@ -20,11 +31,31 @@ public interface ISupervisionReadRepository
 
     Task<SearchProviderPatientsResult> SearchProviderPatientsAsync(
         Guid providerUserId,
-        string? relationshipState,
-        string? sortBy,
+        string? searchQuery,
+        ProviderPatientSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
+        ProviderPatientSortField sortField,
         bool ascending,
         int skip,
         int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountProviderPatientsAsync(
+        Guid providerUserId,
+        string? searchQuery,
+        ProviderPatientSearchField searchField,
+        IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? statuses,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyCollection<PatientSupervisionRequestListRow>> ListPatientSupervisionRequestsAsync(
+        Guid patientUserId,
+        bool ascending,
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountPatientSupervisionRequestsAsync(
+        Guid patientUserId,
         CancellationToken cancellationToken);
 }
 
@@ -35,6 +66,7 @@ public sealed record PatientHealthcareProfessionalListRow(
     Guid? ConnectionId,
     string RelationshipState,
     string? AccessLevelCode,
+    string Email,
     string FirstName,
     string LastName,
     string? ProfessionLabel,
@@ -44,11 +76,11 @@ public sealed record PatientHealthcareProfessionalListRow(
     int? PendingProposalCount,
     DateTime RequestedAtUtc,
     DateTime? ApprovedAtUtc,
-    bool HasProfilePhoto);
+    string? ProfilePhotoStorageKey);
 
 public sealed record PatientHealthcareProfessionalDetail(
     Guid HealthcareProfessionalUserId,
-    bool HasProfilePhoto,
+    string? ProfilePhotoStorageKey,
     string FirstName,
     string LastName,
     string? ProfessionLabel,
@@ -72,6 +104,7 @@ public sealed record ProviderPatientListRow(
     Guid? ConnectionId,
     string RelationshipState,
     string? AccessLevelCode,
+    string Email,
     string FirstName,
     string LastName,
     bool HasProfilePhoto,
@@ -81,3 +114,15 @@ public sealed record ProviderPatientListRow(
 public sealed record SearchProviderPatientsResult(
     IReadOnlyCollection<ProviderPatientListRow> Items,
     int TotalCount);
+
+public sealed record PatientSupervisionRequestListRow(
+    Guid RequestId,
+    Guid HealthcareProfessionalUserId,
+    SupervisionRequestState RequestState,
+    DateTime RequestedAtUtc,
+    string? ProfilePhotoStorageKey,
+    string FirstName,
+    string LastName,
+    string? ProfessionLabel,
+    string? WorkplaceLabel,
+    string? ShortDescription);

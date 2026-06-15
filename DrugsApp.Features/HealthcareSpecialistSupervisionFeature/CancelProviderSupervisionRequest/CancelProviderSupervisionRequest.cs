@@ -1,27 +1,28 @@
-using DrugsApp.Domain.PatientSupervisionFeature.Entities;
-using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 using DrugsApp.Domain.NotificationsFeature.Interfaces;
+using DrugsApp.Domain.PatientSupervisionFeature.Entities;
+using DrugsApp.Domain.PatientSupervisionFeature.Enums;
+using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
 using DrugsApp.Features.HealthcareSpecialistSupervisionFeature.Shared;
 using DrugsApp.Features.PatientSupervisionFeature.Shared;
 using ErrorOr;
 using MediatR;
 
-namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CancelProviderRequest;
+namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CancelProviderSupervisionRequest;
 
-public sealed record CancelProviderRequestRequest(Guid RequestId);
+public sealed record CancelProviderSupervisionRequestRequest(Guid RequestId);
 
-public sealed record CancelProviderRequestCommand(Guid ProviderUserId, Guid RequestId)
-    : IRequest<ErrorOr<CancelProviderRequestResponseDto>>;
+public sealed record CancelProviderSupervisionRequestCommand(Guid ProviderUserId, Guid RequestId)
+    : IRequest<ErrorOr<CancelProviderSupervisionRequestResponseDto>>;
 
-internal sealed class CancelProviderRequestHandler(
-    IHealthcareProviderProfileRepository healthcareProviderProfileRepository,
+internal sealed class CancelProviderSupervisionRequestHandler(
     ISupervisionRequestRepository supervisionRequestRepository,
+    IHealthcareProviderProfileRepository healthcareProviderProfileRepository,
     INotificationProjectionService notificationProjectionService)
-    : IRequestHandler<CancelProviderRequestCommand, ErrorOr<CancelProviderRequestResponseDto>>
+    : IRequestHandler<CancelProviderSupervisionRequestCommand, ErrorOr<CancelProviderSupervisionRequestResponseDto>>
 {
-    public async Task<ErrorOr<CancelProviderRequestResponseDto>> Handle(
-        CancelProviderRequestCommand command,
+    public async Task<ErrorOr<CancelProviderSupervisionRequestResponseDto>> Handle(
+        CancelProviderSupervisionRequestCommand command,
         CancellationToken cancellationToken)
     {
         ErrorOr<Success> profileGuard = await HealthcareProviderProfileGuard.EnsureExistsAsync(
@@ -51,6 +52,20 @@ internal sealed class CancelProviderRequestHandler(
         }
 
         DateTime nowUtc = DateTime.UtcNow;
+
+        if (request.RequestState != SupervisionRequestState.Pending)
+        {
+            string finalState = request.RequestState.ToString();
+            DateTime resolvedAtUtc = request.ResolvedAtUtc ?? nowUtc;
+
+            supervisionRequestRepository.Delete(request);
+
+            return new CancelProviderSupervisionRequestResponseDto(
+                RequestId: request.Id,
+                RequestState: finalState,
+                ResolvedAtUtc: resolvedAtUtc);
+        }
+
         ErrorOr<Success> cancelResult = request.Cancel(nowUtc, command.ProviderUserId);
         if (cancelResult.IsError)
         {
@@ -68,9 +83,12 @@ internal sealed class CancelProviderRequestHandler(
             return syncResult.Errors;
         }
 
-        return new CancelProviderRequestResponseDto(
+        string resolvedState = request.RequestState.ToString();
+        supervisionRequestRepository.Delete(request);
+
+        return new CancelProviderSupervisionRequestResponseDto(
             RequestId: request.Id,
-            RequestState: request.RequestState.ToString(),
+            RequestState: resolvedState,
             ResolvedAtUtc: nowUtc);
     }
 }

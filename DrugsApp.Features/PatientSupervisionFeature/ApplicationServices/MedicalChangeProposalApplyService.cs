@@ -47,7 +47,6 @@ public sealed class MedicalChangeProposalApplyService(
     IFoodRepository foodRepository,
     IClientRegularFoodRepository clientRegularFoodRepository,
     ISupplementRepository supplementRepository,
-    IClientOwnSupplementRepository clientOwnSupplementRepository,
     IClientRegularSupplementRepository clientRegularSupplementRepository,
     IClientDrugAllergyRepository clientDrugAllergyRepository,
     IClientSupplementAllergyRepository clientSupplementAllergyRepository,
@@ -59,42 +58,38 @@ public sealed class MedicalChangeProposalApplyService(
     IHealthConditionRepository healthConditionRepository,
     IDrugProblemRepository drugProblemRepository,
     IUserProfileRepository userProfileRepository,
-    IReproductiveHealthProfileApplicationService reproductiveHealthProfileApplicationService) : IMedicalChangeProposalApplyService
+    IReproductiveHealthProfileApplicationService reproductiveHealthProfileApplicationService,
+    MedicalChangeProposalApplyRequestResolver applyRequestResolver) : IMedicalChangeProposalApplyService
 {
+    private sealed class RegularIntakeApplyCounts
+    {
+        public int RegularDrug { get; set; }
+        public int RegularSupplement { get; set; }
+        public int RegularFood { get; set; }
+    }
+
     public async Task<ErrorOr<ApplyProposalResult>> ApplyAsync(
         Guid patientUserId,
         MedicalChangeProposal proposal,
         IReadOnlyCollection<MedicalChangeProposalItem> items,
         CancellationToken cancellationToken)
     {
-        var created = new Dictionary<string, int>
-        {
-            ["regular_drug"] = 0,
-            ["regular_supplement"] = 0,
-            ["regular_food"] = 0,
-            ["allergy_drug"] = 0,
-            ["allergy_supplement"] = 0,
-            ["allergy_food"] = 0,
-            ["allergy_other"] = 0,
-            ["health_condition"] = 0,
-            ["drug_problem"] = 0,
-            ["women_specific"] = 0
-        };
+        var counts = new RegularIntakeApplyCounts();
 
         foreach (MedicalChangeProposalItem item in items)
         {
             ErrorOr<Success> applyResult = item.CategoryCode switch
             {
-                MedicalChangeProposalCategory.RegularDrug => await ApplyRegularDrugAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.RegularSupplement => await ApplyRegularSupplementAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.RegularFood => await ApplyRegularFoodAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.AllergyDrug => await ApplyDrugAllergyAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.AllergySupplement => await ApplySupplementAllergyAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.AllergyFood => await ApplyFoodAllergyAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.AllergyOther => await ApplyOtherAllergyAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.HealthCondition => await ApplyHealthConditionAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.DrugProblem => await ApplyDrugProblemAsync(patientUserId, item, created, cancellationToken),
-                MedicalChangeProposalCategory.WomenSpecific => await ApplyWomenSpecificAsync(patientUserId, item, created, cancellationToken),
+                MedicalChangeProposalCategory.RegularDrug => await ApplyRegularDrugAsync(patientUserId, item, counts, cancellationToken),
+                MedicalChangeProposalCategory.RegularSupplement => await ApplyRegularSupplementAsync(patientUserId, item, counts, cancellationToken),
+                MedicalChangeProposalCategory.RegularFood => await ApplyRegularFoodAsync(patientUserId, item, counts, cancellationToken),
+                MedicalChangeProposalCategory.AllergyDrug => await ApplyDrugAllergyAsync(patientUserId, item, cancellationToken),
+                MedicalChangeProposalCategory.AllergySupplement => await ApplySupplementAllergyAsync(patientUserId, item, cancellationToken),
+                MedicalChangeProposalCategory.AllergyFood => await ApplyFoodAllergyAsync(patientUserId, item, cancellationToken),
+                MedicalChangeProposalCategory.AllergyOther => await ApplyOtherAllergyAsync(patientUserId, item, cancellationToken),
+                MedicalChangeProposalCategory.HealthCondition => await ApplyHealthConditionAsync(patientUserId, item, cancellationToken),
+                MedicalChangeProposalCategory.DrugProblem => await ApplyDrugProblemAsync(patientUserId, item, cancellationToken),
+                MedicalChangeProposalCategory.WomenSpecific => await ApplyWomenSpecificAsync(patientUserId, item, cancellationToken),
                 _ => Error.Validation(description: $"Unsupported proposal category: {item.CategoryCode}.")
             };
 
@@ -104,87 +99,85 @@ public sealed class MedicalChangeProposalApplyService(
             }
         }
 
-        return new ApplyProposalResult(created, InvalidatedReason: null);
+        return new ApplyProposalResult(
+            counts.RegularDrug,
+            counts.RegularSupplement,
+            counts.RegularFood,
+            InvalidatedReason: null);
     }
 
     private async Task<ErrorOr<Success>> ApplyRegularDrugAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
+        RegularIntakeApplyCounts counts,
         CancellationToken cancellationToken)
     {
-        ErrorOr<CreateRegularDrugRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateRegularDrugRequest>(
-            item.ApplyPayload,
-            "apply_payload");
+        ErrorOr<CreateRegularDrugRequest> requestResult = await applyRequestResolver.ResolveRegularDrugRequestAsync(
+            item,
+            cancellationToken);
         if (requestResult.IsError)
         {
             return requestResult.Errors;
         }
 
-        CreateRegularDrugRequest request = MergeIntakeTimes(requestResult.Value, item);
         ErrorOr<RegularDrugsFeature.Shared.RegularDrugListItemDto> result = await regularDrugsApplicationService.CreateAsync(
             patientUserId,
-            request,
+            requestResult.Value,
             cancellationToken);
         if (result.IsError)
         {
             return result.Errors;
         }
 
-        created["regular_drug"]++;
+        counts.RegularDrug++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyRegularSupplementAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
+        RegularIntakeApplyCounts counts,
         CancellationToken cancellationToken)
     {
-        ErrorOr<CreateRegularSupplementRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateRegularSupplementRequest>(
-            item.ApplyPayload,
-            "apply_payload");
+        if (item.Source == MedicalChangeProposalSource.Custom)
+        {
+            return Error.Validation(
+                description: "Custom regular supplement proposals cannot be applied automatically. Use a catalog supplement (source=database).");
+        }
+
+        ErrorOr<CreateRegularSupplementRequest> requestResult = await applyRequestResolver.ResolveRegularSupplementRequestAsync(
+            patientUserId,
+            item,
+            cancellationToken);
         if (requestResult.IsError)
         {
             return requestResult.Errors;
         }
 
-        CreateRegularSupplementRequest request = MergeIntakeTimes(requestResult.Value, item);
+        CreateRegularSupplementRequest request = requestResult.Value;
         RegularSupplementSource? source = RegularSupplementMappings.MapSourceFromToken(request.Source);
         if (source is null)
         {
             return Error.Validation(description: "Invalid source value.", metadata: new() { ["field"] = "source" });
         }
 
-        Guid? supplementId = null;
-        Guid? ownSupplementId = null;
-
-        if (source == RegularSupplementSource.Database)
+        if (source != RegularSupplementSource.Database)
         {
-            supplementId = request.SupplementId!.Value;
-            Supplement? supplement = await supplementRepository.GetByIdAsync(supplementId.Value, cancellationToken);
-            if (supplement is null)
-            {
-                return Error.NotFound(description: "Supplement not found.");
-            }
+            return Error.Validation(description: "Only catalog supplements can be applied from proposals.");
         }
-        else
+
+        Guid supplementId = request.SupplementId!.Value;
+        Supplement? supplement = await supplementRepository.GetByIdAsync(supplementId, cancellationToken);
+        if (supplement is null)
         {
-            ownSupplementId = request.OwnSupplementId!.Value;
-            if (await clientOwnSupplementRepository.GetByIdForUserWithMembersAsync(
-                    patientUserId,
-                    ownSupplementId.Value,
-                    cancellationToken) is null)
-            {
-                return Error.NotFound(description: "Own supplement not found.");
-            }
+            return Error.NotFound(description: "Supplement not found.");
         }
 
         if (await clientRegularSupplementRepository.ExistsLiveDuplicateForUserAsync(
                 patientUserId,
                 source.Value,
                 supplementId,
-                ownSupplementId,
+                ownSupplementId: null,
                 excludeId: null,
                 cancellationToken))
         {
@@ -196,7 +189,7 @@ public sealed class MedicalChangeProposalApplyService(
             patientUserId,
             source.Value,
             supplementId,
-            ownSupplementId,
+            ownSupplementId: null,
             request.StartDate,
             request.EndDate,
             request.IntakeTimes,
@@ -206,40 +199,28 @@ public sealed class MedicalChangeProposalApplyService(
             return createdEntity.Errors;
         }
 
-        if (source == RegularSupplementSource.Database)
-        {
-            Supplement supplement = (await supplementRepository.GetByIdAsync(supplementId!.Value, cancellationToken))!;
-            createdEntity.Value.AttachCatalogReference(supplement);
-        }
-        else
-        {
-            ClientOwnSupplement ownSupplement = (await clientOwnSupplementRepository.GetByIdForUserWithMembersAsync(
-                patientUserId,
-                ownSupplementId!.Value,
-                cancellationToken))!;
-            createdEntity.Value.AttachOwnSupplementReference(ownSupplement);
-        }
+        createdEntity.Value.AttachCatalogReference(supplement);
 
         await clientRegularSupplementRepository.AddAsync(createdEntity.Value, cancellationToken);
-        created["regular_supplement"]++;
+        counts.RegularSupplement++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyRegularFoodAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
+        RegularIntakeApplyCounts counts,
         CancellationToken cancellationToken)
     {
-        ErrorOr<CreateRegularFoodRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateRegularFoodRequest>(
-            item.ApplyPayload,
-            "apply_payload");
+        ErrorOr<CreateRegularFoodRequest> requestResult = await applyRequestResolver.ResolveRegularFoodRequestAsync(
+            item,
+            cancellationToken);
         if (requestResult.IsError)
         {
             return requestResult.Errors;
         }
 
-        CreateRegularFoodRequest request = MergeIntakeTimes(requestResult.Value, item);
+        CreateRegularFoodRequest request = requestResult.Value;
         Food? food = await foodRepository.GetByIdAsync(request.FoodId, cancellationToken);
         if (food is null)
         {
@@ -270,14 +251,13 @@ public sealed class MedicalChangeProposalApplyService(
 
         createdEntity.Value.AttachFood(food);
         await clientRegularFoodRepository.AddAsync(createdEntity.Value, cancellationToken);
-        created["regular_food"]++;
+        counts.RegularFood++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyDrugAllergyAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
         CancellationToken cancellationToken)
     {
         ErrorOr<CreateDrugAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateDrugAllergyRequest>(
@@ -352,14 +332,12 @@ public sealed class MedicalChangeProposalApplyService(
             await clientDrugAllergyRepository.AddAsync(createdEntity.Value, cancellationToken);
         }
 
-        created["allergy_drug"]++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplySupplementAllergyAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
         CancellationToken cancellationToken)
     {
         ErrorOr<CreateSupplementAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateSupplementAllergyRequest>(
@@ -423,14 +401,12 @@ public sealed class MedicalChangeProposalApplyService(
             await clientSupplementAllergyRepository.AddAsync(createdEntity.Value, cancellationToken);
         }
 
-        created["allergy_supplement"]++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyFoodAllergyAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
         CancellationToken cancellationToken)
     {
         ErrorOr<CreateFoodAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateFoodAllergyRequest>(
@@ -494,14 +470,12 @@ public sealed class MedicalChangeProposalApplyService(
             await clientFoodAllergyRepository.AddAsync(createdEntity.Value, cancellationToken);
         }
 
-        created["allergy_food"]++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyOtherAllergyAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
         CancellationToken cancellationToken)
     {
         ErrorOr<CreateOtherAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateOtherAllergyRequest>(
@@ -532,14 +506,12 @@ public sealed class MedicalChangeProposalApplyService(
         }
 
         await clientOtherAllergyRepository.AddAsync(createdEntity.Value, cancellationToken);
-        created["allergy_other"]++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyHealthConditionAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
         CancellationToken cancellationToken)
     {
         ErrorOr<AddUserHealthConditionRequest> requestResult = MedicalChangeProposalJson.Deserialize<AddUserHealthConditionRequest>(
@@ -599,14 +571,12 @@ public sealed class MedicalChangeProposalApplyService(
             await userHealthConditionRepository.AddAsync(createdEntity.Value, cancellationToken);
         }
 
-        created["health_condition"]++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyDrugProblemAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
         CancellationToken cancellationToken)
     {
         ErrorOr<CreateDrugProblemRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateDrugProblemRequest>(
@@ -673,14 +643,12 @@ public sealed class MedicalChangeProposalApplyService(
             await drugProblemRepository.AddAsync(createdEntity.Value, cancellationToken);
         }
 
-        created["drug_problem"]++;
         return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ApplyWomenSpecificAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,
-        Dictionary<string, int> created,
         CancellationToken cancellationToken)
     {
         ErrorOr<ReproductiveHealthProfileUpsertRequest> requestResult = MedicalChangeProposalJson.Deserialize<ReproductiveHealthProfileUpsertRequest>(
@@ -705,68 +673,7 @@ public sealed class MedicalChangeProposalApplyService(
             return upsertResult.Errors;
         }
 
-        created["women_specific"]++;
         return Result.Success;
-    }
-
-    private static CreateRegularDrugRequest MergeIntakeTimes(
-        CreateRegularDrugRequest request,
-        MedicalChangeProposalItem item)
-    {
-        if (request.IntakeTimes is { Count: > 0 })
-        {
-            return request;
-        }
-
-        if (item.IntakeTimes.Count == 0)
-        {
-            return request;
-        }
-
-        return request with
-        {
-            IntakeTimes = item.IntakeTimes.Select(intake => intake.IntakeTime).ToArray()
-        };
-    }
-
-    private static CreateRegularFoodRequest MergeIntakeTimes(
-        CreateRegularFoodRequest request,
-        MedicalChangeProposalItem item)
-    {
-        if (request.IntakeTimes is { Count: > 0 })
-        {
-            return request;
-        }
-
-        if (item.IntakeTimes.Count == 0)
-        {
-            return request;
-        }
-
-        return request with
-        {
-            IntakeTimes = item.IntakeTimes.Select(intake => intake.IntakeTime).ToArray()
-        };
-    }
-
-    private static CreateRegularSupplementRequest MergeIntakeTimes(
-        CreateRegularSupplementRequest request,
-        MedicalChangeProposalItem item)
-    {
-        if (request.IntakeTimes is { Count: > 0 })
-        {
-            return request;
-        }
-
-        if (item.IntakeTimes.Count == 0)
-        {
-            return request;
-        }
-
-        return request with
-        {
-            IntakeTimes = item.IntakeTimes.Select(intake => intake.IntakeTime).ToArray()
-        };
     }
 
     private static string NormalizeName(string value)

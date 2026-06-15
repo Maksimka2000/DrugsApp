@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.RemoveSupervisionConnectio
 
 [ApiController]
 [Route("api/supervision/connections")]
-[Tags("Supervision request")]
+[Tags("Supervision Shared Connection")]
 public sealed class RemoveSupervisionConnectionController(
     IMediator mediator,
     IValidator<RemoveSupervisionConnectionRequest> validator) : ControllerBase

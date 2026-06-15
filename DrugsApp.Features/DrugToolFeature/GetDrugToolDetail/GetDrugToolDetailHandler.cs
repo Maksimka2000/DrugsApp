@@ -21,8 +21,7 @@ internal sealed class GetDrugToolDetailHandler(
         }
 
         ErrorOr<DrugToolDetailBuildResult> buildResult = await _drugToolDetailApplicationService.BuildAsync(
-            query.DrugId,
-            query.SelectedDrugFormId,
+            query.DrugFormId,
             query.InteractionScope,
             query.UserId,
             cancellationToken);

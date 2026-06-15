@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.UpdateSupervisionAccessLev
 
 [ApiController]
 [Route("api/supervision/connections")]
-[Tags("Supervision request")]
+[Tags("Supervision Patient Connection")]
 public sealed class UpdateSupervisionAccessLevelController(
     IMediator mediator,
     IValidator<UpdateSupervisionAccessLevelRequest> validator) : ControllerBase
@@ -25,11 +25,9 @@ public sealed class UpdateSupervisionAccessLevelController(
     [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<UpdateSupervisionAccessLevelResponseDto>> Update(
         [FromRoute] Guid connection_id,
-        [FromBody] UpdateSupervisionAccessLevelRequest body,
+        [FromBody] UpdateSupervisionAccessLevelRequest request,
         CancellationToken cancellationToken)
     {
-        UpdateSupervisionAccessLevelRequest request = body with { ConnectionId = connection_id };
-
         ValidationResult? validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -43,7 +41,7 @@ public sealed class UpdateSupervisionAccessLevelController(
 
         var command = new UpdateSupervisionAccessLevelCommand(
             PatientUserId: patientUserId,
-            ConnectionId: request.ConnectionId,
+            ConnectionId: connection_id,
             AccessLevelCode: request.AccessLevelCode);
 
         ErrorOr<UpdateSupervisionAccessLevelResponseDto> result = await mediator.Send(command, cancellationToken);

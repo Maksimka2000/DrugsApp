@@ -67,8 +67,10 @@ public static class DependencyInjection
         services.AddScoped<IRegularSupplementExpirationApplicationService, RegularSupplementExpirationApplicationService>();
         services.AddScoped<IClientOwnSupplementDeletionApplicationService, ClientOwnSupplementDeletionApplicationService>();
         services.AddScoped<IMedicalChangeProposalApplyService, MedicalChangeProposalApplyService>();
+        services.AddScoped<MedicalChangeProposalApplyRequestResolver>();
         services.AddScoped<IMedicalChangeProposalDraftValidationService, MedicalChangeProposalDraftValidationService>();
-        services.AddScoped<IProviderPatientMedicalSummaryReadService, ProviderPatientMedicalSummaryReadService>();
+        services.AddScoped<IProposalDraftItemComposer, ProposalDraftItemComposer>();
+        services.AddScoped<IPatientMedicalProfileReadService, PatientMedicalProfileReadService>();
         services.AddScoped<IAdminUserManagementApplicationService, AdminUserManagementApplicationService>();
         services.AddScoped<IClientUserManagementApplicationService, ClientUserManagementApplicationService>();
         services.AddScoped<IClientAccountAdminDeletionService, ClientAccountAdminDeletionService>();

@@ -6,7 +6,7 @@ public sealed class GetProviderPatientDetailRequestValidator : AbstractValidator
 {
     public GetProviderPatientDetailRequestValidator()
     {
-        RuleFor(x => x.ConnectionId)
+        RuleFor(x => x.PatientId)
             .NotEmpty();
     }
 }

@@ -35,7 +35,7 @@ internal sealed class GetPatientHealthcareProfessionalHandler(ISupervisionReadRe
 
         return new PatientHealthcareProfessionalDetailDto(
             detail.HealthcareProfessionalUserId,
-            detail.HasProfilePhoto,
+            detail.ProfilePhotoStorageKey is not null,
             detail.FirstName,
             detail.LastName,
             detail.ProfessionLabel,

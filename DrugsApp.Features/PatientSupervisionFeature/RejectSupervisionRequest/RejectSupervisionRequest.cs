@@ -56,9 +56,13 @@ internal sealed class RejectSupervisionRequestHandler(
             return syncResult.Errors;
         }
 
+        Guid requestId = request.Id;
+        string requestState = request.RequestState.ToString();
+        supervisionRequestRepository.Delete(request);
+
         return new RejectSupervisionRequestResponseDto(
-            RequestId: request.Id,
-            RequestState: request.RequestState.ToString(),
+            RequestId: requestId,
+            RequestState: requestState,
             ResolvedAtUtc: nowUtc);
     }
 }
