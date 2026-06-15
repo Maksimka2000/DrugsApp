@@ -11,6 +11,7 @@ public enum UserNotificationType
     MedicalChangeProposal,
     SupervisionRemovedByDoctor,
     SupervisionRemovedByPatient,
+    SupervisionAccessLevelChanged,
     SystemAnnouncement,
     WeeklyHealthDataReminder,
     EmailVerificationPrompt,

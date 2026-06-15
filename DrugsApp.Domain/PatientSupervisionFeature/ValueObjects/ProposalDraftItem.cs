@@ -11,4 +11,7 @@ public sealed record ProposalDraftItem(
     Guid? RelatedCatalogId,
     string? CustomValue,
     string ApplyPayload,
-    IReadOnlyCollection<TimeOnly>? IntakeTimes);
+    IReadOnlyCollection<TimeOnly>? IntakeTimes,
+    DateOnly? StartDate = null,
+    DateOnly? EndDate = null,
+    string? Note = null);

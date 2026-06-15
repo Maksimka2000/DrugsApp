@@ -8,6 +8,19 @@ namespace DrugsApp.Infrastructure.Repositories.PatientSupervisionFeature;
 
 public sealed class SupervisionRequestRepository(DrugsAppDbContext context) : ISupervisionRequestRepository
 {
+    public async Task<SupervisionRequest?> GetByIdAsync(Guid requestId, bool track, CancellationToken cancellationToken)
+    {
+        IQueryable<SupervisionRequest> query = context.SupervisionRequests;
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query
+            .Where(x => x.Id == requestId)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<SupervisionRequest?> GetByIdForPatientAsync(Guid patientUserId, Guid requestId, bool track, CancellationToken cancellationToken)
     {
         IQueryable<SupervisionRequest> query = context.SupervisionRequests;
@@ -58,5 +71,10 @@ public sealed class SupervisionRequestRepository(DrugsAppDbContext context) : IS
     public async Task AddAsync(SupervisionRequest request, CancellationToken cancellationToken)
     {
         await context.SupervisionRequests.AddAsync(request, cancellationToken);
+    }
+
+    public void Delete(SupervisionRequest request)
+    {
+        context.SupervisionRequests.Remove(request);
     }
 }

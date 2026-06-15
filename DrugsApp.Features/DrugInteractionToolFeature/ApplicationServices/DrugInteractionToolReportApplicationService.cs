@@ -1083,7 +1083,7 @@ public sealed class DrugInteractionToolReportApplicationService(
             AllOther: allOther);
     }
 
-    private OralGuidanceSubsectionReadModel BuildOralGuidanceSubsection(
+    private OralGuidanceSubsectionReadModel? BuildOralGuidanceSubsection(
         DrugFormSelection selection,
         ReportCompositionContext context,
         IReadOnlyCollection<ClientMealTime> mealTimes)
@@ -1097,12 +1097,15 @@ public sealed class DrugInteractionToolReportApplicationService(
 
         var guidanceRows = selection.Drug.ActiveSubstances
             .Where(substance => selection.Form.IsOral)
+            .Where(substance =>
+                context.ActiveSubstanceById.TryGetValue(substance.Id, out ActiveSubstance? loaded)
+                && loaded.OralMedicationIntakeGuidelines is not null)
             .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
             .Select(substance =>
             {
-                string guidance = context.ActiveSubstanceById.TryGetValue(substance.Id, out ActiveSubstance? loaded)
-                    ? DrugInteractionToolReportMapping.FormatOralGuidanceText(loaded.OralMedicationIntakeGuidelines)
-                    : string.Empty;
+                ActiveSubstance loaded = context.ActiveSubstanceById[substance.Id];
+                OralMedicationIntakeGuidelines guidelines = loaded.OralMedicationIntakeGuidelines!;
+                string guidance = DrugInteractionToolReportMapping.FormatOralGuidanceText(guidelines);
 
                 return new ActiveSubstanceOralGuidanceRowReadModel(
                     ActiveSubstanceId: substance.Id,
@@ -1111,6 +1114,11 @@ public sealed class DrugInteractionToolReportApplicationService(
                     DisplayLine: $"{substance.ActiveSubstanceName}: {guidance}");
             })
             .ToList();
+
+        if (guidanceRows.Count == 0)
+        {
+            return null;
+        }
 
         return new OralGuidanceSubsectionReadModel(
             HeadlineText: DrugInteractionToolHeadlines.OralGuidanceMealBlock,

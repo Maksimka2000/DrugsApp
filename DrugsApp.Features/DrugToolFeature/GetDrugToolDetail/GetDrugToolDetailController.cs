@@ -14,13 +14,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DrugsApp.Features.DrugToolFeature.GetDrugToolDetail;
 
-public sealed record GetDrugToolDetailRequest(
-    Guid? SelectedDrugFormId,
-    string InteractionScope = "all");
+public sealed record GetDrugToolDetailRequest(string InteractionScope = "all");
 
 public sealed record GetDrugToolDetailQuery(
-    Guid DrugId,
-    Guid? SelectedDrugFormId,
+    Guid DrugFormId,
     DrugToolInteractionScope InteractionScope,
     Guid UserId) : IRequest<ErrorOr<GetDrugToolDetailResponse>>;
 
@@ -34,20 +31,18 @@ public sealed class GetDrugToolDetailController(
 {
     public const string RouteName = "GetDrugToolDetail";
 
-    [HttpGet("{drug_id:guid}", Name = RouteName)]
+    [HttpGet("{drug_form_id:guid}", Name = RouteName)]
     [ProducesResponseType(typeof(GetDrugToolDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<GetDrugToolDetailResponse>> Get(
-        [FromRoute(Name = "drug_id")] Guid drugId,
-        [FromQuery(Name = "selected_drug_form_id")] Guid? selectedDrugFormId,
+        [FromRoute(Name = "drug_form_id")] Guid drugFormId,
         [FromQuery(Name = "interaction_scope")] string? interactionScope,
         CancellationToken cancellationToken)
     {
         GetDrugToolDetailRequest request = new(
-            selectedDrugFormId,
             string.IsNullOrWhiteSpace(interactionScope) ? "all" : interactionScope);
 
         ValidationResult validationResult = await _validator.ValidateAsync(request, cancellationToken);
@@ -63,8 +58,7 @@ public sealed class GetDrugToolDetailController(
         }
 
         GetDrugToolDetailQuery query = GetDrugToolDetailMapping.MapToQuery(
-            drugId,
-            request.SelectedDrugFormId,
+            drugFormId,
             request.InteractionScope,
             userId);
 

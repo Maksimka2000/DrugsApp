@@ -21,13 +21,13 @@ public sealed class GetProviderPatientDetailController(
 {
     public const string RouteName = "GetProviderPatientDetail";
 
-    [HttpGet("{connection_id:guid}", Name = RouteName)]
+    [HttpGet("{patient_id:guid}", Name = RouteName)]
     [Authorize(Roles = AuthRoles.HealthcareProvider)]
     public async Task<ActionResult<ProviderPatientDetailResponse>> Get(
-        [FromRoute] Guid connection_id,
+        [FromRoute] Guid patient_id,
         CancellationToken cancellationToken)
     {
-        var request = new GetProviderPatientDetailRequest(connection_id);
+        var request = new GetProviderPatientDetailRequest(patient_id);
 
         ValidationResult? validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
@@ -35,9 +35,12 @@ public sealed class GetProviderPatientDetailController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var providerUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid providerUserId))
+        {
+            return Unauthorized();
+        }
 
-        var query = new GetProviderPatientDetailQuery(providerUserId, connection_id);
+        var query = new GetProviderPatientDetailQuery(providerUserId, patient_id);
         ErrorOr<ProviderPatientDetailResponse> result = await mediator.Send(query, cancellationToken);
 
         return result.Match<ActionResult<ProviderPatientDetailResponse>>(

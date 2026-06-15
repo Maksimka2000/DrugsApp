@@ -248,38 +248,24 @@ public sealed class PatientSupervisionNotificationReadService(
 
 
 
-        IReadOnlyList<MedicalChangeProposalSectionDetail> sections = detail.Sections
-
-            .Select(section =>
-
+        IReadOnlyList<MedicalChangeProposalSectionDetail> sections = detail.DraftItems
+            .GroupBy(item => item.CategoryCode)
+            .Select(group =>
             {
-
                 string summaryText = string.Join(
-
                     ", ",
-
-                    section.Items.Select(i => i.DisplayName).Where(n => !string.IsNullOrWhiteSpace(n)));
+                    group.Select(i => i.DisplayName).Where(n => !string.IsNullOrWhiteSpace(n)));
 
                 if (string.IsNullOrWhiteSpace(summaryText))
-
                 {
-
                     summaryText = "No items";
-
                 }
 
-
-
                 return new MedicalChangeProposalSectionDetail(
-
-                    SectionCode: section.SectionCode,
-
-                    SectionTitle: section.SectionCode,
-
+                    SectionCode: group.Key,
+                    SectionTitle: group.Key,
                     SummaryText: summaryText);
-
             })
-
             .ToList();
 
 

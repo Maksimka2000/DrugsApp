@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ApproveSupervisionRequest;
 
 [ApiController]
 [Route("api/supervision/requests")]
-[Tags("Supervision Patient")]
+[Tags("Supervision Patient Connection")]
 public sealed class ApproveSupervisionRequestController(
     IMediator mediator,
     IValidator<ApproveSupervisionRequestRequest> validator) : ControllerBase
@@ -22,26 +22,26 @@ public sealed class ApproveSupervisionRequestController(
     public const string RouteName = "ApproveSupervisionRequest";
 
     [HttpPost("{request_id:guid}/approve", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.MemberRoles)]
+    [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<ApproveSupervisionRequestResponseDto>> Approve(
         [FromRoute] Guid request_id,
-        [FromBody] ApproveSupervisionRequestRequest body,
+        [FromBody] ApproveSupervisionRequestRequest request,
         CancellationToken cancellationToken)
     {
-        // merge route id into request
-        ApproveSupervisionRequestRequest request = body with { RequestId = request_id };
-
         ValidationResult? validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         var command = new ApproveSupervisionRequestCommand(
             PatientUserId: patientUserId,
-            RequestId: request.RequestId,
+            RequestId: request_id,
             AccessLevelCode: request.AccessLevelCode);
 
         ErrorOr<ApproveSupervisionRequestResponseDto> result = await mediator.Send(command, cancellationToken);

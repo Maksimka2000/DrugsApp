@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.SubmitProviderProposal;
 
 [ApiController]
-[Route("api/supervision/provider/patients/{connection_id:guid}/proposals")]
+[Route("api/supervision/provider/patients/{patient_id:guid}/proposals")]
 [Tags("Supervision Healthcare Specialist")]
 public sealed class SubmitProviderProposalController(
     IMediator mediator,
@@ -23,7 +23,7 @@ public sealed class SubmitProviderProposalController(
     [HttpPost(Name = RouteName)]
     [Authorize(Roles = AuthRoles.HealthcareProvider)]
     public async Task<ActionResult<SubmitProviderProposalResponseDto>> Submit(
-        [FromRoute(Name = "connection_id")] Guid connectionId,
+        [FromRoute(Name = "patient_id")] Guid patientId,
         [FromBody] SubmitProviderProposalRequest request,
         CancellationToken cancellationToken)
     {
@@ -33,9 +33,12 @@ public sealed class SubmitProviderProposalController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var providerUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid providerUserId))
+        {
+            return Unauthorized();
+        }
 
-        SubmitProviderProposalCommand command = request.MapToCommand(providerUserId, connectionId);
+        SubmitProviderProposalCommand command = request.MapToCommand(providerUserId, patientId);
 
         ErrorOr<SubmitProviderProposalResponseDto> result = await mediator.Send(command, cancellationToken);
 

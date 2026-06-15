@@ -149,59 +149,23 @@ internal static class DrugInteractionToolReportMapping
         DrugTargetSummaryReadModel rightDrug) =>
         $"{leftDrug.DrugSummaryText} => {rightDrug.DrugSummaryText}";
 
-    internal static string FormatOralGuidanceText(OralMedicationIntakeGuidelines? guidelines)
+    internal static string FormatOralGuidanceText(OralMedicationIntakeGuidelines guidelines)
     {
-        if (guidelines is null)
-        {
-            return string.Empty;
-        }
-
-        var segments = new List<string>
-        {
-            $"food intake: {guidelines.FoodIntakeType}"
-        };
-
-        if (guidelines.WaitBeforeMinutes is not null)
-        {
-            segments.Add($"wait before meal: {guidelines.WaitBeforeMinutes} min");
-        }
-
-        if (guidelines.WaitAfterMinutes is not null)
-        {
-            segments.Add($"wait after meal: {guidelines.WaitAfterMinutes} min");
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.MealNotes))
-        {
-            segments.Add(guidelines.MealNotes.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.AvoidFoodDrug))
-        {
-            segments.Add($"avoid with drug: {guidelines.AvoidFoodDrug.Trim()}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.AvoidFoodTherapy))
-        {
-            segments.Add($"avoid during therapy: {guidelines.AvoidFoodTherapy.Trim()}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(guidelines.LiquidNotes))
-        {
-            segments.Add(guidelines.LiquidNotes.Trim());
-        }
-
-        if (guidelines.RecommendedMorning == true)
-        {
-            segments.Add("recommended in the morning");
-        }
-
-        if (guidelines.RecommendedEvening == true)
-        {
-            segments.Add("recommended in the evening");
-        }
-
-        return string.Join("; ", segments);
+        return string.Join(
+            "; ",
+            new[]
+            {
+                $"foodIntakeType: {(int)guidelines.FoodIntakeType}",
+                $"waitBeforeMinutes: {guidelines.WaitBeforeMinutes ?? 0}",
+                $"waitAfterMinutes: {guidelines.WaitAfterMinutes ?? 0}",
+                $"mealNotes: {guidelines.MealNotes ?? string.Empty}",
+                $"avoidFoodDrug: {guidelines.AvoidFoodDrug ?? string.Empty}",
+                $"avoidFoodTherapy: {guidelines.AvoidFoodTherapy ?? string.Empty}",
+                $"liquidNotes: {guidelines.LiquidNotes ?? string.Empty}",
+                $"liquidInstructions: {(guidelines.LiquidInstructions ?? false).ToString().ToLowerInvariant()}",
+                $"recommendedMorning: {(guidelines.RecommendedMorning ?? false).ToString().ToLowerInvariant()}",
+                $"recommendedEvening: {(guidelines.RecommendedEvening ?? false).ToString().ToLowerInvariant()}",
+            });
     }
 
     internal static ReportSubsectionReadModel<TRow> BuildSubsection<TRow>(

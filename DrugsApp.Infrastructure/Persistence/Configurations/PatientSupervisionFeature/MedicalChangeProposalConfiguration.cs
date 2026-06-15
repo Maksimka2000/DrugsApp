@@ -65,5 +65,10 @@ public sealed class MedicalChangeProposalConfiguration : BaseEntityConfiguration
             .WithMany()
             .HasForeignKey(x => x.SupervisionConnectionId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(x => x.Items)
+            .WithOne()
+            .HasForeignKey(x => x.ProposalId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

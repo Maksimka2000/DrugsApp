@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using DrugsApp.Features.DrugInteractionToolFeature.Shared;
+using DrugsApp.Features.RegularDrugsFeature.Shared;
+using DrugsApp.Features.RegularFoodFeature.Shared;
+using DrugsApp.Features.RegularSupplementsFeature.Shared;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.Shared;
 
@@ -18,44 +22,50 @@ public sealed record ProviderPatientListItemDto(
 
 public sealed record ProviderPatientListResponse(
     IReadOnlyCollection<ProviderPatientListItemDto> Items,
-    int TotalCount,
-    bool HasMore);
+    int? TotalCount,
+    bool HasMore,
+    string? MatchedFieldToken,
+    List<string> MatchedFailedFieldTokens);
+
+public sealed record ProviderPatientProfileDto(
+    string? ProfilePhotoUrl,
+    string FirstName,
+    string LastName,
+    DateOnly DateOfBirth,
+    string Gender);
 
 public sealed record ProviderPatientDetailResponse(
     Guid ConnectionId,
     Guid PatientUserId,
     string AccessLevelCode,
-    PatientBasicProfileDto PatientProfile,
-    object? WomenSpecificSummary,
-    object? RegularDrugsSummary,
-    object? RegularSupplementsSummary,
-    object? RegularFoodSummary,
-    object? AllergiesSummary,
-    object? HealthConditionsSummary,
-    object? DrugProblemsSummary);
-
-public sealed record PatientBasicProfileDto(
-    bool HasProfilePhoto,
-    string FirstName,
-    string LastName);
-
-public sealed record CancelProviderRequestResponseDto(
-    Guid RequestId,
-    string RequestState,
-    DateTime ResolvedAtUtc);
+    string? AccessBlockedMessage,
+    ProviderPatientProfileDto? PatientProfile,
+    ProviderReproductiveHealthDetailDto? ReproductiveHealth,
+    HealthConditionsGroupReadModel? HealthConditions,
+    ProblematicDrugsGroupReadModel? ProblematicDrugs,
+    AllergiesGroupReadModel? Allergies,
+    IReadOnlyCollection<RegularDrugListItemDto>? RegularDrugs,
+    IReadOnlyCollection<RegularFoodListItemDto>? RegularFoods,
+    IReadOnlyCollection<RegularSupplementListItemDto>? RegularSupplements);
 
 public sealed record CreateProviderRequestResponseDto(
     Guid RequestId,
     string RequestState,
-    DateTime ExpiresAtUtc,
     DateTime RequestedAtUtc);
+
+public sealed record CancelProviderSupervisionRequestResponseDto(
+    Guid RequestId,
+    string RequestState,
+    DateTime ResolvedAtUtc);
 
 public sealed record ProposalDraftItemDto(
     string CategoryCode,
-    string Source,
+    string? Source,
     Guid? RelatedCatalogId,
     string? CustomValue,
-    string ApplyPayload,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    string? Note,
     IReadOnlyCollection<TimeOnly>? IntakeTimes);
 
 public sealed record SubmitProviderProposalResponseDto(
@@ -64,72 +74,10 @@ public sealed record SubmitProviderProposalResponseDto(
     DateTime SubmittedAtUtc,
     string ProposalSummary);
 
-public sealed record ProviderWomenSpecificSummaryDto(
+public sealed record ProviderReproductiveHealthDetailDto(
     bool HasProfile,
     bool? CurrentlyPregnant,
     bool? PlanningToGetPregnant,
     bool? PregnancyPlanningUnknown,
     bool? Menopause,
     string? ContraceptionMethodCode);
-
-public sealed record ProviderRegularDrugsSummaryDto(
-    int TotalCount,
-    IReadOnlyCollection<ProviderRegularDrugSummaryItemDto> Items);
-
-public sealed record ProviderRegularDrugSummaryItemDto(
-    Guid Id,
-    string DrugName,
-    DateOnly? StartDate,
-    DateOnly? EndDate);
-
-public sealed record ProviderRegularSupplementsSummaryDto(
-    int TotalCount,
-    IReadOnlyCollection<ProviderRegularSupplementSummaryItemDto> Items);
-
-public sealed record ProviderRegularSupplementSummaryItemDto(
-    Guid Id,
-    string DisplayName,
-    DateOnly? StartDate,
-    DateOnly? EndDate);
-
-public sealed record ProviderRegularFoodSummaryDto(
-    int TotalCount,
-    IReadOnlyCollection<ProviderRegularFoodSummaryItemDto> Items);
-
-public sealed record ProviderRegularFoodSummaryItemDto(
-    Guid Id,
-    string FoodName,
-    DateOnly? StartDate,
-    DateOnly? EndDate);
-
-public sealed record ProviderAllergiesSummaryDto(
-    ProviderAllergyGeneralSummaryDto? GeneralSummary,
-    int DrugAllergyCount,
-    int SupplementAllergyCount,
-    int FoodAllergyCount,
-    int OtherAllergyCount);
-
-public sealed record ProviderAllergyGeneralSummaryDto(
-    string? SevereReactionStatus,
-    bool? CarriesAllergyMedication,
-    string? PollenDustMitesAllergyStatus,
-    string? InsectVenomAllergyStatus,
-    string? LatexAllergyStatus);
-
-public sealed record ProviderHealthConditionsSummaryDto(
-    int TotalCount,
-    IReadOnlyCollection<ProviderHealthConditionSummaryItemDto> Items);
-
-public sealed record ProviderHealthConditionSummaryItemDto(
-    Guid Id,
-    string DisplayName,
-    string? Note);
-
-public sealed record ProviderDrugProblemsSummaryDto(
-    int TotalCount,
-    IReadOnlyCollection<ProviderDrugProblemSummaryItemDto> Items);
-
-public sealed record ProviderDrugProblemSummaryItemDto(
-    Guid Id,
-    string DisplayName,
-    string? ProblemNote);

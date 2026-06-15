@@ -5,6 +5,8 @@ namespace DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 
 public interface ISupervisionRequestRepository
 {
+    Task<SupervisionRequest?> GetByIdAsync(Guid requestId, bool track, CancellationToken cancellationToken);
+
     Task<SupervisionRequest?> GetByIdForPatientAsync(Guid patientUserId, Guid requestId, bool track, CancellationToken cancellationToken);
 
     Task<SupervisionRequest?> GetByIdForProviderAsync(Guid providerUserId, Guid requestId, bool track, CancellationToken cancellationToken);
@@ -14,4 +16,6 @@ public interface ISupervisionRequestRepository
     Task<IReadOnlyCollection<SupervisionRequest>> ListExpiredPendingBatchAsync(DateTime nowUtc, int take, CancellationToken cancellationToken);
 
     Task AddAsync(SupervisionRequest request, CancellationToken cancellationToken);
+
+    void Delete(SupervisionRequest request);
 }

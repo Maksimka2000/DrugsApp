@@ -146,7 +146,7 @@ public sealed class IdentityUserQueryRepository(DrugsAppDbContext _context) : II
             return Array.Empty<IdentityAdminUserRow>();
         }
 
-        HashSet<Guid> userIds = users.Select(user => user.Id).ToHashSet();
+        var userIds = users.Select(user => user.Id).ToHashSet();
 
         Dictionary<Guid, string> adminRolesByUserId = await (
             from userRole in _context.UserRoles.AsNoTracking()
@@ -184,7 +184,7 @@ public sealed class IdentityUserQueryRepository(DrugsAppDbContext _context) : II
             return Array.Empty<IdentityClientUserRow>();
         }
 
-        HashSet<Guid> userIds = users.Select(user => user.Id).ToHashSet();
+        var userIds = users.Select(user => user.Id).ToHashSet();
 
         List<(Guid UserId, string RoleName)> roleRows = await (
             from userRole in _context.UserRoles.AsNoTracking()
@@ -193,7 +193,7 @@ public sealed class IdentityUserQueryRepository(DrugsAppDbContext _context) : II
             select new ValueTuple<Guid, string>(userRole.UserId, role.Name!))
             .ToListAsync(cancellationToken);
 
-        Dictionary<Guid, List<string>> rolesByUserId = roleRows
+        var rolesByUserId = roleRows
             .GroupBy(row => row.UserId)
             .ToDictionary(
                 group => group.Key,

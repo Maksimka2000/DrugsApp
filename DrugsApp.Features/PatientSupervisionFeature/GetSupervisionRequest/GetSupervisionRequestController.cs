@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 namespace DrugsApp.Features.PatientSupervisionFeature.GetSupervisionRequest;
 
 [ApiController]
-[Route("api/supervision/requests")]
+[Route("api/supervision/patient/requests")]
 [Tags("Supervision Patient")]
 public sealed class GetSupervisionRequestController(
     IMediator mediator,
@@ -22,7 +22,7 @@ public sealed class GetSupervisionRequestController(
     public const string RouteName = "GetSupervisionRequest";
 
     [HttpGet("{request_id:guid}", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.MemberRoles)]
+    [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<SupervisionRequestDetailDto>> Get(
         [FromRoute] Guid request_id,
         CancellationToken cancellationToken)
@@ -35,7 +35,10 @@ public sealed class GetSupervisionRequestController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         var query = new GetSupervisionRequestQuery(patientUserId, request_id);
         ErrorOr<SupervisionRequestDetailDto> result = await mediator.Send(query, cancellationToken);

@@ -1,5 +1,9 @@
+using DrugsApp.Domain.NotificationsFeature.Interfaces;
 using DrugsApp.Domain.PatientSupervisionFeature.Entities;
+using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
+using DrugsApp.Domain.UserProfileFeature.Entities;
+using DrugsApp.Domain.UserProfileFeature.Repositories;
 using DrugsApp.Features.PatientSupervisionFeature.Shared;
 using ErrorOr;
 using MediatR;
@@ -10,23 +14,38 @@ public sealed record RemoveSupervisionConnectionRequest(Guid ConnectionId);
 
 public sealed record RemoveSupervisionConnectionCommand(
     Guid CallerUserId,
-    Guid ConnectionId,
-    bool CallerIsProvider) : IRequest<ErrorOr<RemoveSupervisionConnectionResponseDto>>;
+    Guid ConnectionId) : IRequest<ErrorOr<RemoveSupervisionConnectionResponseDto>>;
 
 internal sealed class RemoveSupervisionConnectionHandler(
     ISupervisionConnectionRepository supervisionConnectionRepository,
-    IMedicalChangeProposalRepository medicalChangeProposalRepository)
+    IMedicalChangeProposalRepository medicalChangeProposalRepository,
+    IUserProfileRepository userProfileRepository,
+    INotificationProjectionService notificationProjectionService)
     : IRequestHandler<RemoveSupervisionConnectionCommand, ErrorOr<RemoveSupervisionConnectionResponseDto>>
 {
     public async Task<ErrorOr<RemoveSupervisionConnectionResponseDto>> Handle(
         RemoveSupervisionConnectionCommand command,
         CancellationToken cancellationToken)
     {
-        SupervisionConnection? connection = command.CallerIsProvider
-            ? await supervisionConnectionRepository.GetByIdForProviderAsync(command.CallerUserId, command.ConnectionId, track: true, cancellationToken)
-            : await supervisionConnectionRepository.GetByIdForPatientAsync(command.CallerUserId, command.ConnectionId, track: true, cancellationToken);
+        SupervisionConnection? connection = await supervisionConnectionRepository.GetByIdAsync(
+            command.ConnectionId,
+            track: true,
+            cancellationToken);
 
         if (connection is null)
+        {
+            return Error.NotFound(
+                description: "Supervision connection not found.",
+                metadata: new()
+                {
+                    ["resourceType"] = "SupervisionConnection",
+                    ["resourceId"] = command.ConnectionId.ToString()
+                });
+        }
+
+        bool removedByPatient = connection.PatientUserId == command.CallerUserId;
+        bool removedByProvider = connection.HealthcareProfessionalUserId == command.CallerUserId;
+        if (!removedByPatient && !removedByProvider)
         {
             return Error.NotFound(
                 description: "Supervision connection not found for caller.",
@@ -37,22 +56,72 @@ internal sealed class RemoveSupervisionConnectionHandler(
                 });
         }
 
-        DateTime nowUtc = DateTime.UtcNow;
-        ErrorOr<Success> removeResult = connection.Remove(nowUtc);
-        if (removeResult.IsError)
+        if (connection.ConnectionState != SupervisionConnectionState.Active)
         {
-            return removeResult.Errors;
+            return Error.Conflict(description: "Connection already removed.");
         }
 
-        int invalidatedCount = await medicalChangeProposalRepository.InvalidatePendingByConnectionAsync(
-            connection.Id,
-            nowUtc,
+        DateTime nowUtc = DateTime.UtcNow;
+        Guid connectionId = connection.Id;
+
+        ErrorOr<Success> notificationResult = removedByPatient
+            ? await NotifyProviderPatientRemovedAsync(connection, cancellationToken)
+            : await NotifyPatientProviderRemovedAsync(connection, cancellationToken);
+        if (notificationResult.IsError)
+        {
+            return notificationResult.Errors;
+        }
+
+        int deletedProposalCount = await medicalChangeProposalRepository.DeleteByConnectionAsync(
+            connectionId,
             cancellationToken);
 
+        supervisionConnectionRepository.Delete(connection);
+
         return new RemoveSupervisionConnectionResponseDto(
-            ConnectionId: connection.Id,
-            ConnectionState: connection.ConnectionState.ToString(),
+            ConnectionId: connectionId,
+            ConnectionState: SupervisionConnectionState.Removed.ToString(),
             RemovedAtUtc: nowUtc,
-            InvalidatedProposalCount: invalidatedCount == 0 ? null : invalidatedCount);
+            InvalidatedProposalCount: deletedProposalCount == 0 ? null : deletedProposalCount);
+    }
+
+    private async Task<ErrorOr<Success>> NotifyProviderPatientRemovedAsync(
+        SupervisionConnection connection,
+        CancellationToken cancellationToken)
+    {
+        UserProfile? patientProfile = await userProfileRepository.GetByUserIdAsync(
+            connection.PatientUserId,
+            cancellationToken);
+        string patientSummary = patientProfile is null
+            ? "A patient"
+            : $"{patientProfile.FirstName} {patientProfile.LastName}".Trim();
+
+        return await notificationProjectionService.ProjectAsync(
+            SupervisionNotificationMappings.BuildRemovedByPatientDraft(
+                connection.HealthcareProfessionalUserId,
+                connection.Id,
+                connection.PatientUserId,
+                patientSummary),
+            cancellationToken);
+    }
+
+    private async Task<ErrorOr<Success>> NotifyPatientProviderRemovedAsync(
+        SupervisionConnection connection,
+        CancellationToken cancellationToken)
+    {
+        UserProfile? providerProfile = await userProfileRepository.GetByUserIdAsync(
+            connection.HealthcareProfessionalUserId,
+            cancellationToken);
+        string providerSummary = providerProfile is null
+            ? "A healthcare provider"
+            : $"{providerProfile.FirstName} {providerProfile.LastName}".Trim();
+
+        return await notificationProjectionService.ProjectAsync(
+            SupervisionNotificationMappings.BuildRemovedByDoctorDraft(
+                connection.PatientUserId,
+                connection.Id,
+                connection.HealthcareProfessionalUserId,
+                providerSummary),
+            cancellationToken);
     }
 }

@@ -35,7 +35,10 @@ public sealed class RejectPatientProposalController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        var patientUserId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (!User.TryGetUserId(out Guid patientUserId))
+        {
+            return Unauthorized();
+        }
 
         var command = new RejectPatientProposalCommand(patientUserId, proposal_id);
         ErrorOr<RejectPatientProposalResponseDto> result = await mediator.Send(command, cancellationToken);
