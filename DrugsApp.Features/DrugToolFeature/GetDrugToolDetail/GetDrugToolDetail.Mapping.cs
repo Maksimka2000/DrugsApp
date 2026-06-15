@@ -5,13 +5,11 @@ namespace DrugsApp.Features.DrugToolFeature.GetDrugToolDetail;
 internal static class GetDrugToolDetailMapping
 {
     public static GetDrugToolDetailQuery MapToQuery(
-        Guid drugId,
-        Guid? selectedDrugFormId,
+        Guid drugFormId,
         string interactionScope,
         Guid userId) =>
         new(
-            drugId,
-            selectedDrugFormId,
+            drugFormId,
             interactionScope == "user_only"
                 ? DrugToolInteractionScope.UserOnly
                 : DrugToolInteractionScope.All,

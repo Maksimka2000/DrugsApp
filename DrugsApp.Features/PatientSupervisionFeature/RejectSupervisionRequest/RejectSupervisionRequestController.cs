@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.RejectSupervisionRequest;
 
 [ApiController]
 [Route("api/supervision/requests")]
-[Tags("Supervision request")]
+[Tags("Supervision Patient Connection")]
 public sealed class RejectSupervisionRequestController(
     IMediator mediator,
     IValidator<RejectSupervisionRequestRequest> validator) : ControllerBase
@@ -22,7 +22,7 @@ public sealed class RejectSupervisionRequestController(
     public const string RouteName = "RejectSupervisionRequest";
 
     [HttpPost("{request_id:guid}/reject", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.MemberRoles)]
+    [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<RejectSupervisionRequestResponseDto>> Reject(
         [FromRoute] Guid request_id,
         CancellationToken cancellationToken)

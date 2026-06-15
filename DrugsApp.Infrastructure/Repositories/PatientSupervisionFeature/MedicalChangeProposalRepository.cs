@@ -1,3 +1,4 @@
+using DrugsApp.Domain.PatientSupervisionFeature;
 using DrugsApp.Domain.PatientSupervisionFeature.Entities;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
@@ -45,44 +46,22 @@ public sealed class MedicalChangeProposalRepository(DrugsAppDbContext context) :
         return rows;
     }
 
-    public async Task<MedicalChangeProposalDetail?> GetDetailForPatientAsync(Guid patientUserId, Guid proposalId, CancellationToken cancellationToken)
-    {
-        MedicalChangeProposal? proposal = await context.MedicalChangeProposals
-            .AsNoTracking()
-            .Include(p => p.Items)
-            .ThenInclude(i => i.IntakeTimes)
-            .SingleOrDefaultAsync(
-                x => x.Id == proposalId && x.PatientUserId == patientUserId,
-                cancellationToken);
+    public async Task<MedicalChangeProposalDetail?> GetDetailForPatientAsync(
+        Guid patientUserId,
+        Guid proposalId,
+        CancellationToken cancellationToken) =>
+        await LoadDetailAsync(patientUserId, proposalId, participantUserId: null, cancellationToken);
 
-        if (proposal is null)
-        {
-            return null;
-        }
+    public async Task<MedicalChangeProposalDetail?> GetDetailForParticipantAsync(
+        Guid userId,
+        Guid proposalId,
+        CancellationToken cancellationToken) =>
+        await LoadDetailAsync(patientUserId: null, proposalId, participantUserId: userId, cancellationToken);
 
-        return MapDetail(proposal);
-    }
-
-    public async Task<MedicalChangeProposalDetail?> GetDetailForParticipantAsync(Guid userId, Guid proposalId, CancellationToken cancellationToken)
-    {
-        MedicalChangeProposal? proposal = await context.MedicalChangeProposals
-            .AsNoTracking()
-            .Include(p => p.Items)
-            .ThenInclude(i => i.IntakeTimes)
-            .SingleOrDefaultAsync(
-                x => x.Id == proposalId
-                     && (x.PatientUserId == userId || x.HealthcareProfessionalUserId == userId),
-                cancellationToken);
-
-        if (proposal is null)
-        {
-            return null;
-        }
-
-        return MapDetail(proposal);
-    }
-
-    public async Task<MedicalChangeProposal?> GetTrackedDetailForPatientAsync(Guid patientUserId, Guid proposalId, CancellationToken cancellationToken)
+    public async Task<MedicalChangeProposal?> GetTrackedDetailForPatientAsync(
+        Guid patientUserId,
+        Guid proposalId,
+        CancellationToken cancellationToken)
     {
         return await context.MedicalChangeProposals
             .Include(p => p.Items)
@@ -92,7 +71,10 @@ public sealed class MedicalChangeProposalRepository(DrugsAppDbContext context) :
                 cancellationToken);
     }
 
-    public async Task<MedicalChangeProposal?> GetTrackedByIdForPatientAsync(Guid patientUserId, Guid proposalId, CancellationToken cancellationToken)
+    public async Task<MedicalChangeProposal?> GetTrackedByIdForPatientAsync(
+        Guid patientUserId,
+        Guid proposalId,
+        CancellationToken cancellationToken)
     {
         return await context.MedicalChangeProposals
             .SingleOrDefaultAsync(
@@ -114,30 +96,63 @@ public sealed class MedicalChangeProposalRepository(DrugsAppDbContext context) :
         return pending.Count;
     }
 
+    public async Task<int> DeleteByConnectionAsync(Guid connectionId, CancellationToken cancellationToken)
+    {
+        List<MedicalChangeProposal> proposals = await context.MedicalChangeProposals
+            .Where(x => x.SupervisionConnectionId == connectionId)
+            .ToListAsync(cancellationToken);
+
+        if (proposals.Count == 0)
+        {
+            return 0;
+        }
+
+        context.MedicalChangeProposals.RemoveRange(proposals);
+        return proposals.Count;
+    }
+
     public async Task AddAsync(MedicalChangeProposal proposal, CancellationToken cancellationToken)
     {
         await context.MedicalChangeProposals.AddAsync(proposal, cancellationToken);
     }
 
-    private static MedicalChangeProposalDetail MapDetail(MedicalChangeProposal proposal)
+    private async Task<MedicalChangeProposalDetail?> LoadDetailAsync(
+        Guid? patientUserId,
+        Guid proposalId,
+        Guid? participantUserId,
+        CancellationToken cancellationToken)
     {
-        var sections = proposal.Items
-            .GroupBy(x => x.CategoryCode.ToString())
-            .Select(group => new MedicalChangeProposalSectionDto(
-                group.Key,
-                group.Select(item => new MedicalChangeProposalSectionItemDto(
-                    item.CategoryCode.ToString(),
-                    item.Source.ToString(),
-                    item.RelatedCatalogId,
-                    item.CustomValue,
-                    item.DisplayNameSnapshot,
-                    item.SecondaryTextSnapshot,
-                    item.StartDate,
-                    item.EndDate,
-                    item.Note,
-                    item.IntakeTimes.Select(t => t.IntakeTime).ToList()))
-                .ToList()))
-            .ToList();
+        IQueryable<MedicalChangeProposal> query = context.MedicalChangeProposals.AsNoTracking();
+
+        if (patientUserId is Guid patientId)
+        {
+            query = query.Where(x => x.Id == proposalId && x.PatientUserId == patientId);
+        }
+        else if (participantUserId is Guid participantId)
+        {
+            query = query.Where(x => x.Id == proposalId
+                                     && (x.PatientUserId == participantId
+                                         || x.HealthcareProfessionalUserId == participantId));
+        }
+        else
+        {
+            return null;
+        }
+
+        MedicalChangeProposal? proposal = await query.SingleOrDefaultAsync(cancellationToken);
+        if (proposal is null)
+        {
+            return null;
+        }
+
+        List<MedicalChangeProposalItem> items = await context.MedicalChangeProposalItems
+            .AsNoTracking()
+            .Where(x => x.ProposalId == proposal.Id)
+            .OrderBy(x => x.SortOrder)
+            .ThenBy(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        IReadOnlyCollection<MedicalChangeProposalDraftItemDto> draftItems = await MapDraftItemsAsync(items, cancellationToken);
 
         return new MedicalChangeProposalDetail(
             proposal.Id,
@@ -147,6 +162,45 @@ public sealed class MedicalChangeProposalRepository(DrugsAppDbContext context) :
             proposal.ProposalState.ToString(),
             proposal.ProposalSummary,
             proposal.SubmittedAtUtc,
-            sections);
+            draftItems);
+    }
+
+    private async Task<IReadOnlyCollection<MedicalChangeProposalDraftItemDto>> MapDraftItemsAsync(
+        IReadOnlyCollection<MedicalChangeProposalItem> items,
+        CancellationToken cancellationToken)
+    {
+        if (items.Count == 0)
+        {
+            return Array.Empty<MedicalChangeProposalDraftItemDto>();
+        }
+
+        var itemIds = items.Select(x => x.Id).ToList();
+        List<MedicalChangeProposalItemIntakeTime> intakeTimes = await context.MedicalChangeProposalItemIntakeTimes
+            .AsNoTracking()
+            .Where(x => itemIds.Contains(x.ProposalItemId))
+            .OrderBy(x => x.IntakeTime)
+            .ToListAsync(cancellationToken);
+
+        var intakeLookup = intakeTimes
+            .GroupBy(x => x.ProposalItemId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyCollection<TimeOnly>)group.Select(x => x.IntakeTime).ToList());
+
+        return items
+            .Select(item => new MedicalChangeProposalDraftItemDto(
+                CategoryCode: MedicalChangeProposalCategoryCatalog.ToCategoryToken(item.CategoryCode),
+                Source: MedicalChangeProposalCategoryCatalog.ToSourceToken(item.Source),
+                RelatedCatalogId: item.RelatedCatalogId,
+                CustomValue: item.CustomValue,
+                DisplayName: item.DisplayNameSnapshot,
+                StartDate: item.StartDate,
+                EndDate: item.EndDate,
+                Note: item.Note,
+                ApplyPayload: item.ApplyPayload,
+                IntakeTimes: intakeLookup.TryGetValue(item.Id, out IReadOnlyCollection<TimeOnly>? times)
+                    ? times
+                    : Array.Empty<TimeOnly>()))
+            .ToList();
     }
 }

@@ -1,3 +1,4 @@
+using DrugsApp.Domain.PatientSupervisionFeature;
 using DrugsApp.Domain.PatientSupervisionFeature.Entities;
 using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
@@ -8,7 +9,7 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.ApproveSupervisionRequest;
 
-public sealed record ApproveSupervisionRequestRequest(Guid RequestId, string AccessLevelCode);
+public sealed record ApproveSupervisionRequestRequest(string AccessLevelCode);
 
 public sealed record ApproveSupervisionRequestCommand(
     Guid PatientUserId,
@@ -49,7 +50,7 @@ internal sealed class ApproveSupervisionRequestHandler(
             return approveResult.Errors;
         }
 
-        if (!Enum.TryParse<SupervisionAccessLevel>(command.AccessLevelCode, ignoreCase: true, out SupervisionAccessLevel accessLevel))
+        if (!SupervisionAccessLevelCatalog.TryParse(command.AccessLevelCode, out SupervisionAccessLevel accessLevel))
         {
             return Error.Validation(description: "Invalid access level code.");
         }
@@ -99,9 +100,13 @@ internal sealed class ApproveSupervisionRequestHandler(
             return syncResult.Errors;
         }
 
+        Guid requestId = request.Id;
+        string requestState = request.RequestState.ToString();
+        supervisionRequestRepository.Delete(request);
+
         return new ApproveSupervisionRequestResponseDto(
-            RequestId: request.Id,
-            RequestState: request.RequestState.ToString(),
+            RequestId: requestId,
+            RequestState: requestState,
             ConnectionId: connection.Id,
             AccessLevelCode: connection.AccessLevelCode.ToString(),
             ApprovedAtUtc: nowUtc);

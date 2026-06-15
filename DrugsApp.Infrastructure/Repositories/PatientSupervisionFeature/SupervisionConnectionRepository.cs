@@ -45,6 +45,25 @@ public sealed class SupervisionConnectionRepository(DrugsAppDbContext context) :
             cancellationToken);
     }
 
+    public async Task<SupervisionConnection?> GetActiveForProviderAndPatientAsync(
+        Guid providerUserId,
+        Guid patientUserId,
+        bool track,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<SupervisionConnection> query = context.SupervisionConnections;
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query.SingleOrDefaultAsync(
+            x => x.HealthcareProfessionalUserId == providerUserId
+                 && x.PatientUserId == patientUserId
+                 && x.ConnectionState == SupervisionConnectionState.Active,
+            cancellationToken);
+    }
+
     public async Task<SupervisionConnection?> GetActiveOrRemovedForPairAsync(Guid patientUserId, Guid providerUserId, CancellationToken cancellationToken)
     {
         return await context.SupervisionConnections
@@ -67,5 +86,10 @@ public sealed class SupervisionConnectionRepository(DrugsAppDbContext context) :
     public async Task AddAsync(SupervisionConnection connection, CancellationToken cancellationToken)
     {
         await context.SupervisionConnections.AddAsync(connection, cancellationToken);
+    }
+
+    public void Delete(SupervisionConnection connection)
+    {
+        context.SupervisionConnections.Remove(connection);
     }
 }

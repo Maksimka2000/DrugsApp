@@ -100,6 +100,16 @@ public sealed class MedicalChangeProposalDraftValidationService(
 
     private static ErrorOr<Success> ValidateRegularSupplement(ProposalDraftItem item)
     {
+        if (item.Source == MedicalChangeProposalSource.Custom)
+        {
+            if (string.IsNullOrWhiteSpace(item.CustomValue))
+            {
+                return Error.Validation(description: "Custom regular supplement requires custom_value.");
+            }
+
+            return Result.Success;
+        }
+
         ErrorOr<CreateRegularSupplementRequest> request = MedicalChangeProposalJson.Deserialize<CreateRegularSupplementRequest>(
             item.ApplyPayload,
             "apply_payload");

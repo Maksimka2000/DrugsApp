@@ -1466,9 +1466,6 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("end_date");
 
-                    b.Property<Guid?>("MedicalChangeProposalId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Note")
                         .HasColumnType("text")
                         .HasColumnName("note");
@@ -1504,8 +1501,6 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MedicalChangeProposalId");
-
                     b.HasIndex("ProposalId", "SortOrder")
                         .IsUnique()
                         .HasDatabaseName("ux_medical_change_proposal_items_proposal_sort");
@@ -1526,9 +1521,6 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("time")
                         .HasColumnName("intake_time");
 
-                    b.Property<Guid?>("MedicalChangeProposalItemId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ProposalItemId")
                         .HasColumnType("uuid")
                         .HasColumnName("proposal_item_id");
@@ -1538,8 +1530,6 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                         .HasColumnName("UpdatedAtUtc");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MedicalChangeProposalItemId");
 
                     b.HasIndex("ProposalItemId", "IntakeTime")
                         .IsUnique()
@@ -3239,10 +3229,6 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposal", null)
                         .WithMany("Items")
-                        .HasForeignKey("MedicalChangeProposalId");
-
-                    b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposal", null)
-                        .WithMany()
                         .HasForeignKey("ProposalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -3252,14 +3238,9 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItem", null)
                         .WithMany("IntakeTimes")
-                        .HasForeignKey("MedicalChangeProposalItemId");
-
-                    b.HasOne("DrugsApp.Domain.PatientSupervisionFeature.Entities.MedicalChangeProposalItem", null)
-                        .WithMany()
                         .HasForeignKey("ProposalItemId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_medical_change_proposal_item_intake_times_medical_change_p~1");
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.RegularDrugsFeature.Entities.ClientRegularDrug", b =>

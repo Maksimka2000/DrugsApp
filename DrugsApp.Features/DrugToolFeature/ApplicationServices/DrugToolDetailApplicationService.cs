@@ -23,6 +23,7 @@ using ErrorOr;
 namespace DrugsApp.Features.DrugToolFeature.ApplicationServices;
 
 internal sealed class DrugToolDetailApplicationService(
+    IDrugFormRepository _drugFormRepository,
     IDrugRepository _drugRepository,
     IActiveSubstanceRepository _activeSubstanceRepository,
     IInteractionRepository _interactionRepository,
@@ -40,31 +41,24 @@ internal sealed class DrugToolDetailApplicationService(
     private const string AlcoholDefaultTextKey = "activeSubstance.alcohol.defaultText";
 
     public async Task<ErrorOr<DrugToolDetailBuildResult>> BuildAsync(
-        Guid drugId,
-        Guid? selectedDrugFormId,
+        Guid drugFormId,
         DrugToolInteractionScope interactionScope,
         Guid userId,
         CancellationToken cancellationToken)
     {
-        Drug? drug = await _drugRepository.GetByIdAsync(drugId, cancellationToken);
-        if (drug is null)
+        DrugForm? selectedForm = await _drugFormRepository.GetByIdAsync(drugFormId, cancellationToken);
+        if (selectedForm is null)
         {
             return Error.NotFound(
                 description: "The requested resource was not found",
                 metadata: new Dictionary<string, object>
                 {
-                    ["resourceType"] = "drug",
-                    ["resourceId"] = drugId.ToString()
+                    ["resourceType"] = "drug_form",
+                    ["resourceId"] = drugFormId.ToString()
                 });
         }
 
-        ErrorOr<DrugForm> selectedFormResult = ResolveSelectedForm(drug, selectedDrugFormId);
-        if (selectedFormResult.IsError)
-        {
-            return selectedFormResult.Errors;
-        }
-
-        DrugForm selectedForm = selectedFormResult.Value;
+        Drug drug = selectedForm.Drug;
         var activeSubstanceIds = drug.ActiveSubstances.Select(substance => substance.Id).ToList();
 
         IReadOnlyCollection<ActiveSubstance> loadedSubstances =
@@ -129,40 +123,6 @@ internal sealed class DrugToolDetailApplicationService(
             drugSection,
             foodSection,
             supplementSection);
-    }
-
-    private static ErrorOr<DrugForm> ResolveSelectedForm(Drug drug, Guid? selectedDrugFormId)
-    {
-        if (selectedDrugFormId is null)
-        {
-            DrugForm? firstForm = drug.DrugForms
-                .OrderBy(form => DrugToolMappings.BuildFormLabel(form), StringComparer.OrdinalIgnoreCase)
-                .ThenBy(form => form.Id)
-                .FirstOrDefault();
-
-            if (firstForm is null)
-            {
-                return Error.Validation(
-                    description: "Drug has no available forms.",
-                    metadata: new Dictionary<string, object> { ["drugId"] = drug.Id.ToString() });
-            }
-
-            return firstForm;
-        }
-
-        DrugForm? selectedForm = drug.DrugForms.FirstOrDefault(form => form.Id == selectedDrugFormId.Value);
-        if (selectedForm is null)
-        {
-            return Error.Validation(
-                description: "Selected drug form does not belong to the requested drug.",
-                metadata: new Dictionary<string, object>
-                {
-                    ["drugId"] = drug.Id.ToString(),
-                    ["selectedDrugFormId"] = selectedDrugFormId.Value.ToString()
-                });
-        }
-
-        return selectedForm;
     }
 
     private async Task<DrugToolAlcoholSectionDto> BuildAlcoholSectionAsync(

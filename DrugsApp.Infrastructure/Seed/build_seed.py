@@ -2,6 +2,8 @@
 """Generates Seed/seed.sql for dev catalog and multi-user fixtures."""
 from __future__ import annotations
 
+import json
+import sys
 from pathlib import Path
 from uuid import UUID
 
@@ -37,6 +39,17 @@ SUPERVISION_REQUEST = "ab010000-0000-4000-8000"
 SUPERVISION_CONNECTION = "ab020000-0000-4000-8000"
 MEDICAL_PROPOSAL = "ab030000-0000-4000-8000"
 MEDICAL_PROPOSAL_ITEM = "ab031000-0000-4000-8000"
+MEDICAL_PROPOSAL_ITEM_INTAKE = "ab032000-0000-4000-8000"
+DRUG_CATALOG = "a0000000-0000-4000-8000"
+DRUG_FORM_CATALOG = "a1000000-0000-4000-8000"
+FOOD_CATALOG = "b0000000-0000-4000-8000"
+SUPPLEMENT_CATALOG = "c0000000-0000-4000-8000"
+HEALTH_CONDITION_CATALOG = "d0000000-0000-4000-8000"
+OWN_SUPPLEMENT_CATALOG = "e7200000-0000-4000-8000"
+PROPOSAL_START_DATE = "2026-06-14"
+PROPOSAL_END_SAME_DAY = "2026-06-14"
+PROPOSAL_END_SEASONAL = "2026-09-30"
+PROPOSAL_END_LONG = "2026-12-31"
 NOTIFICATION = "b4010000-0000-4000-8000"
 USER_HEALTH_CONDITION = "f0000000-0000-4000-8000"
 DRUG_PROBLEM = "f1000000-0000-4000-8000"
@@ -53,6 +66,137 @@ def canonical_pair(short_type: str, id_a: str, id_b: str) -> tuple[str, str, str
 
 def sql_str(value: str) -> str:
     return value.replace("'", "''")
+
+
+def catalog_uuid(stem: str, n: int) -> str:
+    return f"{stem}-{n:012d}"
+
+
+def sql_json(value: object) -> str:
+    return f"'{sql_str(json.dumps(value, separators=(',', ':')))}'::jsonb"
+
+
+def sql_date(value: str | None) -> str:
+    if value is None:
+        return "NULL"
+    return f"DATE '{value}'"
+
+
+def sql_note(value: str | None) -> str:
+    if value is None:
+        return "NULL"
+    return f"'{sql_str(value)}'"
+
+
+def regular_drug_payload(
+    drug_n: int,
+    start: str | None,
+    end: str | None,
+    times: list[str],
+) -> dict[str, object]:
+    return {
+        "drugId": catalog_uuid(DRUG_CATALOG, drug_n),
+        "drugFormId": catalog_uuid(DRUG_FORM_CATALOG, drug_n),
+        "startDate": start,
+        "endDate": end,
+        "intakeTimes": times,
+    }
+
+
+def regular_food_payload(
+    food_n: int,
+    start: str | None,
+    end: str | None,
+    times: list[str],
+) -> dict[str, object]:
+    return {
+        "foodId": catalog_uuid(FOOD_CATALOG, food_n),
+        "startDate": start,
+        "endDate": end,
+        "intakeTimes": times,
+    }
+
+
+def regular_supplement_db_payload(
+    supplement_n: int,
+    start: str | None,
+    end: str | None,
+    times: list[str],
+) -> dict[str, object]:
+    return {
+        "source": "database",
+        "supplementId": catalog_uuid(SUPPLEMENT_CATALOG, supplement_n),
+        "startDate": start,
+        "endDate": end,
+        "intakeTimes": times,
+    }
+
+
+def regular_supplement_custom_payload(
+    custom_name: str,
+    start: str | None,
+    end: str | None,
+    times: list[str],
+) -> dict[str, object]:
+    return {
+        "customSupplementName": custom_name,
+        "startDate": start,
+        "endDate": end,
+        "intakeTimes": times,
+    }
+
+
+def medical_change_proposal_draft_notes() -> None:
+    """Document provider POST draftItems shape (persisted rows store composed apply_payload)."""
+    drug_form = catalog_uuid(DRUG_FORM_CATALOG, 5)
+    food_id = catalog_uuid(FOOD_CATALOG, 3)
+    supplement_id = catalog_uuid(SUPPLEMENT_CATALOG, 6)
+    w("-- Provider POST /api/supervision/provider/patients/{patient_id}/proposals")
+    w("-- For regular_drug / regular_food / regular_supplement only. Server composes apply_payload.")
+    w("-- intakeTimes use HH:mm:ss (TimeOnly), not ISO timestamps.")
+    w("-- regular_drug example:")
+    w(
+        "--   {\"categoryCode\":\"regular_drug\",\"relatedCatalogId\":\"" + drug_form + "\","
+        "\"startDate\":\"" + PROPOSAL_START_DATE + "\","
+        "\"endDate\":\"" + PROPOSAL_END_SAME_DAY + "\",\"note\":\"Take before breakfast.\","
+        "\"intakeTimes\":[\"08:00:00\",\"20:00:00\"]}"
+    )
+    w("-- regular_food example:")
+    w(
+        "--   {\"categoryCode\":\"regular_food\",\"relatedCatalogId\":\"" + food_id + "\","
+        "\"startDate\":\"" + PROPOSAL_START_DATE + "\",\"endDate\":\"" + PROPOSAL_END_SAME_DAY + "\","
+        "\"intakeTimes\":[\"13:00:00\"]}"
+    )
+    w("-- regular_supplement (database) example:")
+    w(
+        "--   {\"categoryCode\":\"regular_supplement\",\"source\":\"database\","
+        "\"relatedCatalogId\":\"" + supplement_id + "\",\"startDate\":\"" + PROPOSAL_START_DATE + "\","
+        "\"endDate\":\"" + PROPOSAL_END_SAME_DAY + "\",\"intakeTimes\":[\"09:00:00\"]}"
+    )
+    w("-- regular_supplement (custom free-text name) example:")
+    w(
+        "--   {\"categoryCode\":\"regular_supplement\",\"source\":\"custom\","
+        "\"customValue\":\"Collagen peptide powder\",\"startDate\":\"" + PROPOSAL_START_DATE + "\","
+        "\"intakeTimes\":[\"07:30:00\"]}"
+    )
+    w("-- Persisted apply_payload after compose (used on patient approve):")
+    w(
+        "--   regular_drug: {\"drugId\":\"...\",\"drugFormId\":\"...\",\"startDate\":\"...\","
+        "\"endDate\":\"...\",\"intakeTimes\":[\"08:00:00\"]}"
+    )
+    w(
+        "--   regular_food: {\"foodId\":\"...\",\"startDate\":\"...\",\"endDate\":\"...\","
+        "\"intakeTimes\":[\"13:00:00\"]}"
+    )
+    w(
+        "--   regular_supplement (database): {\"source\":\"database\",\"supplementId\":\"...\","
+        "\"startDate\":\"...\",\"endDate\":\"...\",\"intakeTimes\":[\"09:00:00\"]}"
+    )
+    w(
+        "--   regular_supplement (custom): {\"customSupplementName\":\"...\","
+        "\"startDate\":\"...\",\"endDate\":\"...\",\"intakeTimes\":[\"07:30:00\"]}"
+    )
+    w("")
 
 
 SUBSTANCES = [
@@ -674,76 +818,224 @@ def extras() -> None:
     w("")
 
 
-def supervision() -> None:
-    w("-- Supervision: pending requests (2)")
+def medical_change_proposals() -> None:
+    """Seed medical change proposals across patients, states, and intake categories."""
+    medical_change_proposal_draft_notes()
+    w("-- Medical change proposals (17) with structured intake items and apply_payload")
+    proposals = [
+        # prop_n, conn, client_i, provider_i, state, access, summary, submitted_ago, resolved_ago
+        (1, 1, 0, 0, "Pending", "ViewAndModify", "Add Controloc before breakfast for acid reflux.", "3 hours", None),
+        (2, 1, 0, 0, "Pending", "ViewAndModify", "Start zinc supplementation in the morning.", "6 hours", None),
+        (3, 5, 1, 1, "Pending", "ViewAndModify", "Log daily grapefruit intake for interaction monitoring.", "12 hours", None),
+        (4, 2, 1, 0, "Pending", "ViewOnly", "Add Amotaks course after dental procedure.", "18 hours", None),
+        (5, 3, 2, 0, "Pending", "RestrictedView", "Adjust thyroid medication and folic acid support.", "1 day", None),
+        (6, 6, 2, 1, "Pending", "ViewAndModify", "Schedule off-catalog collagen supplement (custom name).", "2 days", None),
+        (7, 7, 3, 2, "Pending", "RestrictedView", "Add rescue inhaler before exercise.", "30 hours", None),
+        (8, 7, 3, 2, "Pending", "ViewAndModify", "Track daily coffee intake with afternoon cutoff.", "2 days", None),
+        (9, 2, 1, 0, "Approved", "ViewOnly", "Document seasonal antihistamine and coffee habits.", "4 days", "3 days"),
+        (10, 5, 1, 1, "Rejected", "ViewAndModify", "Switch statin to alternate brand.", "5 days", "4 days"),
+        (11, 1, 0, 0, "Pending", "ViewAndModify", "Add Lisinoratio for blood pressure monitoring.", "8 hours", None),
+        (12, 6, 2, 1, "Pending", "ViewAndModify", "Evening magnesium for muscle recovery.", "36 hours", None),
+        # Dedicated approve-test proposals (client1 / connection ab02...001)
+        (13, 1, 0, 0, "Pending", "ViewAndModify", "[TEST] Approve regular drug only — Controloc same-day course.", "2 hours", None),
+        (14, 1, 0, 0, "Pending", "ViewAndModify", "[TEST] Approve regular food only — Peanuts same-day.", "4 hours", None),
+        (15, 1, 0, 0, "Pending", "ViewAndModify", "[TEST] Approve regular supplement (database) — Zinc.", "5 hours", None),
+        (16, 1, 0, 0, "Pending", "ViewAndModify", "[TEST] Approve regular supplement only — Vitamin B12 same-day.", "6 hours", None),
+        (17, 1, 0, 0, "Pending", "ViewAndModify", "[TEST] Approve bundle: drug + food + supplement in one proposal.", "7 hours", None),
+    ]
+    prop_rows: list[str] = []
+    for prop_n, conn, client_i, provider_i, state, access, summary, submitted_ago, resolved_ago in proposals:
+        resolved_sql = "NULL"
+        resolved_by_sql = "NULL"
+        if resolved_ago is not None:
+            resolved_sql = f"{NOW} - interval '{resolved_ago}'"
+            resolved_by_sql = f"'{clients[client_i]}'::uuid"
+        prop_rows.append(
+            f"    ('{uid(MEDICAL_PROPOSAL, prop_n)}'::uuid, '{uid(SUPERVISION_CONNECTION, conn)}'::uuid, "
+            f"'{clients[client_i]}'::uuid, '{providers[provider_i]}'::uuid, '{state}', '{access}', "
+            f"'{sql_str(summary)}', {NOW} - interval '{submitted_ago}', {resolved_sql}, {resolved_by_sql}, {NOW})"
+        )
     w(
-        f'INSERT INTO supervision_requests ("Id", patient_user_id, healthcare_professional_user_id, request_state, requested_at_utc, expires_at_utc, "CreatedAtUtc")\n'
-        f"VALUES\n"
-        f"    ('{uid(SUPERVISION_REQUEST, 1)}'::uuid, '{clients[4]}'::uuid, '{providers[2]}'::uuid, 'pending', {NOW} - interval '1 day', {NOW} + interval '6 days', {NOW}),\n"
-        f"    ('{uid(SUPERVISION_REQUEST, 2)}'::uuid, '{clients[3]}'::uuid, '{providers[0]}'::uuid, 'pending', {NOW} - interval '2 hours', {NOW} + interval '7 days', {NOW})\n"
+        'INSERT INTO medical_change_proposals ("Id", supervision_connection_id, patient_user_id, '
+        'healthcare_professional_user_id, proposal_state, access_level_snapshot, proposal_summary, '
+        'submitted_at_utc, resolved_at_utc, resolved_by_patient_user_id, "CreatedAtUtc")\n'
+        "VALUES\n" + ",\n".join(prop_rows) + '\nON CONFLICT ("Id") DO NOTHING;'
+    )
+
+    # item_n, prop_n, category, source, related_uuid, display, custom_value, start, end, note, sort, payload, intake_times
+    item_specs: list[tuple] = [
+        (1, 1, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 5), "Controloc 20 mg", None, PROPOSAL_START_DATE, None, "Take 30 minutes before breakfast.", 1, regular_drug_payload(5, PROPOSAL_START_DATE, None, ["07:30:00", "20:00:00"]), ["07:30:00", "20:00:00"]),
+        (2, 1, "RegularSupplement", "Database", catalog_uuid(SUPPLEMENT_CATALOG, 6), "Zinc", None, PROPOSAL_START_DATE, PROPOSAL_END_LONG, "With food to reduce nausea.", 2, regular_supplement_db_payload(6, PROPOSAL_START_DATE, PROPOSAL_END_LONG, ["09:00:00"]), ["09:00:00"]),
+        (3, 2, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 15), "Zyrtec 10 mg", None, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, "Seasonal allergy course.", 1, regular_drug_payload(15, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, ["21:00:00"]), ["21:00:00"]),
+        (4, 3, "RegularFood", "Database", catalog_uuid(FOOD_CATALOG, 1), "Grapefruit", None, PROPOSAL_START_DATE, None, "Avoid with evening statin dose.", 1, regular_food_payload(1, PROPOSAL_START_DATE, None, ["08:00:00"]), ["08:00:00"]),
+        (5, 4, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 6), "Amotaks 500 mg", None, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, "Complete full antibiotic course.", 1, regular_drug_payload(6, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, ["08:00:00", "20:00:00"]), ["08:00:00", "20:00:00"]),
+        (6, 5, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 8), "Euthyrox 50 mcg", None, PROPOSAL_START_DATE, None, "Take on empty stomach.", 1, regular_drug_payload(8, PROPOSAL_START_DATE, None, ["06:30:00"]), ["06:30:00"]),
+        (7, 5, "RegularSupplement", "Database", catalog_uuid(SUPPLEMENT_CATALOG, 10), "Folic acid", None, PROPOSAL_START_DATE, PROPOSAL_END_LONG, None, 2, regular_supplement_db_payload(10, PROPOSAL_START_DATE, PROPOSAL_END_LONG, ["12:00:00"]), ["12:00:00"]),
+        (8, 6, "RegularSupplement", "Custom", None, "Collagen peptide powder", "Collagen peptide powder", PROPOSAL_START_DATE, None, "Off-catalog supplement name from provider.", 1, regular_supplement_custom_payload("Collagen peptide powder", PROPOSAL_START_DATE, None, ["07:00:00"]), ["07:00:00"]),
+        (9, 7, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 9), "Ventolin 2 mg", None, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, "Use before exercise.", 1, regular_drug_payload(9, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, ["17:00:00"]), ["17:00:00"]),
+        (10, 8, "RegularFood", "Database", catalog_uuid(FOOD_CATALOG, 16), "Coffee", None, PROPOSAL_START_DATE, None, "No coffee after 14:00.", 1, regular_food_payload(16, PROPOSAL_START_DATE, None, ["07:45:00", "13:30:00"]), ["07:45:00", "13:30:00"]),
+        (11, 9, "HealthCondition", "Database", catalog_uuid(HEALTH_CONDITION_CATALOG, 3), "Asthma", None, None, None, "Documented for seasonal plan.", 1, {}, []),
+        (12, 9, "RegularFood", "Database", catalog_uuid(FOOD_CATALOG, 16), "Coffee", None, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, None, 2, regular_food_payload(16, PROPOSAL_START_DATE, PROPOSAL_END_SEASONAL, ["08:00:00"]), ["08:00:00"]),
+        (13, 10, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 12), "Simvacard 20 mg", None, PROPOSAL_START_DATE, None, None, 1, regular_drug_payload(12, PROPOSAL_START_DATE, None, ["22:00:00"]), ["22:00:00"]),
+        (14, 10, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 4), "Atorvasterol 20 mg", None, PROPOSAL_START_DATE, None, "Rejected brand switch.", 2, regular_drug_payload(4, PROPOSAL_START_DATE, None, ["22:00:00"]), ["22:00:00"]),
+        (15, 11, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 7), "Lisinoratio 10 mg", None, PROPOSAL_START_DATE, PROPOSAL_END_LONG, "Monitor blood pressure weekly.", 1, regular_drug_payload(7, PROPOSAL_START_DATE, PROPOSAL_END_LONG, ["08:00:00"]), ["08:00:00"]),
+        (16, 12, "RegularSupplement", "Database", catalog_uuid(SUPPLEMENT_CATALOG, 4), "Magnesium", None, PROPOSAL_START_DATE, None, "Take in the evening.", 1, regular_supplement_db_payload(4, PROPOSAL_START_DATE, None, ["21:30:00"]), ["21:30:00"]),
+        # [TEST] single-category approve proposals for client1 (proposal ids 13–17)
+        (17, 13, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 5), "Controloc 20 mg", None, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, "Same-day course; take before breakfast.", 1, regular_drug_payload(5, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, ["08:00:00", "20:00:00"]), ["08:00:00", "20:00:00"]),
+        (18, 14, "RegularFood", "Database", catalog_uuid(FOOD_CATALOG, 3), "Peanuts", None, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, "With lunch.", 1, regular_food_payload(3, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, ["13:00:00"]), ["13:00:00"]),
+        (19, 15, "RegularSupplement", "Database", catalog_uuid(SUPPLEMENT_CATALOG, 6), "Zinc", None, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, "With food.", 1, regular_supplement_db_payload(6, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, ["09:00:00"]), ["09:00:00"]),
+        (20, 16, "RegularSupplement", "Database", catalog_uuid(SUPPLEMENT_CATALOG, 8), "Vitamin B12", None, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, "Same-day course.", 1, regular_supplement_db_payload(8, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, ["08:00:00"]), ["08:00:00"]),
+        (21, 17, "RegularDrug", "Database", catalog_uuid(DRUG_FORM_CATALOG, 11), "Norvasc 5 mg", None, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, "Bundle item 1/3.", 1, regular_drug_payload(11, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, ["08:00:00"]), ["08:00:00"]),
+        (22, 17, "RegularFood", "Database", catalog_uuid(FOOD_CATALOG, 16), "Coffee", None, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, "Bundle item 2/3.", 2, regular_food_payload(16, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, ["07:45:00"]), ["07:45:00"]),
+        (23, 17, "RegularSupplement", "Database", catalog_uuid(SUPPLEMENT_CATALOG, 4), "Magnesium", None, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, "Bundle item 3/3.", 3, regular_supplement_db_payload(4, PROPOSAL_START_DATE, PROPOSAL_END_SAME_DAY, ["21:00:00"]), ["21:00:00"]),
+    ]
+    item_rows: list[str] = []
+    for item_n, prop_n, category, source, related, display, custom_value, start, end, note, sort, payload, _times in item_specs:
+        related_sql = f"'{related}'::uuid" if related else "NULL"
+        item_rows.append(
+            f"    ('{uid(MEDICAL_PROPOSAL_ITEM, item_n)}'::uuid, '{uid(MEDICAL_PROPOSAL, prop_n)}'::uuid, '{category}', "
+            f"'{source}', {related_sql}, NULL, {sql_note(custom_value)}, '{sql_str(display)}', "
+            f"{sql_date(start)}, {sql_date(end)}, {sql_note(note)}, {sql_json(payload)}, {sort}, {NOW})"
+        )
+    w(
+        'INSERT INTO medical_change_proposal_items ("Id", proposal_id, category_code, source, related_catalog_id, '
+        'secondary_text_snapshot, custom_value, display_name_snapshot, start_date, end_date, note, apply_payload, sort_order, "CreatedAtUtc")\n'
+        "VALUES\n" + ",\n".join(item_rows) + '\nON CONFLICT ("Id") DO NOTHING;'
+    )
+
+    intake_rows: list[str] = []
+    intake_n = 1
+    for item_n, _prop_n, _cat, _src, _rel, _disp, _custom, _start, _end, _note, _sort, _payload, times in item_specs:
+        for intake_time in times:
+            intake_rows.append(
+                f"    ('{uid(MEDICAL_PROPOSAL_ITEM_INTAKE, intake_n)}'::uuid, "
+                f"'{uid(MEDICAL_PROPOSAL_ITEM, item_n)}'::uuid, '{intake_time}'::time, {NOW})"
+            )
+            intake_n += 1
+    if intake_rows:
+        w(
+            'INSERT INTO medical_change_proposal_item_intake_times ("Id", proposal_item_id, intake_time, "CreatedAtUtc")\n'
+            "VALUES\n" + ",\n".join(intake_rows) + '\nON CONFLICT ("Id") DO NOTHING;'
+        )
+
+
+def supervision_connection_insert(
+    conn_id: int,
+    patient_id: str,
+    provider_id: str,
+    access_level: str,
+    state: str,
+    approved_days_ago: int,
+    removed_days_ago: int | None = None,
+) -> None:
+    removed_sql = f"{NOW} - interval '{removed_days_ago} days'" if removed_days_ago is not None else "NULL"
+    w(
+        f'INSERT INTO supervision_connections ("Id", patient_user_id, healthcare_professional_user_id, '
+        f'access_level_code, connection_state, approved_at_utc, removed_at_utc, "CreatedAtUtc")\n'
+        f"VALUES ('{uid(SUPERVISION_CONNECTION, conn_id)}'::uuid, '{patient_id}'::uuid, '{provider_id}'::uuid, "
+        f"'{access_level}', '{state}', {NOW} - interval '{approved_days_ago} days', {removed_sql}, {NOW})\n"
         f'ON CONFLICT ("Id") DO NOTHING;'
     )
-    w("")
+
+
+def supervision() -> None:
     access_levels = ["ViewAndModify", "ViewOnly", "RestrictedView", "BlockAccess"]
-    w("-- Supervision: active connections (7)")
-    conn_rows = [
-        (1, clients[0], providers[0], access_levels[0]),
-        (2, clients[1], providers[0], access_levels[1]),
-        (3, clients[2], providers[0], access_levels[2]),
-        (4, clients[0], providers[1], access_levels[3]),
-        (5, clients[1], providers[1], access_levels[0]),
-        (6, clients[2], providers[1], access_levels[1]),
-        (7, clients[3], providers[2], access_levels[2]),
+
+    w("-- Supervision: pending requests (6)")
+    pending_requests = [
+        # req_id, client_i, provider_i, requested_ago, expires_in_days
+        (1, 4, 2, "1 day", 6),       # client5 ← provider3 (re-request after removed conn 13)
+        (2, 3, 0, "2 hours", 7),     # client4 ← provider1 (re-request after removed conn 14)
+        (3, 0, 2, "5 hours", 5),     # client1 ← provider3
+        (4, 1, 2, "9 hours", 4),     # client2 ← provider3
+        (5, 3, 2, "14 hours", 3),    # client4 ← provider3
+        (6, 4, 0, "20 hours", 2),    # client5 ← provider1
     ]
-    for cid, pat, prov, acc in conn_rows:
-        w(
-            f'INSERT INTO supervision_connections ("Id", patient_user_id, healthcare_professional_user_id, access_level_code, connection_state, approved_at_utc, "CreatedAtUtc")\n'
-            f"VALUES ('{uid(SUPERVISION_CONNECTION, cid)}'::uuid, '{pat}'::uuid, '{prov}'::uuid, '{acc}', 'Active', {NOW} - interval '{cid} days', {NOW})\n"
-            f'ON CONFLICT ("Id") DO NOTHING;'
+    req_rows = [
+        f"    ('{uid(SUPERVISION_REQUEST, req_id)}'::uuid, '{clients[client_i]}'::uuid, "
+        f"'{providers[provider_i]}'::uuid, 'pending', {NOW} - interval '{requested_ago}', "
+        f"{NOW} + interval '{expires_in} days', {NOW})"
+        for req_id, client_i, provider_i, requested_ago, expires_in in pending_requests
+    ]
+    w(
+        'INSERT INTO supervision_requests ("Id", patient_user_id, healthcare_professional_user_id, '
+        'request_state, requested_at_utc, expires_at_utc, "CreatedAtUtc")\n'
+        "VALUES\n" + ",\n".join(req_rows) + "\nON CONFLICT (\"Id\") DO NOTHING;"
+    )
+    w("")
+
+    w("-- Supervision: active connections (8)")
+    active_connections = [
+        # conn_id, client_i, provider_i, access_i, approved_days_ago
+        (1, 0, 0, 0, 14),   # client1 + provider1 ViewAndModify
+        (2, 1, 0, 1, 13),   # client2 + provider1 ViewOnly
+        (3, 2, 0, 2, 12),   # client3 + provider1 RestrictedView
+        (4, 0, 1, 3, 11),   # client1 + provider2 BlockAccess
+        (5, 1, 1, 0, 10),   # client2 + provider2 ViewAndModify
+        (6, 2, 1, 1, 9),    # client3 + provider2 ViewOnly
+        (7, 2, 2, 2, 8),    # client3 + provider3 RestrictedView
+        (8, 3, 1, 0, 7),    # client4 + provider2 ViewAndModify
+    ]
+    for conn_id, client_i, provider_i, access_i, approved_days in active_connections:
+        supervision_connection_insert(
+            conn_id,
+            clients[client_i],
+            providers[provider_i],
+            access_levels[access_i],
+            "Active",
+            approved_days,
         )
     w("")
-    w("-- Medical change proposals (3) with items (2 each)")
-    w(
-        f'INSERT INTO medical_change_proposals ("Id", supervision_connection_id, patient_user_id, healthcare_professional_user_id, proposal_state, access_level_snapshot, proposal_summary, submitted_at_utc, "CreatedAtUtc")\n'
-        f"VALUES\n"
-        f"    ('{uid(MEDICAL_PROPOSAL, 1)}'::uuid, '{uid(SUPERVISION_CONNECTION, 1)}'::uuid, '{clients[0]}'::uuid, '{providers[0]}'::uuid, 'Pending', 'ViewAndModify', 'Add evening Metformin dose and note fasting requirement.', {NOW} - interval '3 hours', {NOW}),\n"
-        f"    ('{uid(MEDICAL_PROPOSAL, 2)}'::uuid, '{uid(SUPERVISION_CONNECTION, 2)}'::uuid, '{clients[1]}'::uuid, '{providers[0]}'::uuid, 'Approved', 'ViewOnly', 'Document seasonal antihistamine use.', {NOW} - interval '2 days', {NOW}),\n"
-        f"    ('{uid(MEDICAL_PROPOSAL, 3)}'::uuid, '{uid(SUPERVISION_CONNECTION, 5)}'::uuid, '{clients[1]}'::uuid, '{providers[1]}'::uuid, 'Rejected', 'ViewAndModify', 'Switch statin to alternate brand.', {NOW} - interval '5 days', {NOW})\n"
-        f'ON CONFLICT ("Id") DO NOTHING;'
-    )
-    items = [
-        (uid(MEDICAL_PROPOSAL_ITEM, 1), uid(MEDICAL_PROPOSAL, 1), "RegularDrug", "a1000000-0000-4000-8000-000000000003", "Glucophage 500 mg", 1),
-        (uid(MEDICAL_PROPOSAL_ITEM, 2), uid(MEDICAL_PROPOSAL, 1), "RegularSupplement", "c0000000-0000-4000-8000-000000000004", "Magnesium", 2),
-        (uid(MEDICAL_PROPOSAL_ITEM, 3), uid(MEDICAL_PROPOSAL, 2), "HealthCondition", "d0000000-0000-4000-8000-000000000003", "Asthma", 1),
-        (uid(MEDICAL_PROPOSAL_ITEM, 4), uid(MEDICAL_PROPOSAL, 2), "RegularFood", "b0000000-0000-4000-8000-000000000016", "Coffee", 2),
-        (uid(MEDICAL_PROPOSAL_ITEM, 5), uid(MEDICAL_PROPOSAL, 3), "RegularDrug", "a1000000-0000-4000-8000-000000000012", "Simvacard 20 mg", 1),
-        (uid(MEDICAL_PROPOSAL_ITEM, 6), uid(MEDICAL_PROPOSAL, 3), "RegularDrug", "a1000000-0000-4000-8000-000000000004", "Atorvasterol 20 mg", 2),
+
+    w("-- Supervision: removed connections (5) — pairs with pending re-requests or history-only")
+    removed_connections = [
+        # conn_id, client_i, provider_i, access_i, approved_days_ago, removed_days_ago
+        (13, 4, 2, 0, 45, 3),   # client5 + provider3 (pending request 1)
+        (14, 3, 0, 2, 60, 10),  # client4 + provider1 (pending request 2)
+        (15, 2, 0, 1, 90, 25),  # client3 + provider1 history
+        (16, 1, 2, 3, 30, 12),  # client2 + provider3 history (pending request 4)
+        (17, 4, 0, 1, 50, 8),   # client5 + provider1 history (pending request 6)
     ]
-    ivals = [
-        f"    ('{iid}'::uuid, '{pid}'::uuid, '{cat}', 'Database', '{rid}'::uuid, '{sql_str(name)}', '{{}}'::jsonb, {sort}, {NOW})"
-        for iid, pid, cat, rid, name, sort in items
-    ]
-    w(
-        'INSERT INTO medical_change_proposal_items ("Id", proposal_id, category_code, source, related_catalog_id, display_name_snapshot, apply_payload, sort_order, "CreatedAtUtc")\n'
-        "VALUES\n" + ",\n".join(ivals) + '\nON CONFLICT ("Id") DO NOTHING;'
-    )
+    for conn_id, client_i, provider_i, access_i, approved_days, removed_days in removed_connections:
+        supervision_connection_insert(
+            conn_id,
+            clients[client_i],
+            providers[provider_i],
+            access_levels[access_i],
+            "Removed",
+            approved_days,
+            removed_days,
+        )
+    w("")
+    medical_change_proposals()
     w("")
     w("-- Align supervision notification projections with runtime source event keys")
-    w(
-        f'UPDATE "UserNotifications" SET "SourceEventKey" = \'supervision-request:{uid(SUPERVISION_REQUEST, 1)}\', '
-        f'"RelatedAggregateType" = \'supervision_request\', "RelatedAggregateId" = \'{uid(SUPERVISION_REQUEST, 1)}\' '
-        f'WHERE "UserId" = \'{clients[4]}\' AND "TypeCode" = \'SupervisionRequest\';'
-    )
-    w(
-        f'UPDATE "UserNotifications" SET "SourceEventKey" = \'supervision-request:{uid(SUPERVISION_REQUEST, 2)}\', '
-        f'"RelatedAggregateType" = \'supervision_request\', "RelatedAggregateId" = \'{uid(SUPERVISION_REQUEST, 2)}\' '
-        f'WHERE "UserId" = \'{clients[3]}\' AND "TypeCode" = \'SupervisionRequest\';'
-    )
+    supervision_request_notifications = [
+        (1, 4),
+        (2, 3),
+        (3, 0),
+        (4, 1),
+        (5, 3),
+        (6, 4),
+    ]
+    for req_id, client_i in supervision_request_notifications:
+        w(
+            f'UPDATE "UserNotifications" SET "SourceEventKey" = \'supervision-request:{uid(SUPERVISION_REQUEST, req_id)}\', '
+            f'"RelatedAggregateType" = \'supervision_request\', "RelatedAggregateId" = \'{uid(SUPERVISION_REQUEST, req_id)}\' '
+            f'WHERE "UserId" = \'{clients[client_i]}\' AND "TypeCode" = \'SupervisionRequest\' AND "ActionState" = \'Pending\' '
+            f"AND \"SourceEventKey\" LIKE 'seed.%';"
+        )
     w(
         f'UPDATE "UserNotifications" SET "SourceEventKey" = \'medical-change-proposal:{uid(MEDICAL_PROPOSAL, 1)}\', '
         f'"RelatedAggregateType" = \'medical_change_proposal\', "RelatedAggregateId" = \'{uid(MEDICAL_PROPOSAL, 1)}\' '
         f'WHERE "UserId" = \'{clients[0]}\' AND "TypeCode" = \'MedicalChangeProposal\' AND "ActionState" = \'Pending\';'
     )
+    for client_i, prop_n in ((1, 3), (2, 5), (3, 7)):
+        w(
+            f'UPDATE "UserNotifications" SET "SourceEventKey" = \'medical-change-proposal:{uid(MEDICAL_PROPOSAL, prop_n)}\', '
+            f'"RelatedAggregateType" = \'medical_change_proposal\', "RelatedAggregateId" = \'{uid(MEDICAL_PROPOSAL, prop_n)}\' '
+            f'WHERE "UserId" = \'{clients[client_i]}\' AND "TypeCode" = \'MedicalChangeProposal\' AND "ActionState" = \'Pending\';'
+        )
 
 
 def main() -> None:
@@ -756,7 +1048,7 @@ def main() -> None:
     supervision()
     out = Path(__file__).with_name("seed.sql")
     out.write_text("\n".join(lines) + "\n")
-    print(f"Wrote {out} ({len(lines)} lines)")
+    print(f"Wrote {out} ({len(lines)} lines)", file=sys.stderr)
 
 
 if __name__ == "__main__":

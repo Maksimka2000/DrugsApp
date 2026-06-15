@@ -1,41 +1,115 @@
+using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 using DrugsApp.Features.PatientSupervisionFeature.Shared;
 using ErrorOr;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.ListPatientHealthcareProfessionals;
 
+// GET search request — canonical query params for patient healthcare professional list.
 public sealed record SearchPatientHealthcareProfessionalsRequest(
-    string? RelationshipState = "all",
-    string? SortBy = "status",
-    string? SortDirection = "asc",
-    int Skip = 0,
-    int Take = 20);
+    [FromQuery(Name = "search_query")] string? SearchQuery,
+    [FromQuery(Name = "sort_by")] string SortBy = "status",
+    [FromQuery(Name = "order_by")] string OrderBy = "ascending",
+    [FromQuery(Name = "statuses")] List<string>? Statuses = null,
+    [FromQuery(Name = "skip")] int Skip = 0,
+    [FromQuery(Name = "take")] int Take = 20);
 
 public sealed record SearchPatientHealthcareProfessionalsQuery(
     Guid PatientUserId,
-    string? RelationshipState,
-    string? SortBy,
-    string? SortDirection,
+    string? SearchQuery,
+    IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? Statuses,
+    PatientHealthcareProfessionalSortField SortBy,
+    bool Ascending,
     int Skip,
     int Take) : IRequest<ErrorOr<PatientHealthcareProfessionalListResponse>>;
 
 internal sealed class SearchPatientHealthcareProfessionalsHandler(ISupervisionReadRepository supervisionReadRepository)
     : IRequestHandler<SearchPatientHealthcareProfessionalsQuery, ErrorOr<PatientHealthcareProfessionalListResponse>>
 {
+    private static readonly (string Token, PatientHealthcareProfessionalSearchField Field)[] SearchPriorityFields =
+    [
+        ("email", PatientHealthcareProfessionalSearchField.Email),
+        ("display_name", PatientHealthcareProfessionalSearchField.DisplayName),
+        ("profession_label", PatientHealthcareProfessionalSearchField.ProfessionLabel),
+        ("workplace_label", PatientHealthcareProfessionalSearchField.WorkplaceLabel)
+    ];
+
     public async Task<ErrorOr<PatientHealthcareProfessionalListResponse>> Handle(
         SearchPatientHealthcareProfessionalsQuery query,
         CancellationToken cancellationToken)
     {
-        SearchPatientHealthcareProfessionalsResult result = await supervisionReadRepository.SearchPatientHealthcareProfessionalsAsync(
-            query.PatientUserId,
-            query.RelationshipState,
-            query.SortBy,
-            query.SortDirection?.Equals("asc", StringComparison.OrdinalIgnoreCase) ?? true,
-            query.Skip,
-            query.Take,
-            cancellationToken);
+        int takePlusOne = query.Take + 1;
+        int? totalCount = null;
 
-        return result.MapToResponse(query.Take);
+        PatientHealthcareProfessionalSearchField appliedSearchField = PatientHealthcareProfessionalSearchField.None;
+        string? matchedFieldToken = null;
+        List<string> matchedFailedFieldTokens = new();
+        SearchPatientHealthcareProfessionalsResult result;
+
+        if (string.IsNullOrWhiteSpace(query.SearchQuery))
+        {
+            result = await supervisionReadRepository.SearchPatientHealthcareProfessionalsAsync(
+                query.PatientUserId,
+                searchQuery: null,
+                searchField: appliedSearchField,
+                statuses: query.Statuses,
+                sortField: query.SortBy,
+                ascending: query.Ascending,
+                skip: query.Skip,
+                take: takePlusOne,
+                cancellationToken);
+        }
+        else
+        {
+            SearchPatientHealthcareProfessionalsResult? matchedResult = null;
+
+            foreach ((string token, PatientHealthcareProfessionalSearchField field) in SearchPriorityFields)
+            {
+                SearchPatientHealthcareProfessionalsResult attempt =
+                    await supervisionReadRepository.SearchPatientHealthcareProfessionalsAsync(
+                        query.PatientUserId,
+                        searchQuery: query.SearchQuery,
+                        searchField: field,
+                        statuses: query.Statuses,
+                        sortField: query.SortBy,
+                        ascending: query.Ascending,
+                        skip: query.Skip,
+                        take: takePlusOne,
+                        cancellationToken);
+
+                if (attempt.Items.Count > 0)
+                {
+                    matchedResult = attempt;
+                    matchedFieldToken = token;
+                    appliedSearchField = field;
+                    break;
+                }
+
+                matchedFailedFieldTokens.Add(token);
+            }
+
+            result = matchedResult ?? new SearchPatientHealthcareProfessionalsResult([], 0);
+        }
+
+        if (query.Skip == 0)
+        {
+            if (!string.IsNullOrWhiteSpace(query.SearchQuery) && matchedFieldToken is null)
+            {
+                totalCount = 0;
+            }
+            else
+            {
+                totalCount = await supervisionReadRepository.CountPatientHealthcareProfessionalsAsync(
+                    query.PatientUserId,
+                    searchQuery: query.SearchQuery,
+                    searchField: appliedSearchField,
+                    statuses: query.Statuses,
+                    cancellationToken);
+            }
+        }
+
+        return result.MapToResponse(query.Take, totalCount, matchedFieldToken, matchedFailedFieldTokens);
     }
 }

@@ -19,12 +19,14 @@ public sealed record PatientHealthcareProfessionalListItemDto(
     int? PendingProposalCount,
     DateTime RequestedAtUtc,
     DateTime? ApprovedAtUtc,
-    bool HasProfilePhoto);
+    string? ProfilePhotoUrl);
 
 public sealed record PatientHealthcareProfessionalListResponse(
     IReadOnlyCollection<PatientHealthcareProfessionalListItemDto> Items,
-    int TotalCount,
-    bool HasMore);
+    int? TotalCount,
+    bool HasMore,
+    string? MatchedFieldToken,
+    List<string> MatchedFailedFieldTokens);
 
 public sealed record PatientHealthcareProfessionalDetailDto(
     Guid HealthcareProfessionalUserId,
@@ -41,13 +43,37 @@ public sealed record PatientHealthcareProfessionalDetailDto(
     Guid? ActiveRequestId,
     Guid? ActiveConnectionId);
 
+public sealed record PatientSupervisionRequestListItemDto(
+    Guid RequestId,
+    Guid HealthcareProfessionalUserId,
+    string RequestState,
+    DateTime RequestedAtUtc,
+    string FirstName,
+    string LastName,
+    string? ProfessionLabel,
+    string? WorkplaceLabel,
+    string? ShortDescription,
+    string? ProfilePhotoUrl);
+
+public sealed record PatientSupervisionRequestListResponse(
+    IReadOnlyCollection<PatientSupervisionRequestListItemDto> Items,
+    int? TotalCount,
+    bool HasMore);
+
+public sealed record SupervisionRequestHealthcareProfessionalDto(
+    Guid HealthcareProfessionalUserId,
+    string? ProfilePhotoUrl,
+    string FirstName,
+    string LastName,
+    string? ProfessionLabel,
+    string? WorkplaceLabel,
+    string? ShortDescription);
+
 public sealed record SupervisionRequestDetailDto(
     Guid RequestId,
     string RequestState,
-    DateTime ExpiresAtUtc,
-    string HealthcareProfessionalSummary,
-    IReadOnlyList<string> AvailableAccessLevels,
-    string PrivacyWarningText);
+    DateTime RequestedAtUtc,
+    SupervisionRequestHealthcareProfessionalDto HealthcareProfessional);
 
 public sealed record RemoveSupervisionConnectionResponseDto(
     Guid ConnectionId,
@@ -67,29 +93,25 @@ public sealed record PatientProposalListResponse(
     int TotalCount,
     bool HasMore);
 
-public sealed record PatientProposalDetailSectionItemDto(
+public sealed record PatientProposalDraftItemDto(
     string CategoryCode,
-    string Source,
+    string? Source,
     Guid? RelatedCatalogId,
     string? CustomValue,
     string DisplayName,
-    string? SecondaryText,
     DateOnly? StartDate,
     DateOnly? EndDate,
     string? Note,
-    IReadOnlyCollection<TimeOnly>? IntakeTimes);
-
-public sealed record PatientProposalDetailSectionDto(
-    string SectionCode,
-    IReadOnlyCollection<PatientProposalDetailSectionItemDto> Items);
+    IReadOnlyCollection<TimeOnly> IntakeTimes,
+    string ApplyPayload);
 
 public sealed record PatientProposalDetailResponse(
     Guid ProposalId,
     string ProposalState,
     string ProposalSummary,
     DateTime SubmittedAtUtc,
-    string HealthcareProfessionalSummary,
-    IReadOnlyCollection<PatientProposalDetailSectionDto> Sections);
+    SupervisionRequestHealthcareProfessionalDto HealthcareProfessional,
+    IReadOnlyCollection<PatientProposalDraftItemDto> DraftItems);
 
 public sealed record ApproveSupervisionRequestResponseDto(
     Guid RequestId,
@@ -108,11 +130,16 @@ public sealed record UpdateSupervisionAccessLevelResponseDto(
     string AccessLevelCode,
     DateTime UpdatedAtUtc);
 
+public sealed record ProposalCreatedRecordCountsDto(
+    int RegularDrug,
+    int RegularSupplement,
+    int RegularFood);
+
 public sealed record ApprovePatientProposalResponseDto(
     Guid ProposalId,
     string ProposalState,
     DateTime ResolvedAtUtc,
-    IReadOnlyDictionary<string, int> CreatedRecordCounts,
+    ProposalCreatedRecordCountsDto CreatedRecordCounts,
     string? InvalidatedReason);
 
 public sealed record RejectPatientProposalResponseDto(

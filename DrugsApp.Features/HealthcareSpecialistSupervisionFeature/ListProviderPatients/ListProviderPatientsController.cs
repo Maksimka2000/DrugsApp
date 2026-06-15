@@ -17,14 +17,14 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ListProviderP
 [Tags("Supervision Healthcare Specialist")]
 public sealed class ListProviderPatientsController(
     IMediator mediator,
-    IValidator<ListProviderPatientsRequest> validator) : ControllerBase
+    IValidator<SearchProviderPatientsRequest> validator) : ControllerBase
 {
     public const string RouteName = "ListProviderPatients";
 
     [HttpGet(Name = RouteName)]
     [Authorize(Roles = AuthRoles.HealthcareProvider)]
     public async Task<ActionResult<ProviderPatientListResponse>> List(
-        [FromQuery] ListProviderPatientsRequest request,
+        [FromQuery] SearchProviderPatientsRequest request,
         CancellationToken cancellationToken)
     {
         ValidationResult? validationResult = await validator.ValidateAsync(request, cancellationToken);
@@ -38,7 +38,7 @@ public sealed class ListProviderPatientsController(
             return Unauthorized();
         }
 
-        ListProviderPatientsQuery query = request.MapToQuery(providerUserId);
+        SearchProviderPatientsQuery query = request.MapToQuery(providerUserId);
         ErrorOr<ProviderPatientListResponse> result = await mediator.Send(query, cancellationToken);
 
         return result.Match<ActionResult<ProviderPatientListResponse>>(

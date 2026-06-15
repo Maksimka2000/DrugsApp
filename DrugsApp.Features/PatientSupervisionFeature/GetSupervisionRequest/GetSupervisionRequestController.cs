@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Http;
 namespace DrugsApp.Features.PatientSupervisionFeature.GetSupervisionRequest;
 
 [ApiController]
-[Route("api/supervision/requests")]
-[Tags("Supervision request")]
+[Route("api/supervision/patient/requests")]
+[Tags("Supervision Patient")]
 public sealed class GetSupervisionRequestController(
     IMediator mediator,
     IValidator<GetSupervisionRequestRequest> validator) : ControllerBase
@@ -22,7 +22,7 @@ public sealed class GetSupervisionRequestController(
     public const string RouteName = "GetSupervisionRequest";
 
     [HttpGet("{request_id:guid}", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.MemberRoles)]
+    [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<SupervisionRequestDetailDto>> Get(
         [FromRoute] Guid request_id,
         CancellationToken cancellationToken)

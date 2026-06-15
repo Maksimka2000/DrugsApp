@@ -424,7 +424,7 @@ public sealed class InteractionRepository : IInteractionRepository
             return new List<InteractionExpandedProjection>();
         }
 
-        List<Guid> leftIds = leftActiveSubstanceIds.ToList();
+        var leftIds = leftActiveSubstanceIds.ToList();
 
         List<InteractionExpandedProjection> forwardRows = await BuildExpandedProjectionQueryAsync(
             interactionKind,

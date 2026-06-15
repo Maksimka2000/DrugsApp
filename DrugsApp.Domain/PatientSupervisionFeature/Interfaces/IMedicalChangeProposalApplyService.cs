@@ -17,6 +17,10 @@ public interface IMedicalChangeProposalApplyService
 }
 
 /// <summary>
-/// Aggregate result describing applied records by category.
+/// Aggregate result describing applied regular-intake records.
 /// </summary>
-public sealed record ApplyProposalResult(IReadOnlyDictionary<string, int> CreatedCounts, string? InvalidatedReason);
+public sealed record ApplyProposalResult(
+    int RegularDrugCount,
+    int RegularSupplementCount,
+    int RegularFoodCount,
+    string? InvalidatedReason);

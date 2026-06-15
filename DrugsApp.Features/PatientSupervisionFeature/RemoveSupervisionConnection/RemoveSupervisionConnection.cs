@@ -1,5 +1,6 @@
 using DrugsApp.Domain.NotificationsFeature.Interfaces;
 using DrugsApp.Domain.PatientSupervisionFeature.Entities;
+using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
@@ -55,17 +56,13 @@ internal sealed class RemoveSupervisionConnectionHandler(
                 });
         }
 
-        DateTime nowUtc = DateTime.UtcNow;
-        ErrorOr<Success> removeResult = connection.Remove(nowUtc);
-        if (removeResult.IsError)
+        if (connection.ConnectionState != SupervisionConnectionState.Active)
         {
-            return removeResult.Errors;
+            return Error.Conflict(description: "Connection already removed.");
         }
 
-        int invalidatedCount = await medicalChangeProposalRepository.InvalidatePendingByConnectionAsync(
-            connection.Id,
-            nowUtc,
-            cancellationToken);
+        DateTime nowUtc = DateTime.UtcNow;
+        Guid connectionId = connection.Id;
 
         ErrorOr<Success> notificationResult = removedByPatient
             ? await NotifyProviderPatientRemovedAsync(connection, cancellationToken)
@@ -75,11 +72,17 @@ internal sealed class RemoveSupervisionConnectionHandler(
             return notificationResult.Errors;
         }
 
+        int deletedProposalCount = await medicalChangeProposalRepository.DeleteByConnectionAsync(
+            connectionId,
+            cancellationToken);
+
+        supervisionConnectionRepository.Delete(connection);
+
         return new RemoveSupervisionConnectionResponseDto(
-            ConnectionId: connection.Id,
-            ConnectionState: connection.ConnectionState.ToString(),
+            ConnectionId: connectionId,
+            ConnectionState: SupervisionConnectionState.Removed.ToString(),
             RemovedAtUtc: nowUtc,
-            InvalidatedProposalCount: invalidatedCount == 0 ? null : invalidatedCount);
+            InvalidatedProposalCount: deletedProposalCount == 0 ? null : deletedProposalCount);
     }
 
     private async Task<ErrorOr<Success>> NotifyProviderPatientRemovedAsync(

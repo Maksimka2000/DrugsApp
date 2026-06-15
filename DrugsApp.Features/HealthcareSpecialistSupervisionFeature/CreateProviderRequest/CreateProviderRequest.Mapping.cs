@@ -15,7 +15,6 @@ internal static class CreateProviderRequestMapping
         return new CreateProviderRequestResponseDto(
             RequestId: request.Id,
             RequestState: request.RequestState.ToString(),
-            ExpiresAtUtc: request.ExpiresAtUtc,
             RequestedAtUtc: request.RequestedAtUtc);
     }
 }

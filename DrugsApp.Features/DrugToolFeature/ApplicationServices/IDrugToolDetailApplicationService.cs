@@ -26,11 +26,10 @@ public sealed record DrugToolDetailBuildResult(
 public interface IDrugToolDetailApplicationService
 {
     /// <summary>
-    /// Builds the aggregated drug tool detail projection for one selected drug form.
+    /// Builds the aggregated drug tool detail projection for one drug form.
     /// </summary>
     Task<ErrorOr<DrugToolDetailBuildResult>> BuildAsync(
-        Guid drugId,
-        Guid? selectedDrugFormId,
+        Guid drugFormId,
         DrugToolInteractionScope interactionScope,
         Guid userId,
         CancellationToken cancellationToken);

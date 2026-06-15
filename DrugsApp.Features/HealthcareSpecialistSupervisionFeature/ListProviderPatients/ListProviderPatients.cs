@@ -1,34 +1,45 @@
+using DrugsApp.Domain.PatientSupervisionFeature.Enums;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
 using DrugsApp.Features.HealthcareSpecialistSupervisionFeature.Shared;
 using ErrorOr;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ListProviderPatients;
 
-public sealed record ListProviderPatientsRequest(
-    string? RelationshipState = "all",
-    string? SortBy = "status",
-    string? SortDirection = "asc",
-    int Skip = 0,
-    int Take = 20);
+// GET search request — canonical query params for provider patient list.
+public sealed record SearchProviderPatientsRequest(
+    [FromQuery(Name = "search_query")] string? SearchQuery,
+    [FromQuery(Name = "sort_by")] string SortBy = "status",
+    [FromQuery(Name = "order_by")] string OrderBy = "ascending",
+    [FromQuery(Name = "statuses")] List<string>? Statuses = null,
+    [FromQuery(Name = "skip")] int Skip = 0,
+    [FromQuery(Name = "take")] int Take = 20);
 
-public sealed record ListProviderPatientsQuery(
+public sealed record SearchProviderPatientsQuery(
     Guid ProviderUserId,
-    string? RelationshipState,
-    string? SortBy,
-    string? SortDirection,
+    string? SearchQuery,
+    IReadOnlyCollection<PatientHealthcareProfessionalRelationshipStatus>? Statuses,
+    ProviderPatientSortField SortBy,
+    bool Ascending,
     int Skip,
     int Take) : IRequest<ErrorOr<ProviderPatientListResponse>>;
 
-internal sealed class ListProviderPatientsHandler(
+internal sealed class SearchProviderPatientsHandler(
     ISupervisionReadRepository supervisionReadRepository,
     IHealthcareProviderProfileRepository healthcareProviderProfileRepository)
-    : IRequestHandler<ListProviderPatientsQuery, ErrorOr<ProviderPatientListResponse>>
+    : IRequestHandler<SearchProviderPatientsQuery, ErrorOr<ProviderPatientListResponse>>
 {
+    private static readonly (string Token, ProviderPatientSearchField Field)[] SearchPriorityFields =
+    [
+        ("email", ProviderPatientSearchField.Email),
+        ("display_name", ProviderPatientSearchField.DisplayName)
+    ];
+
     public async Task<ErrorOr<ProviderPatientListResponse>> Handle(
-        ListProviderPatientsQuery query,
+        SearchProviderPatientsQuery query,
         CancellationToken cancellationToken)
     {
         HealthcareProviderProfile? profile = await healthcareProviderProfileRepository.GetTrackedByUserIdAsync(
@@ -40,15 +51,75 @@ internal sealed class ListProviderPatientsHandler(
             return Error.Forbidden(description: "Provider profile required.");
         }
 
-        SearchProviderPatientsResult result = await supervisionReadRepository.SearchProviderPatientsAsync(
-            query.ProviderUserId,
-            query.RelationshipState,
-            query.SortBy,
-            query.SortDirection?.Equals("asc", StringComparison.OrdinalIgnoreCase) ?? true,
-            query.Skip,
-            query.Take,
-            cancellationToken);
+        int takePlusOne = query.Take + 1;
+        int? totalCount = null;
 
-        return result.MapToResponse(query.Take);
+        ProviderPatientSearchField appliedSearchField = ProviderPatientSearchField.None;
+        string? matchedFieldToken = null;
+        List<string> matchedFailedFieldTokens = new();
+        SearchProviderPatientsResult result;
+
+        if (string.IsNullOrWhiteSpace(query.SearchQuery))
+        {
+            result = await supervisionReadRepository.SearchProviderPatientsAsync(
+                query.ProviderUserId,
+                searchQuery: null,
+                searchField: appliedSearchField,
+                statuses: query.Statuses,
+                sortField: query.SortBy,
+                ascending: query.Ascending,
+                skip: query.Skip,
+                take: takePlusOne,
+                cancellationToken);
+        }
+        else
+        {
+            SearchProviderPatientsResult? matchedResult = null;
+
+            foreach ((string token, ProviderPatientSearchField field) in SearchPriorityFields)
+            {
+                SearchProviderPatientsResult attempt = await supervisionReadRepository.SearchProviderPatientsAsync(
+                    query.ProviderUserId,
+                    searchQuery: query.SearchQuery,
+                    searchField: field,
+                    statuses: query.Statuses,
+                    sortField: query.SortBy,
+                    ascending: query.Ascending,
+                    skip: query.Skip,
+                    take: takePlusOne,
+                    cancellationToken);
+
+                if (attempt.Items.Count > 0)
+                {
+                    matchedResult = attempt;
+                    matchedFieldToken = token;
+                    appliedSearchField = field;
+                    break;
+                }
+
+                matchedFailedFieldTokens.Add(token);
+            }
+
+            result = matchedResult ?? new SearchProviderPatientsResult([], 0);
+        }
+
+        if (query.Skip == 0)
+        {
+            if (!string.IsNullOrWhiteSpace(query.SearchQuery) && matchedFieldToken is null)
+            {
+                totalCount = 0;
+            }
+            else
+            {
+                totalCount = await supervisionReadRepository.CountProviderPatientsAsync(
+                    query.ProviderUserId,
+                    searchQuery: query.SearchQuery,
+                    searchField: appliedSearchField,
+                    statuses: query.Statuses,
+                    cancellationToken);
+            }
+        }
+
+        return result.MapToResponse(query.Take, totalCount, matchedFieldToken, matchedFailedFieldTokens);
     }
 }

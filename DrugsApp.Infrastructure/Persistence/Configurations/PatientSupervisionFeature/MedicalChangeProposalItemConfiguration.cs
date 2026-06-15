@@ -63,9 +63,9 @@ public sealed class MedicalChangeProposalItemConfiguration : BaseEntityConfigura
             .HasDatabaseName("ux_medical_change_proposal_items_proposal_sort")
             .IsUnique();
 
-        builder.HasOne<MedicalChangeProposal>()
-            .WithMany()
-            .HasForeignKey(x => x.ProposalId)
+        builder.HasMany(x => x.IntakeTimes)
+            .WithOne()
+            .HasForeignKey(x => x.ProposalItemId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -22,6 +22,8 @@ public interface IMedicalChangeProposalRepository
 
     Task<int> InvalidatePendingByConnectionAsync(Guid connectionId, DateTime resolvedAtUtc, CancellationToken cancellationToken);
 
+    Task<int> DeleteByConnectionAsync(Guid connectionId, CancellationToken cancellationToken);
+
     Task AddAsync(MedicalChangeProposal proposal, CancellationToken cancellationToken);
 }
 
@@ -40,20 +42,16 @@ public sealed record MedicalChangeProposalDetail(
     string ProposalState,
     string ProposalSummary,
     DateTime SubmittedAtUtc,
-    IReadOnlyCollection<MedicalChangeProposalSectionDto> Sections);
+    IReadOnlyCollection<MedicalChangeProposalDraftItemDto> DraftItems);
 
-public sealed record MedicalChangeProposalSectionDto(
-    string SectionCode,
-    IReadOnlyCollection<MedicalChangeProposalSectionItemDto> Items);
-
-public sealed record MedicalChangeProposalSectionItemDto(
+public sealed record MedicalChangeProposalDraftItemDto(
     string CategoryCode,
     string Source,
     Guid? RelatedCatalogId,
     string? CustomValue,
     string DisplayName,
-    string? SecondaryText,
     DateOnly? StartDate,
     DateOnly? EndDate,
     string? Note,
-    IReadOnlyCollection<TimeOnly>? IntakeTimes);
+    string ApplyPayload,
+    IReadOnlyCollection<TimeOnly> IntakeTimes);
