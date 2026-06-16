@@ -14,7 +14,7 @@ namespace DrugsApp.Features.PatientSupervisionFeature.GetSupervisionRequest;
 
 [ApiController]
 [Route("api/supervision/patient/requests")]
-[Tags("Supervision Patient")]
+[Tags("Supervision Patient Request")]
 public sealed class GetSupervisionRequestController(
     IMediator mediator,
     IValidator<GetSupervisionRequestRequest> validator) : ControllerBase

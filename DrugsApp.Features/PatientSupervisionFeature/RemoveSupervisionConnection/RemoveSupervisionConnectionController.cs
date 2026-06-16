@@ -3,8 +3,6 @@ using DrugsApp.Features.Common.Extensions;
 using DrugsApp.Features.PatientSupervisionFeature.RemoveSupervisionConnection;
 using DrugsApp.Features.PatientSupervisionFeature.Shared;
 using ErrorOr;
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,28 +11,18 @@ using Microsoft.AspNetCore.Http;
 namespace DrugsApp.Features.PatientSupervisionFeature.RemoveSupervisionConnection;
 
 [ApiController]
-[Route("api/supervision/connections")]
-[Tags("Supervision Shared Connection")]
-public sealed class RemoveSupervisionConnectionController(
-    IMediator mediator,
-    IValidator<RemoveSupervisionConnectionRequest> validator) : ControllerBase
+[Route("api/supervision/patient/healthcare-professionals")]
+[Tags("Supervision Patient - Healthcare Professional")]
+public sealed class RemoveSupervisionConnectionController(IMediator mediator) : ControllerBase
 {
     public const string RouteName = "RemoveSupervisionConnection";
 
-    [HttpDelete("{connection_id:guid}", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.MemberRoles)]
+    [HttpDelete("{healthcare_professional_user_id:guid}", Name = RouteName)]
+    [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<RemoveSupervisionConnectionResponseDto>> Remove(
-        [FromRoute] Guid connection_id,
+        [FromRoute(Name = "healthcare_professional_user_id")] Guid healthcareProfessionalUserId,
         CancellationToken cancellationToken)
     {
-        var request = new RemoveSupervisionConnectionRequest(connection_id);
-
-        ValidationResult? validationResult = await validator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-        {
-            return validationResult.MapToProblem(HttpContext);
-        }
-
         if (!User.TryGetUserId(out Guid callerUserId))
         {
             return Unauthorized();
@@ -42,7 +30,7 @@ public sealed class RemoveSupervisionConnectionController(
 
         var command = new RemoveSupervisionConnectionCommand(
             CallerUserId: callerUserId,
-            ConnectionId: request.ConnectionId);
+            ExpectedHealthcareProfessionalUserId: healthcareProfessionalUserId);
 
         ErrorOr<RemoveSupervisionConnectionResponseDto> result = await mediator.Send(command, cancellationToken);
 

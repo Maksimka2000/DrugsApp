@@ -13,18 +13,18 @@ using Microsoft.AspNetCore.Http;
 namespace DrugsApp.Features.PatientSupervisionFeature.UpdateSupervisionAccessLevel;
 
 [ApiController]
-[Route("api/supervision/connections")]
-[Tags("Supervision Patient Connection")]
+[Route("api/supervision/patient/healthcare-professionals")]
+[Tags("Supervision Patient - Healthcare Professional")]
 public sealed class UpdateSupervisionAccessLevelController(
     IMediator mediator,
     IValidator<UpdateSupervisionAccessLevelRequest> validator) : ControllerBase
 {
     public const string RouteName = "UpdateSupervisionAccessLevel";
 
-    [HttpPut("{connection_id:guid}/access-level", Name = RouteName)]
+    [HttpPut("{healthcare_professional_user_id:guid}/access-level", Name = RouteName)]
     [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<UpdateSupervisionAccessLevelResponseDto>> Update(
-        [FromRoute] Guid connection_id,
+        [FromRoute(Name = "healthcare_professional_user_id")] Guid healthcareProfessionalUserId,
         [FromBody] UpdateSupervisionAccessLevelRequest request,
         CancellationToken cancellationToken)
     {
@@ -41,7 +41,7 @@ public sealed class UpdateSupervisionAccessLevelController(
 
         var command = new UpdateSupervisionAccessLevelCommand(
             PatientUserId: patientUserId,
-            ConnectionId: connection_id,
+            HealthcareProfessionalUserId: healthcareProfessionalUserId,
             AccessLevelCode: request.AccessLevelCode);
 
         ErrorOr<UpdateSupervisionAccessLevelResponseDto> result = await mediator.Send(command, cancellationToken);

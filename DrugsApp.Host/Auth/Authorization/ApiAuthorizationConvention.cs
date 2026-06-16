@@ -59,6 +59,32 @@ namespace DrugsApp.Host.Auth.Authorization;
 // ManagePatientSupervision (HealthcareProvider, Admin):
 // - HealthcareSpecialistSupervisionFeature (controller role policies)
 //
+// Member-only supervision endpoints use explicit [Authorize(Roles = "...")] on controllers
+// and are intentionally not mapped here. Current routes:
+//
+// PatientSupervisionFeature (Client):
+// - GET    /api/supervision/patient/requests
+// - GET    /api/supervision/patient/requests/{request_id}
+// - POST   /api/supervision/patient/requests/{request_id}/approve
+// - POST   /api/supervision/patient/requests/{request_id}/reject
+// - GET    /api/supervision/patient/healthcare-professionals
+// - GET    /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}
+// - PUT    /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}/access-level
+// - DELETE /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}
+// - GET    /api/supervision/patient/proposals
+// - GET    /api/supervision/patient/proposals/{proposal_id}
+// - POST   /api/supervision/patient/proposals/{proposal_id}/approve
+// - POST   /api/supervision/patient/proposals/{proposal_id}/reject
+//
+// HealthcareSpecialistSupervisionFeature (HealthcareProvider):
+// - GET    /api/supervision/provider/requests
+// - POST   /api/supervision/provider/requests/request
+// - POST   /api/supervision/provider/requests/{request_id}/cancel
+// - GET    /api/supervision/provider/patients
+// - GET    /api/supervision/provider/patients/{patient_id}
+// - DELETE /api/supervision/provider/patients/{patient_id}
+// - POST   /api/supervision/provider/patients/{patient_id}/proposals
+//
 // Member-only endpoints (AccountFeature, UserProfileFeature, allergies, regular drugs/foods/supplements, etc.)
 // use explicit [Authorize(Roles = "...")] and are not mapped here.
 

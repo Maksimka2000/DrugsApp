@@ -14,7 +14,7 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CancelProvide
 
 [ApiController]
 [Route("api/supervision/provider/requests")]
-[Tags("Supervision Healthcare Specialist")]
+[Tags("Supervision HealthcareSpecialist Request")]
 public sealed class CancelProviderSupervisionRequestController(
     IMediator mediator,
     IValidator<CancelProviderSupervisionRequestRequest> validator) : ControllerBase

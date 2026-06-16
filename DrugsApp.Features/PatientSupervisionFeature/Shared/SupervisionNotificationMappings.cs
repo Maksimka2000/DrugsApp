@@ -8,43 +8,32 @@ namespace DrugsApp.Features.PatientSupervisionFeature.Shared;
 /// </summary>
 public static class SupervisionNotificationMappings
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public const string SupervisionRequestAggregateType = "supervision_request";
 
-    /// <summary>
-    /// 
-    /// </summary>
     public const string MedicalChangeProposalAggregateType = "medical_change_proposal";
 
-    /// <summary>
-    /// 
-    /// </summary>
     public const string SupervisionConnectionAggregateType = "supervision_connection";
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public const string PatientSupervisionRequestsDeepLink = "/supervision/patient/healthcare-professionals";
+    public const string PatientSupervisionRequestsDeepLink = "/supervision/patient/requests";
 
-    /// <summary>
-    /// 
-    /// </summary>
+    public const string PatientHealthcareProfessionalsDeepLink = "/supervision/patient/healthcare-professionals";
+
     public const string PatientProposalsDeepLink = "/supervision/patient/proposals";
 
-    /// <summary>
-    /// 
-    /// </summary>
     public const string ProviderPatientsDeepLink = "/supervision/provider/patients";
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="patientUserId"></param>
-    /// <param name="requestId"></param>
-    /// <param name="healthcareProfessionalSummary"></param>
-    /// <returns></returns>
+    public static string BuildPatientRequestDeepLink(Guid requestId) =>
+        $"{PatientSupervisionRequestsDeepLink}/{requestId}";
+
+    public static string BuildPatientHealthcareProfessionalDeepLink(Guid healthcareProfessionalUserId) =>
+        $"{PatientHealthcareProfessionalsDeepLink}/{healthcareProfessionalUserId}";
+
+    public static string BuildPatientProposalDeepLink(Guid proposalId) =>
+        $"{PatientProposalsDeepLink}/{proposalId}";
+
+    public static string BuildProviderPatientDeepLink(Guid patientUserId) =>
+        $"{ProviderPatientsDeepLink}/{patientUserId}";
+
     public static NotificationProjectionDraft BuildRequestCreatedDraft(
         Guid patientUserId,
         Guid requestId,
@@ -61,17 +50,10 @@ public static class SupervisionNotificationMappings
             SourceEventKey: BuildRequestSourceEventKey(requestId),
             RelatedAggregateType: SupervisionRequestAggregateType,
             RelatedAggregateId: requestId,
-            DeepLinkPath: PatientSupervisionRequestsDeepLink,
+            DeepLinkPath: BuildPatientRequestDeepLink(requestId),
             RequiresAction: true,
             ActionState: NotificationActionState.Pending);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="patientUserId"></param>
-    /// <param name="proposalId"></param>
-    /// <param name="proposalSummary"></param>
-    /// <returns></returns>
     public static NotificationProjectionDraft BuildProposalSubmittedDraft(
         Guid patientUserId,
         Guid proposalId,
@@ -88,12 +70,13 @@ public static class SupervisionNotificationMappings
             SourceEventKey: BuildProposalSourceEventKey(proposalId),
             RelatedAggregateType: MedicalChangeProposalAggregateType,
             RelatedAggregateId: proposalId,
-            DeepLinkPath: PatientProposalsDeepLink,
+            DeepLinkPath: BuildPatientProposalDeepLink(proposalId),
             RequiresAction: true,
             ActionState: NotificationActionState.Pending);
 
     public static NotificationProjectionDraft BuildAccessLevelChangedDraft(
         Guid providerUserId,
+        Guid patientUserId,
         Guid connectionId,
         string patientSummary,
         string accessLevelCode) =>
@@ -108,8 +91,8 @@ public static class SupervisionNotificationMappings
             BodyText: null,
             SourceEventKey: BuildAccessLevelChangedSourceEventKey(connectionId),
             RelatedAggregateType: SupervisionConnectionAggregateType,
-            RelatedAggregateId: connectionId,
-            DeepLinkPath: $"{ProviderPatientsDeepLink}/{connectionId}",
+            RelatedAggregateId: patientUserId,
+            DeepLinkPath: BuildProviderPatientDeepLink(patientUserId),
             RequiresAction: false,
             ActionState: NotificationActionState.Informational);
 
@@ -130,7 +113,7 @@ public static class SupervisionNotificationMappings
             SourceEventKey: BuildRemovedByPatientSourceEventKey(connectionId),
             RelatedAggregateType: SupervisionConnectionAggregateType,
             RelatedAggregateId: patientUserId,
-            DeepLinkPath: ProviderPatientsDeepLink,
+            DeepLinkPath: BuildProviderPatientDeepLink(patientUserId),
             RequiresAction: false,
             ActionState: NotificationActionState.Informational);
 
@@ -151,55 +134,30 @@ public static class SupervisionNotificationMappings
             SourceEventKey: BuildRemovedByDoctorSourceEventKey(connectionId),
             RelatedAggregateType: SupervisionConnectionAggregateType,
             RelatedAggregateId: providerUserId,
-            DeepLinkPath: PatientSupervisionRequestsDeepLink,
+            DeepLinkPath: BuildPatientHealthcareProfessionalDeepLink(providerUserId),
             RequiresAction: false,
             ActionState: NotificationActionState.Informational);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="requestId"></param>
-    /// <returns></returns>
     public static string BuildRequestSourceEventKey(Guid requestId) => $"supervision-request:{requestId}";
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="proposalId"></param>
-    /// <returns></returns>
     public static string BuildProposalSourceEventKey(Guid proposalId) => $"medical-change-proposal:{proposalId}";
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="connectionId"></param>
-    /// <returns></returns>
     public static string BuildAccessLevelChangedSourceEventKey(Guid connectionId) =>
         $"supervision-connection-access-level:{connectionId}";
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="connectionId"></param>
-    /// <returns></returns>
     public static string BuildRemovedByPatientSourceEventKey(Guid connectionId) =>
         $"supervision-connection-removed-by-patient:{connectionId}";
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="connectionId"></param>
-    /// <returns></returns>
     public static string BuildRemovedByDoctorSourceEventKey(Guid connectionId) =>
         $"supervision-connection-removed-by-doctor:{connectionId}";
 
     private static string FormatAccessLevelLabel(string accessLevelCode) =>
         accessLevelCode.ToLowerInvariant() switch
         {
-            "view_and_modify" => "view and modify",
-            "view_only" => "view only",
-            "restricted_view" => "restricted view",
-            "block_access" => "block access",
+            "viewandmodify" or "view_and_modify" => "view and modify",
+            "viewonly" or "view_only" => "view only",
+            "restrictedview" or "restricted_view" => "restricted view",
+            "blockaccess" or "block_access" => "block access",
             _ => accessLevelCode
         };
 }
