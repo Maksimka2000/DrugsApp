@@ -11,6 +11,11 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.GetUserProfile;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
+/// <param name="Email"></param>
 public sealed record GetUserProfileQuery(Guid UserId, string Email) : IRequest<ErrorOr<UserProfileResponse>>;
 
 internal sealed class GetUserProfileHandler(

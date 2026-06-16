@@ -11,6 +11,11 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.CompletePatientOnboarding;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
+/// <param name="Email"></param>
 public sealed record CompletePatientOnboardingCommand(Guid UserId, string Email)
     : IRequest<ErrorOr<UserProfileResponse>>;
 

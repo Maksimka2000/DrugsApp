@@ -9,6 +9,14 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.UpdateHealthcareProviderProfile;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="ProfessionCode"></param>
+/// <param name="OtherProfessionLabel"></param>
+/// <param name="WorkplaceLabel"></param>
+/// <param name="ShortDescription"></param>
+/// <param name="OnboardingCompletedAtUtc"></param>
 public sealed record UpdateHealthcareProviderProfileRequest(
     HealthcareProviderProfession? ProfessionCode,
     string? OtherProfessionLabel,

@@ -11,12 +11,24 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.AddHealthcareProviderProfile;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="ProfessionCode"></param>
+/// <param name="OtherProfessionLabel"></param>
+/// <param name="WorkplaceLabel"></param>
+/// <param name="ShortDescription"></param>
 public sealed record AddHealthcareProviderProfileRequest(
     HealthcareProviderProfession? ProfessionCode,
     string? OtherProfessionLabel,
     string? WorkplaceLabel,
     string? ShortDescription);
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
+/// <param name="Request"></param>
 public sealed record AddHealthcareProviderProfileCommand(
     Guid UserId,
     AddHealthcareProviderProfileRequest Request) : IRequest<ErrorOr<HealthcareProviderProfileResponse>>;

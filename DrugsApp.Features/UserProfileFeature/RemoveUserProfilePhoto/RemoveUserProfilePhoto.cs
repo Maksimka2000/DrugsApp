@@ -9,6 +9,10 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.RemoveUserProfilePhoto;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
 public sealed record RemoveUserProfilePhotoCommand(Guid UserId) : IRequest<ErrorOr<Success>>;
 
 internal sealed class RemoveUserProfilePhotoHandler(
