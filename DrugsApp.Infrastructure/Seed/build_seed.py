@@ -938,7 +938,34 @@ def supervision_connection_insert(
     )
 
 
+def supervision_api_routes() -> None:
+    w("-- Supervision API routes")
+    w("-- Patient (Client):")
+    w("--   GET    /api/supervision/patient/requests")
+    w("--   GET    /api/supervision/patient/requests/{request_id}")
+    w("--   POST   /api/supervision/patient/requests/{request_id}/approve")
+    w("--   POST   /api/supervision/patient/requests/{request_id}/reject")
+    w("--   GET    /api/supervision/patient/healthcare-professionals")
+    w("--   GET    /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}")
+    w("--   PUT    /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}/access-level")
+    w("--   DELETE /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}")
+    w("--   GET    /api/supervision/patient/proposals")
+    w("--   GET    /api/supervision/patient/proposals/{proposal_id}")
+    w("--   POST   /api/supervision/patient/proposals/{proposal_id}/approve")
+    w("--   POST   /api/supervision/patient/proposals/{proposal_id}/reject")
+    w("-- Provider (HealthcareProvider):")
+    w("--   GET    /api/supervision/provider/requests")
+    w("--   POST   /api/supervision/provider/requests/request")
+    w("--   POST   /api/supervision/provider/requests/{request_id}/cancel")
+    w("--   GET    /api/supervision/provider/patients")
+    w("--   GET    /api/supervision/provider/patients/{patient_id}")
+    w("--   DELETE /api/supervision/provider/patients/{patient_id}")
+    w("--   POST   /api/supervision/provider/patients/{patient_id}/proposals")
+    w("")
+
+
 def supervision() -> None:
+    supervision_api_routes()
     access_levels = ["ViewAndModify", "ViewOnly", "RestrictedView", "BlockAccess"]
 
     w("-- Supervision: pending requests (6)")
@@ -1019,21 +1046,26 @@ def supervision() -> None:
         (6, 4),
     ]
     for req_id, client_i in supervision_request_notifications:
+        request_uuid = uid(SUPERVISION_REQUEST, req_id)
         w(
-            f'UPDATE "UserNotifications" SET "SourceEventKey" = \'supervision-request:{uid(SUPERVISION_REQUEST, req_id)}\', '
-            f'"RelatedAggregateType" = \'supervision_request\', "RelatedAggregateId" = \'{uid(SUPERVISION_REQUEST, req_id)}\' '
+            f'UPDATE "UserNotifications" SET "SourceEventKey" = \'supervision-request:{request_uuid}\', '
+            f'"RelatedAggregateType" = \'supervision_request\', "RelatedAggregateId" = \'{request_uuid}\', '
+            f'"DeepLinkPath" = \'/supervision/patient/requests/{request_uuid}\' '
             f'WHERE "UserId" = \'{clients[client_i]}\' AND "TypeCode" = \'SupervisionRequest\' AND "ActionState" = \'Pending\' '
             f"AND \"SourceEventKey\" LIKE 'seed.%';"
         )
     w(
         f'UPDATE "UserNotifications" SET "SourceEventKey" = \'medical-change-proposal:{uid(MEDICAL_PROPOSAL, 1)}\', '
-        f'"RelatedAggregateType" = \'medical_change_proposal\', "RelatedAggregateId" = \'{uid(MEDICAL_PROPOSAL, 1)}\' '
+        f'"RelatedAggregateType" = \'medical_change_proposal\', "RelatedAggregateId" = \'{uid(MEDICAL_PROPOSAL, 1)}\', '
+        f'"DeepLinkPath" = \'/supervision/patient/proposals/{uid(MEDICAL_PROPOSAL, 1)}\' '
         f'WHERE "UserId" = \'{clients[0]}\' AND "TypeCode" = \'MedicalChangeProposal\' AND "ActionState" = \'Pending\';'
     )
     for client_i, prop_n in ((1, 3), (2, 5), (3, 7)):
+        proposal_uuid = uid(MEDICAL_PROPOSAL, prop_n)
         w(
-            f'UPDATE "UserNotifications" SET "SourceEventKey" = \'medical-change-proposal:{uid(MEDICAL_PROPOSAL, prop_n)}\', '
-            f'"RelatedAggregateType" = \'medical_change_proposal\', "RelatedAggregateId" = \'{uid(MEDICAL_PROPOSAL, prop_n)}\' '
+            f'UPDATE "UserNotifications" SET "SourceEventKey" = \'medical-change-proposal:{proposal_uuid}\', '
+            f'"RelatedAggregateType" = \'medical_change_proposal\', "RelatedAggregateId" = \'{proposal_uuid}\', '
+            f'"DeepLinkPath" = \'/supervision/patient/proposals/{proposal_uuid}\' '
             f'WHERE "UserId" = \'{clients[client_i]}\' AND "TypeCode" = \'MedicalChangeProposal\' AND "ActionState" = \'Pending\';'
         )
 

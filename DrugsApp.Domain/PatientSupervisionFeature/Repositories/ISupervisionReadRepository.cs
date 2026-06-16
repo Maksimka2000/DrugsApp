@@ -57,6 +57,17 @@ public interface ISupervisionReadRepository
     Task<int> CountPatientSupervisionRequestsAsync(
         Guid patientUserId,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyCollection<ProviderSupervisionRequestListRow>> ListProviderSupervisionRequestsAsync(
+        Guid providerUserId,
+        bool ascending,
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountProviderSupervisionRequestsAsync(
+        Guid providerUserId,
+        CancellationToken cancellationToken);
 }
 
 public sealed record PatientHealthcareProfessionalListRow(
@@ -126,3 +137,13 @@ public sealed record PatientSupervisionRequestListRow(
     string? ProfessionLabel,
     string? WorkplaceLabel,
     string? ShortDescription);
+
+public sealed record ProviderSupervisionRequestListRow(
+    Guid RequestId,
+    Guid PatientUserId,
+    SupervisionRequestState RequestState,
+    DateTime RequestedAtUtc,
+    DateTime ExpiresAtUtc,
+    string? ProfilePhotoStorageKey,
+    string FirstName,
+    string LastName);

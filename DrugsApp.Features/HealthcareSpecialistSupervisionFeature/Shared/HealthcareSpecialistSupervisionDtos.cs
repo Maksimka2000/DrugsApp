@@ -58,6 +58,21 @@ public sealed record CancelProviderSupervisionRequestResponseDto(
     string RequestState,
     DateTime ResolvedAtUtc);
 
+public sealed record ProviderSupervisionRequestListItemDto(
+    Guid RequestId,
+    Guid PatientUserId,
+    string RequestState,
+    DateTime RequestedAtUtc,
+    DateTime ExpiresAtUtc,
+    string FirstName,
+    string LastName,
+    string? ProfilePhotoUrl);
+
+public sealed record ProviderSupervisionRequestListResponse(
+    IReadOnlyCollection<ProviderSupervisionRequestListItemDto> Items,
+    int? TotalCount,
+    bool HasMore);
+
 public sealed record ProposalDraftItemDto(
     string CategoryCode,
     string? Source,
