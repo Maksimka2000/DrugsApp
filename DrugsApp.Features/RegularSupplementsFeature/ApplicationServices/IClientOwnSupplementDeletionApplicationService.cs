@@ -11,6 +11,13 @@ namespace DrugsApp.Features.RegularSupplementsFeature.ApplicationServices;
 /// </summary>
 public interface IClientOwnSupplementDeletionApplicationService
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="ownSupplementId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<ErrorOr<DeleteOwnSupplementResponse>> DeleteWithCascadeAsync(
         Guid userId,
         Guid ownSupplementId,

@@ -8,14 +8,43 @@ namespace DrugsApp.Features.PatientSupervisionFeature.Shared;
 /// </summary>
 public static class SupervisionNotificationMappings
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public const string SupervisionRequestAggregateType = "supervision_request";
+
+    /// <summary>
+    /// 
+    /// </summary>
     public const string MedicalChangeProposalAggregateType = "medical_change_proposal";
+
+    /// <summary>
+    /// 
+    /// </summary>
     public const string SupervisionConnectionAggregateType = "supervision_connection";
 
+    /// <summary>
+    /// 
+    /// </summary>
     public const string PatientSupervisionRequestsDeepLink = "/supervision/patient/healthcare-professionals";
+
+    /// <summary>
+    /// 
+    /// </summary>
     public const string PatientProposalsDeepLink = "/supervision/patient/proposals";
+
+    /// <summary>
+    /// 
+    /// </summary>
     public const string ProviderPatientsDeepLink = "/supervision/provider/patients";
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="patientUserId"></param>
+    /// <param name="requestId"></param>
+    /// <param name="healthcareProfessionalSummary"></param>
+    /// <returns></returns>
     public static NotificationProjectionDraft BuildRequestCreatedDraft(
         Guid patientUserId,
         Guid requestId,
@@ -36,6 +65,13 @@ public static class SupervisionNotificationMappings
             RequiresAction: true,
             ActionState: NotificationActionState.Pending);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="patientUserId"></param>
+    /// <param name="proposalId"></param>
+    /// <param name="proposalSummary"></param>
+    /// <returns></returns>
     public static NotificationProjectionDraft BuildProposalSubmittedDraft(
         Guid patientUserId,
         Guid proposalId,
@@ -119,16 +155,41 @@ public static class SupervisionNotificationMappings
             RequiresAction: false,
             ActionState: NotificationActionState.Informational);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="requestId"></param>
+    /// <returns></returns>
     public static string BuildRequestSourceEventKey(Guid requestId) => $"supervision-request:{requestId}";
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="proposalId"></param>
+    /// <returns></returns>
     public static string BuildProposalSourceEventKey(Guid proposalId) => $"medical-change-proposal:{proposalId}";
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="connectionId"></param>
+    /// <returns></returns>
     public static string BuildAccessLevelChangedSourceEventKey(Guid connectionId) =>
         $"supervision-connection-access-level:{connectionId}";
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="connectionId"></param>
+    /// <returns></returns>
     public static string BuildRemovedByPatientSourceEventKey(Guid connectionId) =>
         $"supervision-connection-removed-by-patient:{connectionId}";
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="connectionId"></param>
+    /// <returns></returns>
     public static string BuildRemovedByDoctorSourceEventKey(Guid connectionId) =>
         $"supervision-connection-removed-by-doctor:{connectionId}";
 

@@ -8,6 +8,10 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.GetReproductiveHealthProfile;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
 public sealed record GetReproductiveHealthProfileQuery(Guid UserId)
     : IRequest<ErrorOr<ReproductiveHealthProfileResponse>>;
 

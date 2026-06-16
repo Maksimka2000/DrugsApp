@@ -9,6 +9,11 @@ namespace DrugsApp.Features.RegularSupplementsFeature.ApplicationServices;
 /// </summary>
 public interface IRegularSupplementExpirationApplicationService
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<ErrorOr<ExpireEndedRegularSupplementsResult>> ExpireEndedRowsAsync(
         CancellationToken cancellationToken);
 }

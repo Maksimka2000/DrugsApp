@@ -19,6 +19,12 @@ public sealed record UpdateUserProfileRequest(
     string Gender,
     bool? ConfirmReproductiveHealthDeletion);
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
+/// <param name="Email"></param>
+/// <param name="Request"></param>
 public sealed record UpdateUserProfileCommand(
     Guid UserId,
     string Email,

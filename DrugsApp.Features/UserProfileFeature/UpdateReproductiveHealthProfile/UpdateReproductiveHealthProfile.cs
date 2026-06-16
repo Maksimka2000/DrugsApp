@@ -16,6 +16,11 @@ public sealed record UpdateReproductiveHealthProfileRequest(
     bool Menopause,
     ContraceptionMethodCode? ContraceptionMethodCode);
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
+/// <param name="Request"></param>
 public sealed record UpdateReproductiveHealthProfileCommand(
     Guid UserId,
     UpdateReproductiveHealthProfileRequest Request) : IRequest<ErrorOr<ReproductiveHealthProfileResponse>>;

@@ -10,6 +10,14 @@ using ErrorOr;
 
 namespace DrugsApp.Features.UserProfileFeature.AddReproductiveHealthProfile;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="CurrentlyPregnant"></param>
+/// <param name="PlanningToGetPregnant"></param>
+/// <param name="PregnancyPlanningUnknown"></param>
+/// <param name="Menopause"></param>
+/// <param name="ContraceptionMethodCode"></param>
 public sealed record AddReproductiveHealthProfileRequest(
     bool CurrentlyPregnant,
     bool PlanningToGetPregnant,
@@ -17,6 +25,11 @@ public sealed record AddReproductiveHealthProfileRequest(
     bool Menopause,
     ContraceptionMethodCode? ContraceptionMethodCode);
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
+/// <param name="Request"></param>
 public sealed record AddReproductiveHealthProfileCommand(
     Guid UserId,
     AddReproductiveHealthProfileRequest Request) : IRequest<ErrorOr<ReproductiveHealthProfileResponse>>;

@@ -32,6 +32,13 @@ public sealed class MedicalChangeProposalDraftValidationService(
     ISupplementRepository supplementRepository,
     IHealthConditionRepository healthConditionRepository) : IMedicalChangeProposalDraftValidationService
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="patientUserId"></param>
+    /// <param name="draftItems"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<ErrorOr<Success>> ValidateAsync(
         Guid patientUserId,
         IReadOnlyCollection<ProposalDraftItem> draftItems,

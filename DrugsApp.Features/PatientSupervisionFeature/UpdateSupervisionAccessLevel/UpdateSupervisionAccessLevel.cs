@@ -11,8 +11,18 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.UpdateSupervisionAccessLevel;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="AccessLevelCode"></param>
 public sealed record UpdateSupervisionAccessLevelRequest(string AccessLevelCode);
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="PatientUserId"></param>
+/// <param name="ConnectionId"></param>
+/// <param name="AccessLevelCode"></param>
 public sealed record UpdateSupervisionAccessLevelCommand(
     Guid PatientUserId,
     Guid ConnectionId,
