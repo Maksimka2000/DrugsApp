@@ -22,9 +22,7 @@ public sealed class CreateDrugFromTempDrugReviewRequestValidator : AbstractValid
 
         RuleFor(x => x.TypeOfDrug)
             .IsInEnum()
-            .WithMessage("Invalid TypeOfDrug value.")
-            .NotEmpty()
-            .WithMessage("TypeOfDrug is required.");
+            .WithMessage("Invalid TypeOfDrug value.");
 
         RuleFor(x => x.ActiveSubstanceIds)
             .NotNull()
