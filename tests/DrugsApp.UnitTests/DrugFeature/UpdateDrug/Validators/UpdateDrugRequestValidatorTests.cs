@@ -39,4 +39,19 @@ public sealed class UpdateDrugRequestValidatorTests
         result.Errors.Should().Contain(e =>
             e.ErrorMessage == "Duplicate active substance ids are not allowed.");
     }
+
+    [Fact]
+    public async Task Validate_WhenNewActiveSubstanceIdsContainEmptyGuid_ReturnsValidationError()
+    {
+        var request = new UpdateDrugRequest(
+            CommercialName: null,
+            NewActiveSubstanceIds: [Guid.Empty],
+            TypeOfDrug: null);
+
+        ValidationResult? result = await _validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e =>
+            e.ErrorMessage == "NewActiveSubstanceIds must not contain empty Guid values.");
+    }
 }

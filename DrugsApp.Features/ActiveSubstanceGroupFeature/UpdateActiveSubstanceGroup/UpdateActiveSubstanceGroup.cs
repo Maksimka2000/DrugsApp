@@ -83,7 +83,7 @@ internal sealed class UpdateActiveSubstanceGroupHandler(
         {
             IReadOnlyCollection<Guid> memberIds = command.Request.ActiveSubstanceIds.Distinct().ToList();
 
-            IReadOnlyCollection<ActiveSubstance> membersResult = await _activeSubstanceRepository.GetByIdsAsync(
+            IReadOnlyCollection<ActiveSubstance> membersResult = await _activeSubstanceRepository.GetByIdsForLinkingAsync(
                 memberIds,
                 cancellationToken);
             var members = membersResult.ToList();

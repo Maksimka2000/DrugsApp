@@ -2,7 +2,7 @@ using DrugsApp.Features.PatientSupervisionFeature.Shared;
 using ErrorOr;
 using FluentAssertions;
 
-namespace DrugsApp.UnitTests.PatientSupervisionFeature.Shared;
+namespace DrugsApp.UnitTests.HealthcareSpecialistSupervisionFeature.SubmitProviderProposal.ApplicationServices;
 
 public sealed class MedicalChangeProposalJsonTests
 {

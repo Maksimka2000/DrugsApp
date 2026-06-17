@@ -26,6 +26,13 @@ public interface ISupplementRepository
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Loads supplements by id with EF tracking so they can be linked to aggregates without duplicate inserts.
+    /// </summary>
+    Task<List<Supplement>> GetByIdsForLinkingAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken);
+
     Task AddAsync(
         Supplement supplement,
         CancellationToken cancellationToken);

@@ -102,6 +102,20 @@ public sealed class SupplementRepository(DrugsAppDbContext _context) : ISuppleme
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Supplement>> GetByIdsForLinkingAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken)
+    {
+        if (ids.Count == 0)
+        {
+            return new List<Supplement>();
+        }
+
+        return await _context.Supplements
+            .Where(supplement => ids.Contains(supplement.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(
         Supplement supplement,
         CancellationToken cancellationToken)

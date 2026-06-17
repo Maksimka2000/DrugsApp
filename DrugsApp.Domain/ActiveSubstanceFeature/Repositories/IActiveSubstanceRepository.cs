@@ -29,6 +29,13 @@ public interface IActiveSubstanceRepository
     Task<IReadOnlyCollection<ActiveSubstance>> GetByIdsAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Loads active substances by id with EF tracking so they can be linked to aggregates without duplicate inserts.
+    /// </summary>
+    Task<IReadOnlyCollection<ActiveSubstance>> GetByIdsForLinkingAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken);
 }
 
 
