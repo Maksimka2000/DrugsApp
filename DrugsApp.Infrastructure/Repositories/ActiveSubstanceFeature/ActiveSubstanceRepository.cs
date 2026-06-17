@@ -62,6 +62,22 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<ActiveSubstance>> GetByIdsForLinkingAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken)
+    {
+        if (ids.Count == 0)
+        {
+            return Array.Empty<ActiveSubstance>();
+        }
+
+        return await _context.ActiveSubstances
+            .Where(activeSubstance => ids.Contains(activeSubstance.Id))
+            .OrderBy(activeSubstance => activeSubstance.ActiveSubstanceName)
+            .ThenBy(activeSubstance => activeSubstance.Id)
+            .ToListAsync(cancellationToken);
+    }
+
 
 
 

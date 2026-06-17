@@ -48,7 +48,7 @@ internal sealed class AddActiveSubstanceGroupHandler(
                 });
         }
 
-        IReadOnlyCollection<ActiveSubstance> membersResult = await _activeSubstanceRepository.GetByIdsAsync(
+        IReadOnlyCollection<ActiveSubstance> membersResult = await _activeSubstanceRepository.GetByIdsForLinkingAsync(
             command.Request.ActiveSubstanceIds.ToList(),
             cancellationToken);
         var members = membersResult.ToList();

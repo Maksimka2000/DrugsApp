@@ -67,7 +67,7 @@ internal sealed class UpdateDrugHandler(
 
             if (idsToAdd.Count > 0)
             {
-                IReadOnlyCollection<ActiveSubstance> resolvedToAdd = await _activeSubstanceRepository.GetByIdsAsync(idsToAdd, cancellationToken);
+                IReadOnlyCollection<ActiveSubstance> resolvedToAdd = await _activeSubstanceRepository.GetByIdsForLinkingAsync(idsToAdd, cancellationToken);
 
                 var resolvedIdSet = resolvedToAdd.Select(a => a.Id).ToHashSet();
                 var missingIds = idsToAdd.Where(id => !resolvedIdSet.Contains(id)).ToList();

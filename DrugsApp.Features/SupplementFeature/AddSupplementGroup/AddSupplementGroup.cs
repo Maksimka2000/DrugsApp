@@ -51,7 +51,7 @@ public sealed class AddSupplementGroupHandler(ISupplementGroupRepository _supple
         }
 
         // load the supplements
-        List<Supplement> supplementMembers = await _supplementRepository.GetByIdsAsync(
+        List<Supplement> supplementMembers = await _supplementRepository.GetByIdsForLinkingAsync(
             request.SupplementIds,
             cancellationToken);
 
