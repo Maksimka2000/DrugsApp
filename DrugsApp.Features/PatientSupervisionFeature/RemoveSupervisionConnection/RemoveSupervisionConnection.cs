@@ -10,11 +10,10 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.RemoveSupervisionConnection;
 
-public sealed record RemoveSupervisionConnectionRequest(Guid ConnectionId);
-
 public sealed record RemoveSupervisionConnectionCommand(
     Guid CallerUserId,
-    Guid ConnectionId) : IRequest<ErrorOr<RemoveSupervisionConnectionResponseDto>>;
+    Guid? ExpectedHealthcareProfessionalUserId = null,
+    Guid? ExpectedPatientUserId = null) : IRequest<ErrorOr<RemoveSupervisionConnectionResponseDto>>;
 
 internal sealed class RemoveSupervisionConnectionHandler(
     ISupervisionConnectionRepository supervisionConnectionRepository,
@@ -27,19 +26,29 @@ internal sealed class RemoveSupervisionConnectionHandler(
         RemoveSupervisionConnectionCommand command,
         CancellationToken cancellationToken)
     {
-        SupervisionConnection? connection = await supervisionConnectionRepository.GetByIdAsync(
-            command.ConnectionId,
+        ErrorOr<(Guid PatientUserId, Guid ProviderUserId)> pairResult = ResolvePair(command);
+        if (pairResult.IsError)
+        {
+            return pairResult.Errors;
+        }
+
+        (Guid patientUserId, Guid providerUserId) = pairResult.Value;
+
+        SupervisionConnection? connection = await supervisionConnectionRepository.GetActiveForProviderAndPatientAsync(
+            providerUserId,
+            patientUserId,
             track: true,
             cancellationToken);
 
         if (connection is null)
         {
             return Error.NotFound(
-                description: "Supervision connection not found.",
-                metadata: new()
+                description: "Active supervision connection not found.",
+                metadata: new Dictionary<string, object>
                 {
                     ["resourceType"] = "SupervisionConnection",
-                    ["resourceId"] = command.ConnectionId.ToString()
+                    ["patientUserId"] = patientUserId.ToString(),
+                    ["healthcareProfessionalUserId"] = providerUserId.ToString()
                 });
         }
 
@@ -49,10 +58,11 @@ internal sealed class RemoveSupervisionConnectionHandler(
         {
             return Error.NotFound(
                 description: "Supervision connection not found for caller.",
-                metadata: new()
+                metadata: new Dictionary<string, object>
                 {
                     ["resourceType"] = "SupervisionConnection",
-                    ["resourceId"] = command.ConnectionId.ToString()
+                    ["patientUserId"] = patientUserId.ToString(),
+                    ["healthcareProfessionalUserId"] = providerUserId.ToString()
                 });
         }
 
@@ -83,6 +93,22 @@ internal sealed class RemoveSupervisionConnectionHandler(
             ConnectionState: SupervisionConnectionState.Removed.ToString(),
             RemovedAtUtc: nowUtc,
             InvalidatedProposalCount: deletedProposalCount == 0 ? null : deletedProposalCount);
+    }
+
+    private static ErrorOr<(Guid PatientUserId, Guid ProviderUserId)> ResolvePair(
+        RemoveSupervisionConnectionCommand command)
+    {
+        if (command.ExpectedHealthcareProfessionalUserId is Guid providerUserId)
+        {
+            return (command.CallerUserId, providerUserId);
+        }
+
+        if (command.ExpectedPatientUserId is Guid patientUserId)
+        {
+            return (patientUserId, command.CallerUserId);
+        }
+
+        return Error.Validation(description: "Counterparty user id is required.");
     }
 
     private async Task<ErrorOr<Success>> NotifyProviderPatientRemovedAsync(

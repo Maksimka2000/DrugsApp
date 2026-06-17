@@ -14,14 +14,14 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CreateProvide
 
 [ApiController]
 [Route("api/supervision/provider/requests")]
-[Tags("Supervision Healthcare Specialist")]
+[Tags("Supervision HealthcareSpecialist Request")]
 public sealed class CreateProviderRequestController(
     IMediator mediator,
     IValidator<CreateProviderRequestRequest> validator) : ControllerBase
 {
     public const string RouteName = "CreateProviderRequest";
 
-    [HttpPost(Name = RouteName)]
+    [HttpPost("request", Name = RouteName)]
     [Authorize(Roles = AuthRoles.HealthcareProvider)]
     public async Task<ActionResult<CreateProviderRequestResponseDto>> Create(
         [FromBody] CreateProviderRequestRequest request,

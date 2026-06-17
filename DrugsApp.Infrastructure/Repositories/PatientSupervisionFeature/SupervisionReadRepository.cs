@@ -598,4 +598,79 @@ public sealed class SupervisionReadRepository(DrugsAppDbContext context) : ISupe
         context.SupervisionRequests
             .AsNoTracking()
             .CountAsync(x => x.PatientUserId == patientUserId, cancellationToken);
+
+    public async Task<IReadOnlyCollection<ProviderSupervisionRequestListRow>> ListProviderSupervisionRequestsAsync(
+        Guid providerUserId,
+        bool ascending,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<SupervisionRequest> query = context.SupervisionRequests
+            .AsNoTracking()
+            .Where(x => x.HealthcareProfessionalUserId == providerUserId
+                        && x.RequestState == SupervisionRequestState.Pending);
+
+        query = ascending
+            ? query.OrderBy(x => x.RequestedAtUtc).ThenBy(x => x.Id)
+            : query.OrderByDescending(x => x.RequestedAtUtc).ThenByDescending(x => x.Id);
+
+        var requests = await query
+            .Skip(skip)
+            .Take(take + 1)
+            .Select(r => new
+            {
+                r.Id,
+                r.PatientUserId,
+                r.RequestState,
+                r.RequestedAtUtc,
+                r.ExpiresAtUtc
+            })
+            .ToListAsync(cancellationToken);
+
+        if (requests.Count == 0)
+        {
+            return Array.Empty<ProviderSupervisionRequestListRow>();
+        }
+
+        var patientIds = requests.Select(r => r.PatientUserId).Distinct().ToList();
+        var patientProfiles = await context.UserProfiles
+            .AsNoTracking()
+            .Where(profile => patientIds.Contains(profile.Id))
+            .Select(profile => new
+            {
+                profile.Id,
+                profile.FirstName,
+                profile.LastName,
+                profile.ProfilePhotoStorageKey
+            })
+            .ToDictionaryAsync(x => x.Id, cancellationToken);
+
+        return requests
+            .Select(r =>
+            {
+                patientProfiles.TryGetValue(r.PatientUserId, out var profile);
+
+                return new ProviderSupervisionRequestListRow(
+                    RequestId: r.Id,
+                    PatientUserId: r.PatientUserId,
+                    RequestState: r.RequestState,
+                    RequestedAtUtc: r.RequestedAtUtc,
+                    ExpiresAtUtc: r.ExpiresAtUtc,
+                    ProfilePhotoStorageKey: profile?.ProfilePhotoStorageKey,
+                    FirstName: profile?.FirstName ?? string.Empty,
+                    LastName: profile?.LastName ?? string.Empty);
+            })
+            .ToList();
+    }
+
+    public Task<int> CountProviderSupervisionRequestsAsync(
+        Guid providerUserId,
+        CancellationToken cancellationToken) =>
+        context.SupervisionRequests
+            .AsNoTracking()
+            .CountAsync(
+                x => x.HealthcareProfessionalUserId == providerUserId
+                     && x.RequestState == SupervisionRequestState.Pending,
+                cancellationToken);
 }

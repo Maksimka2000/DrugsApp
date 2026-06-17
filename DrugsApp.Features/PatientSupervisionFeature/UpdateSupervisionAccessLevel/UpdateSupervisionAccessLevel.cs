@@ -15,7 +15,7 @@ public sealed record UpdateSupervisionAccessLevelRequest(string AccessLevelCode)
 
 public sealed record UpdateSupervisionAccessLevelCommand(
     Guid PatientUserId,
-    Guid ConnectionId,
+    Guid HealthcareProfessionalUserId,
     string AccessLevelCode) : IRequest<ErrorOr<UpdateSupervisionAccessLevelResponseDto>>;
 
 internal sealed class UpdateSupervisionAccessLevelHandler(
@@ -28,20 +28,21 @@ internal sealed class UpdateSupervisionAccessLevelHandler(
         UpdateSupervisionAccessLevelCommand command,
         CancellationToken cancellationToken)
     {
-        SupervisionConnection? connection = await supervisionConnectionRepository.GetByIdForPatientAsync(
+        SupervisionConnection? connection = await supervisionConnectionRepository.GetActiveForProviderAndPatientAsync(
+            command.HealthcareProfessionalUserId,
             command.PatientUserId,
-            command.ConnectionId,
             track: true,
             cancellationToken);
 
         if (connection is null)
         {
             return Error.NotFound(
-                description: "Supervision connection not found for patient.",
-                metadata: new()
+                description: "Active supervision connection not found for patient and healthcare professional.",
+                metadata: new Dictionary<string, object>
                 {
                     ["resourceType"] = "SupervisionConnection",
-                    ["resourceId"] = command.ConnectionId.ToString()
+                    ["patientUserId"] = command.PatientUserId.ToString(),
+                    ["healthcareProfessionalUserId"] = command.HealthcareProfessionalUserId.ToString()
                 });
         }
 
@@ -68,6 +69,7 @@ internal sealed class UpdateSupervisionAccessLevelHandler(
             ErrorOr<Success> projectionResult = await notificationProjectionService.ProjectAsync(
                 SupervisionNotificationMappings.BuildAccessLevelChangedDraft(
                     connection.HealthcareProfessionalUserId,
+                    command.PatientUserId,
                     connection.Id,
                     patientSummary,
                     ToApiAccessLevelCode(connection.AccessLevelCode)),

@@ -13,7 +13,7 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.SubmitProvide
 
 [ApiController]
 [Route("api/supervision/provider/patients/{patient_id:guid}/proposals")]
-[Tags("Supervision Healthcare Specialist")]
+[Tags("Supervision HealthcareSpecialist - Patient")]
 public sealed class SubmitProviderProposalController(
     IMediator mediator,
     IValidator<SubmitProviderProposalRequest> validator) : ControllerBase

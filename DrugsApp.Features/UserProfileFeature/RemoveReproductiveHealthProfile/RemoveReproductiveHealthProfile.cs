@@ -7,6 +7,10 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.RemoveReproductiveHealthProfile;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="UserId"></param>
 public sealed record RemoveReproductiveHealthProfileCommand(Guid UserId) : IRequest<ErrorOr<Success>>;
 
 internal sealed class RemoveReproductiveHealthProfileHandler(

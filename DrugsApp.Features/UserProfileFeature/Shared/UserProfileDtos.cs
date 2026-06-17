@@ -4,6 +4,20 @@ using DrugsApp.Domain.UserProfileFeature.Enums;
 
 namespace DrugsApp.Features.UserProfileFeature.Shared;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="FirstName"></param>
+/// <param name="LastName"></param>
+/// <param name="DateOfBirth"></param>
+/// <param name="Gender"></param>
+/// <param name="Email"></param>
+/// <param name="HasCustomProfilePhoto"></param>
+/// <param name="ProfilePhotoUrl"></param>
+/// <param name="HasReproductiveHealthProfile"></param>
+/// <param name="PendingLoginEmail"></param>
+/// <param name="OnboardingCompletedAtUtc"></param>
+/// <param name="ShowMedicalReviewHint"></param>
 public sealed record UserProfileResponse(
     string FirstName,
     string LastName,
@@ -17,6 +31,15 @@ public sealed record UserProfileResponse(
     DateTime? OnboardingCompletedAtUtc,
     bool? ShowMedicalReviewHint = null)
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="profile"></param>
+    /// <param name="hasReproductiveHealthProfile"></param>
+    /// <param name="pendingLoginEmail"></param>
+    /// <param name="profilePhotoUrl"></param>
+    /// <param name="showMedicalReviewHint"></param>
+    /// <returns></returns>
     public static UserProfileResponse From(
         UserProfile profile,
         bool hasReproductiveHealthProfile,
@@ -39,4 +62,8 @@ public sealed record UserProfileResponse(
     }
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="ProfilePhotoUrl"></param>
 public sealed record UserProfilePhotoResponse(string ProfilePhotoUrl);

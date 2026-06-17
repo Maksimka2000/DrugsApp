@@ -14,7 +14,7 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ListProviderP
 
 [ApiController]
 [Route("api/supervision/provider/patients")]
-[Tags("Supervision Healthcare Specialist")]
+[Tags("Supervision HealthcareSpecialist - Patient")]
 public sealed class ListProviderPatientsController(
     IMediator mediator,
     IValidator<SearchProviderPatientsRequest> validator) : ControllerBase

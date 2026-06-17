@@ -1796,6 +1796,28 @@ INSERT INTO "UserNotifications" ("Id", "UserId", "TypeCode", "PrimaryTagCode", "
 VALUES ('b4010000-0000-4000-8000-000000001034'::uuid, 'b2010000-0000-4000-8000-000000000003'::uuid, 'SystemAnnouncement', 'SystemInformation', 'SharedRegisteredClient', 'Platform maintenance', 'Scheduled maintenance this Sunday 02:00-04:00 UTC.', 'Scheduled maintenance this Sunday 02:00-04:00 UTC.', 'seed.b2010000-0000-4000-8000-000000000003.4', FALSE, 'Informational', FALSE, (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO NOTHING;
 
+-- Supervision API routes
+-- Patient (Client):
+--   GET    /api/supervision/patient/requests
+--   GET    /api/supervision/patient/requests/{request_id}
+--   POST   /api/supervision/patient/requests/{request_id}/approve
+--   POST   /api/supervision/patient/requests/{request_id}/reject
+--   GET    /api/supervision/patient/healthcare-professionals
+--   GET    /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}
+--   PUT    /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}/access-level
+--   DELETE /api/supervision/patient/healthcare-professionals/{healthcare_professional_user_id}
+--   GET    /api/supervision/patient/proposals
+--   GET    /api/supervision/patient/proposals/{proposal_id}
+--   POST   /api/supervision/patient/proposals/{proposal_id}/approve
+--   POST   /api/supervision/patient/proposals/{proposal_id}/reject
+-- Provider (HealthcareProvider):
+--   POST   /api/supervision/provider/requests/request
+--   POST   /api/supervision/provider/requests/{request_id}/cancel
+--   GET    /api/supervision/provider/patients
+--   GET    /api/supervision/provider/patients/{patient_id}
+--   DELETE /api/supervision/provider/patients/{patient_id}
+--   POST   /api/supervision/provider/patients/{patient_id}/proposals
+
 -- Supervision: pending requests (6)
 INSERT INTO supervision_requests ("Id", patient_user_id, healthcare_professional_user_id, request_state, requested_at_utc, expires_at_utc, "CreatedAtUtc")
 VALUES
@@ -1945,13 +1967,13 @@ VALUES
 ON CONFLICT ("Id") DO NOTHING;
 
 -- Align supervision notification projections with runtime source event keys
-UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000001', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000001' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000005' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000002', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000002' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000004' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000003', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000003' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000001' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000004', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000004' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000002' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000005', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000005' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000004' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000006', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000006' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000005' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000001', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000001' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000001' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000003', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000003' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000002' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000005', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000005' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000003' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';
-UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000007', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000007' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000004' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000001', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000001', "DeepLinkPath" = '/supervision/patient/requests/ab010000-0000-4000-8000-000000000001' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000005' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000002', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000002', "DeepLinkPath" = '/supervision/patient/requests/ab010000-0000-4000-8000-000000000002' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000004' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000003', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000003', "DeepLinkPath" = '/supervision/patient/requests/ab010000-0000-4000-8000-000000000003' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000001' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000004', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000004', "DeepLinkPath" = '/supervision/patient/requests/ab010000-0000-4000-8000-000000000004' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000002' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000005', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000005', "DeepLinkPath" = '/supervision/patient/requests/ab010000-0000-4000-8000-000000000005' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000004' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'supervision-request:ab010000-0000-4000-8000-000000000006', "RelatedAggregateType" = 'supervision_request', "RelatedAggregateId" = 'ab010000-0000-4000-8000-000000000006', "DeepLinkPath" = '/supervision/patient/requests/ab010000-0000-4000-8000-000000000006' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000005' AND "TypeCode" = 'SupervisionRequest' AND "ActionState" = 'Pending' AND "SourceEventKey" LIKE 'seed.%';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000001', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000001', "DeepLinkPath" = '/supervision/patient/proposals/ab030000-0000-4000-8000-000000000001' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000001' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000003', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000003', "DeepLinkPath" = '/supervision/patient/proposals/ab030000-0000-4000-8000-000000000003' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000002' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000005', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000005', "DeepLinkPath" = '/supervision/patient/proposals/ab030000-0000-4000-8000-000000000005' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000003' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';
+UPDATE "UserNotifications" SET "SourceEventKey" = 'medical-change-proposal:ab030000-0000-4000-8000-000000000007', "RelatedAggregateType" = 'medical_change_proposal', "RelatedAggregateId" = 'ab030000-0000-4000-8000-000000000007', "DeepLinkPath" = '/supervision/patient/proposals/ab030000-0000-4000-8000-000000000007' WHERE "UserId" = 'b1010000-0000-4000-8000-000000000004' AND "TypeCode" = 'MedicalChangeProposal' AND "ActionState" = 'Pending';

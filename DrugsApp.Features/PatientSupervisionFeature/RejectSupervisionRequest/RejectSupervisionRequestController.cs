@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Http;
 namespace DrugsApp.Features.PatientSupervisionFeature.RejectSupervisionRequest;
 
 [ApiController]
-[Route("api/supervision/requests")]
-[Tags("Supervision Patient Connection")]
+[Route("api/supervision/patient/requests")]
+[Tags("Supervision Patient Request")]
 public sealed class RejectSupervisionRequestController(
     IMediator mediator,
     IValidator<RejectSupervisionRequestRequest> validator) : ControllerBase
