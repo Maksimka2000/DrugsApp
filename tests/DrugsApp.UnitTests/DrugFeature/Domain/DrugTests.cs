@@ -21,4 +21,31 @@ public sealed class DrugTests
 
         drug.ActiveSubstances.Should().ContainSingle(s => s.Id == substance.Id);
     }
+
+    [Fact]
+    public void RemoveDrugForm_WhenLastOne_KeepsForm()
+    {
+        var substance = ActiveSubstance.Create("Paracetamol");
+        Drug drug = Drug.Create("Apap", "Ludzki", DrugType.Standard, [substance], drugForms: null);
+        DrugForm form = DrugForm.Create(drug.Id, productIdentifier: 100);
+        drug.AddDrugForm(form);
+
+        drug.RemoveDrugForm(form);
+
+        drug.DrugForms.Should().ContainSingle(f => f.Id == form.Id);
+    }
+
+    [Fact]
+    public void Create_TrimsCommercialNameAndTypeOfProduct()
+    {
+        Drug drug = Drug.Create(
+            "  Apap  ",
+            "  Ludzki  ",
+            DrugType.Standard,
+            activeSubstances: null,
+            drugForms: null);
+
+        drug.CommercialName.Should().Be("Apap");
+        drug.TypeOfProduct.Should().Be("Ludzki");
+    }
 }

@@ -486,7 +486,7 @@ internal sealed class DrugReviewCanonicalizationService(
                 });
         }
 
-        IReadOnlyCollection<ActiveSubstance> activeSubstances = await _activeSubstanceRepository.GetByIdsAsync(activeSubstanceIds, cancellationToken);
+        IReadOnlyCollection<ActiveSubstance> activeSubstances = await _activeSubstanceRepository.GetByIdsForLinkingAsync(activeSubstanceIds, cancellationToken);
 
         List<Guid> missingActiveSubstanceIds = GetMissingIds(activeSubstanceIds, activeSubstances.Select(a => a.Id));
         if (missingActiveSubstanceIds.Count > 0)

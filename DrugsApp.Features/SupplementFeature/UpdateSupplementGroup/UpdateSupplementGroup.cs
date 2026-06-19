@@ -62,7 +62,7 @@ public sealed class UpdateSupplementGroupHandler(
             var requestSupplementIds = command.Request.SupplementIds.ToList();
 
             // load the supplements from the repository
-            List<Supplement> toAdd = await _supplementRepository.GetByIdsAsync(ids: requestSupplementIds, cancellationToken: cancellationToken);
+            List<Supplement> toAdd = await _supplementRepository.GetByIdsForLinkingAsync(ids: requestSupplementIds, cancellationToken: cancellationToken);
 
             // check if the supplements were found
             if (toAdd.Count != requestSupplementIds.Count)
