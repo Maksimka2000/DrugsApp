@@ -142,6 +142,24 @@ internal sealed class SearchInteractionsHandler(
         // get page
         var page = rows.Take(query.Take).ToList();
 
+        IReadOnlyDictionary<InteractionPartyKey, InteractionQueryFoundDto> partyLookup =
+            await SearchInteractionsPartyMapper.BuildPartyLookupAsync(
+                page,
+                _activeSubstanceRepository,
+                _activeSubstanceGroupRepository,
+                _foodRepository,
+                _foodGroupRepository,
+                _supplementRepository,
+                _supplementGroupRepository,
+                cancellationToken);
+
+        var items = page
+            .Select(interaction => SearchInteractionsPartyMapper.MapToCard(
+                interaction,
+                query.InteractionKind,
+                partyLookup))
+            .ToList();
+
         // count total items
         if (query.Skip == 0)
         {
@@ -154,16 +172,7 @@ internal sealed class SearchInteractionsHandler(
         }
 
         return new SearchInteractionsResponse(
-            Items: page.Select(interaction =>
-            {
-                if (leftResolution.ResolvedDto != null)
-                {
-                    return interaction.MapToCardDto(leftResolution.ResolvedDto, rightResolution.ResolvedDto,
-                        interaction.InteractionSeverity.MapToDto());
-                }
-
-                return null;
-            }).ToList(),
+            Items: items,
             TotalCount: totalCount,
             HasMore: hasMore,
             LeftQueryFound: leftResolution.ResolvedDto,

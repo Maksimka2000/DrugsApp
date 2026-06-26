@@ -64,6 +64,38 @@ def canonical_pair(short_type: str, id_a: str, id_b: str) -> tuple[str, str, str
     return short_type, id_b, short_type, id_a
 
 
+PARTY_TYPE_ORDER = {
+    "Substance": 0,
+    "SubstanceGroup": 1,
+    "Food": 2,
+    "FoodGroup": 3,
+    "Supplement": 4,
+    "SupplementGroup": 5,
+}
+
+
+def canonical_mixed_pair(
+    left_type: str,
+    left_id: str,
+    right_type: str,
+    right_id: str,
+) -> tuple[str, str, str, str]:
+    left_key = (PARTY_TYPE_ORDER[left_type], UUID(left_id))
+    right_key = (PARTY_TYPE_ORDER[right_type], UUID(right_id))
+
+    if left_key <= right_key:
+        return left_type, left_id, right_type, right_id
+
+    return right_type, right_id, left_type, left_id
+
+
+PARTY_FK_COLUMN = {
+    "Substance": "ActiveSubstanceId",
+    "Food": "FoodId",
+    "Supplement": "SupplementId",
+}
+
+
 def sql_str(value: str) -> str:
     return value.replace("'", "''")
 
@@ -324,9 +356,10 @@ PHARMA_FORM_FOR_PRIMARY = [
 
 def add_interactions(
     section: str,
-    party_type: str,
-    short_type: str,
-    entity_prefix: str,
+    left_party_type: str,
+    right_party_type: str,
+    left_entity_prefix: str,
+    right_entity_prefix: str,
     i_prefix: str,
     p_prefix: str,
     e_prefix: str,
@@ -337,9 +370,17 @@ def add_interactions(
         iid = uid(i_prefix, i)
         sev = SEV[(i - 1) % 4]
         left_num, right_num = i, (i % 20) + 1
-        left_id = uid(entity_prefix, left_num)
-        right_id = uid(entity_prefix, right_num)
-        ta, ida, tb, idb = canonical_pair(short_type, left_id, right_id)
+        left_id = uid(left_entity_prefix, left_num)
+        right_id = uid(right_entity_prefix, right_num)
+        if left_party_type == right_party_type:
+            ta, ida, tb, idb = canonical_pair(left_party_type, left_id, right_id)
+        else:
+            ta, ida, tb, idb = canonical_mixed_pair(
+                left_party_type,
+                left_id,
+                right_party_type,
+                right_id,
+            )
         txt = sql_str(texts[i % len(texts)])
         w(
             f'INSERT INTO "Interactions" ("Id", "InteractionSeverityId", "DefaultText", "StomachText", "CreatedAtUtc") '
@@ -348,15 +389,14 @@ def add_interactions(
         )
         pa, pb = uid(p_prefix, i * 2 - 1), uid(p_prefix, i * 2)
         pe = uid(e_prefix, i)
-        fk = {
-            "Substance": "ActiveSubstanceId",
-            "Food": "FoodId",
-            "Supplement": "SupplementId",
-        }[party_type]
-        for pid, eid in ((pa, left_id), (pb, right_id)):
+        for pid, party_type, entity_id in (
+            (pa, left_party_type, left_id),
+            (pb, right_party_type, right_id),
+        ):
+            fk = PARTY_FK_COLUMN[party_type]
             w(
                 f'INSERT INTO "InteractionParties" ("Id", "InteractionId", "PartyType", "{fk}", "CreatedAtUtc") '
-                f"VALUES ('{pid}'::uuid, '{iid}'::uuid, '{party_type}', '{eid}'::uuid, {NOW}) "
+                f"VALUES ('{pid}'::uuid, '{iid}'::uuid, '{party_type}', '{entity_id}'::uuid, {NOW}) "
                 f'ON CONFLICT ("Id") DO NOTHING;'
             )
         w(
@@ -718,9 +758,39 @@ def extras() -> None:
         "Electrolyte imbalance may worsen adverse effects.",
         "Antioxidant supplement alters therapeutic response.",
     ]
-    add_interactions("Active substance interactions (20)", "Substance", "Substance", "f2000000-0000-4000-8000", INT_SUB_I, INT_SUB_P, INT_SUB_E, substance_texts)
-    add_interactions("Food interactions (20)", "Food", "Food", "b0000000-0000-4000-8000", INT_FOOD_I, INT_FOOD_P, INT_FOOD_E, food_texts)
-    add_interactions("Supplement interactions (20)", "Supplement", "Supplement", "c0000000-0000-4000-8000", INT_SUPP_I, INT_SUPP_P, INT_SUPP_E, supplement_texts)
+    add_interactions(
+        "Active substance interactions (20)",
+        "Substance",
+        "Substance",
+        "f2000000-0000-4000-8000",
+        "f2000000-0000-4000-8000",
+        INT_SUB_I,
+        INT_SUB_P,
+        INT_SUB_E,
+        substance_texts,
+    )
+    add_interactions(
+        "Food interactions (20)",
+        "Substance",
+        "Food",
+        "f2000000-0000-4000-8000",
+        "b0000000-0000-4000-8000",
+        INT_FOOD_I,
+        INT_FOOD_P,
+        INT_FOOD_E,
+        food_texts,
+    )
+    add_interactions(
+        "Supplement interactions (20)",
+        "Substance",
+        "Supplement",
+        "f2000000-0000-4000-8000",
+        "c0000000-0000-4000-8000",
+        INT_SUPP_I,
+        INT_SUPP_P,
+        INT_SUPP_E,
+        supplement_texts,
+    )
     w("-- Alcohol interaction overrides (20)")
     for i in range(1, 21):
         w(
