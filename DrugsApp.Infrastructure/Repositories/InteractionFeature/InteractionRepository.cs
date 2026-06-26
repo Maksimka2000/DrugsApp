@@ -79,12 +79,15 @@ public sealed class InteractionRepository : IInteractionRepository
             .FirstOrDefaultAsync(interaction => interaction.Id == interactionId, cancellationToken);
     }
 
-    public Task<InteractionSeverity?> GetInteractionSeverityByIdAsync(Guid? interactionSeverityId, CancellationToken cancellationToken) => throw new NotImplementedException();
-
     public async Task<InteractionSeverity?> GetInteractionSeverityByIdAsync(
-        Guid interactionSeverityId,
+        Guid? interactionSeverityId,
         CancellationToken cancellationToken)
     {
+        if (interactionSeverityId is null)
+        {
+            return null;
+        }
+
         return await _context.InteractionSeverities
             .AsNoTracking()
             .FirstOrDefaultAsync(severity => severity.Id == interactionSeverityId, cancellationToken);
@@ -99,9 +102,9 @@ public sealed class InteractionRepository : IInteractionRepository
             .AsNoTracking()
             .Include(interaction => interaction.Parties);
 
-        query = query.Where(interaction =>
-            interaction.Parties.Any(BuildPartyPredicate(firstParty)) &&
-            interaction.Parties.Any(BuildPartyPredicate(secondParty)));
+        query = query
+            .Where(BuildInteractionHasPartyPredicate(firstParty))
+            .Where(BuildInteractionHasPartyPredicate(secondParty));
 
         return await query.FirstOrDefaultAsync(cancellationToken);
     }
@@ -265,16 +268,16 @@ public sealed class InteractionRepository : IInteractionRepository
             InteractionPartyKey leftKey = leftPartyKey;
             InteractionPartyKey rightKey = rightPartyKey;
 
-            return query.Where(interaction =>
-                interaction.Parties.Any(BuildPartyPredicate(leftKey)) &&
-                interaction.Parties.Any(BuildPartyPredicate(rightKey)));
+            return query
+                .Where(BuildInteractionHasPartyPredicate(leftKey))
+                .Where(BuildInteractionHasPartyPredicate(rightKey));
         }
 
         // if one party is not null, return the query with the party filtered
         InteractionPartyKey key = leftPartyKey ?? rightPartyKey!;
 
         // if one party is not null, return the query with the party filtered
-        return query.Where(interaction => interaction.Parties.Any(BuildPartyPredicate(key)));
+        return query.Where(BuildInteractionHasPartyPredicate(key));
     }
 
     private static IQueryable<Interaction> ApplySort(
@@ -307,9 +310,9 @@ public sealed class InteractionRepository : IInteractionRepository
         };
     }
 
-    private static Func<InteractionParty, bool> BuildPartyPredicate(InteractionPartyKey key)
+    private static Expression<Func<Interaction, bool>> BuildInteractionHasPartyPredicate(InteractionPartyKey key)
     {
-        return party =>
+        return interaction => interaction.Parties.Any(party =>
             party.PartyType == key.PartyType &&
             (
                 key.PartyType == InteractionType.Substance && party.ActiveSubstanceId == key.PartyId ||
@@ -318,7 +321,7 @@ public sealed class InteractionRepository : IInteractionRepository
                 key.PartyType == InteractionType.FoodGroup && party.FoodGroupId == key.PartyId ||
                 key.PartyType == InteractionType.Supplement && party.SupplementId == key.PartyId ||
                 key.PartyType == InteractionType.SupplementGroup && party.SupplementGroupId == key.PartyId
-            );
+            ));
     }
 
     private static Guid? GetPartyId(InteractionParty party, InteractionType partyType)
