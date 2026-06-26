@@ -19,6 +19,7 @@ public static class SupplementMappings
             supplement.Id,
             supplement.Name,
             supplement.Aliases.ToList(),
+            supplement.BuildSearchOutputText(),
             InteractionType.Supplement.ToString());
     }
 

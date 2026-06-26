@@ -27,7 +27,7 @@ public sealed class Food : BaseEntity
     /// </summary>
     public string SearchText { get; private set; } = string.Empty;
 
-    private readonly List<string> _aliases = new();
+    private List<string> _aliases = new();
     /// <summary>
     /// Alternative names representing the same food concept.
     /// </summary>
@@ -62,7 +62,7 @@ public sealed class Food : BaseEntity
             Name = normalizedName
         };
 
-        food._aliases.AddRange(cleanedAliases);
+        food._aliases = cleanedAliases;
         food.RebuildSearchText();
 
         return food;
@@ -75,7 +75,7 @@ public sealed class Food : BaseEntity
     /// <returns>Success or validation errors.</returns>
     public void UpdateName(string name)
     {
-        Name = name;
+        Name = NormalizeName(name);
 
         ReplaceAliases(_aliases);
     }
@@ -89,11 +89,24 @@ public sealed class Food : BaseEntity
     {
         List<string> cleanedAliases = NormalizeAliases(aliases, Name);
 
-        _aliases.Clear();
-        _aliases.AddRange(cleanedAliases);
+        _aliases = cleanedAliases;
 
         RebuildSearchText();
         return;
+    }
+
+    /// <summary>
+    /// Builds the display-oriented search label: canonical name plus aliases in parentheses.
+    /// </summary>
+    public string BuildSearchOutputText()
+    {
+        if (_aliases.Count == 0)
+        {
+            return Name.ToLowerInvariant();
+        }
+
+        string aliases = string.Join(", ", _aliases.Select(alias => alias.ToLowerInvariant()));
+        return $"{Name.ToLowerInvariant()} ({aliases})";
     }
 
     private void RebuildSearchText()

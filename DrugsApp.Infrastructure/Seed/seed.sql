@@ -253,47 +253,47 @@ VALUES
 ON CONFLICT DO NOTHING;
 INSERT INTO "Foods" ("Id", "Name", "Aliases", "SearchText", "CreatedAtUtc")
 VALUES
-    ('b0000000-0000-4000-8000-000000000001'::uuid, 'Grapefruit', '["pink grapefruit","citrus"]'::jsonb, 'grapefruit', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000002'::uuid, 'Milk', '["cow milk","dairy"]'::jsonb, 'milk', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000003'::uuid, 'Peanuts', '["groundnuts"]'::jsonb, 'peanuts', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000004'::uuid, 'Eggs', '["chicken eggs"]'::jsonb, 'eggs', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000005'::uuid, 'Shellfish', '["shrimp","prawns"]'::jsonb, 'shellfish', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000006'::uuid, 'Soy', '["soya","tofu"]'::jsonb, 'soy', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000007'::uuid, 'Wheat', '["gluten","bread"]'::jsonb, 'wheat', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000001'::uuid, 'Grapefruit', '["pink grapefruit","citrus"]'::jsonb, 'grapefruit pink grapefruit citrus', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000002'::uuid, 'Milk', '["cow milk","dairy"]'::jsonb, 'milk cow milk dairy', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000003'::uuid, 'Peanuts', '["groundnuts"]'::jsonb, 'peanuts groundnuts', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000004'::uuid, 'Eggs', '["chicken eggs"]'::jsonb, 'eggs chicken eggs', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000005'::uuid, 'Shellfish', '["shrimp","prawns"]'::jsonb, 'shellfish shrimp prawns', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000006'::uuid, 'Soy', '["soya","tofu"]'::jsonb, 'soy soya tofu', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000007'::uuid, 'Wheat', '["gluten","bread"]'::jsonb, 'wheat gluten bread', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000008'::uuid, 'Almonds', '[]'::jsonb, 'almonds', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000009'::uuid, 'Strawberries', '[]'::jsonb, 'strawberries', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000010'::uuid, 'Dark chocolate', '["cocoa"]'::jsonb, 'dark chocolate', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000011'::uuid, 'Aged cheese', '["cheddar","parmesan"]'::jsonb, 'aged cheese', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000010'::uuid, 'Dark chocolate', '["cocoa"]'::jsonb, 'dark chocolate cocoa', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000011'::uuid, 'Aged cheese', '["cheddar","parmesan"]'::jsonb, 'aged cheese cheddar parmesan', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000012'::uuid, 'Tomatoes', '[]'::jsonb, 'tomatoes', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000013'::uuid, 'Avocado', '[]'::jsonb, 'avocado', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000014'::uuid, 'Spinach', '[]'::jsonb, 'spinach', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000015'::uuid, 'Bananas', '[]'::jsonb, 'bananas', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000016'::uuid, 'Coffee', '["espresso"]'::jsonb, 'coffee', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000016'::uuid, 'Coffee', '["espresso"]'::jsonb, 'coffee espresso', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000017'::uuid, 'Honey', '[]'::jsonb, 'honey', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000018'::uuid, 'Garlic', '[]'::jsonb, 'garlic', (NOW() AT TIME ZONE 'utc')),
-    ('b0000000-0000-4000-8000-000000000019'::uuid, 'Onion', '["red onion"]'::jsonb, 'onion', (NOW() AT TIME ZONE 'utc')),
+    ('b0000000-0000-4000-8000-000000000019'::uuid, 'Onion', '["red onion"]'::jsonb, 'onion red onion', (NOW() AT TIME ZONE 'utc')),
     ('b0000000-0000-4000-8000-000000000020'::uuid, 'Celery', '[]'::jsonb, 'celery', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO UPDATE SET "Name"=EXCLUDED."Name", "Aliases"=EXCLUDED."Aliases", "SearchText"=EXCLUDED."SearchText";
 INSERT INTO "Supplements" ("Id", "Name", "Aliases", "SearchText", "CreatedAtUtc")
 VALUES
-    ('c0000000-0000-4000-8000-000000000001'::uuid, 'Vitamin D3', '["cholecalciferol"]'::jsonb, 'vitamin d3', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000002'::uuid, 'Omega-3 Fish Oil', '["EPA","DHA"]'::jsonb, 'omega-3 fish oil', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000003'::uuid, 'Iron', '["ferrous sulfate"]'::jsonb, 'iron', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000004'::uuid, 'Magnesium', '["magnesium citrate"]'::jsonb, 'magnesium', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000005'::uuid, 'Vitamin C', '["ascorbic acid"]'::jsonb, 'vitamin c', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000001'::uuid, 'Vitamin D3', '["cholecalciferol"]'::jsonb, 'vitamin d3 cholecalciferol', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000002'::uuid, 'Omega-3 Fish Oil', '["EPA","DHA"]'::jsonb, 'omega-3 fish oil epa dha', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000003'::uuid, 'Iron', '["ferrous sulfate"]'::jsonb, 'iron ferrous sulfate', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000004'::uuid, 'Magnesium', '["magnesium citrate"]'::jsonb, 'magnesium magnesium citrate', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000005'::uuid, 'Vitamin C', '["ascorbic acid"]'::jsonb, 'vitamin c ascorbic acid', (NOW() AT TIME ZONE 'utc')),
     ('c0000000-0000-4000-8000-000000000006'::uuid, 'Zinc', '[]'::jsonb, 'zinc', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000007'::uuid, 'Probiotics', '["lactobacillus"]'::jsonb, 'probiotics', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000008'::uuid, 'Vitamin B12', '["cobalamin"]'::jsonb, 'vitamin b12', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000009'::uuid, 'Folic acid', '["folate","vitamin b9"]'::jsonb, 'folic acid', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000010'::uuid, 'Calcium', '["calcium carbonate"]'::jsonb, 'calcium', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000007'::uuid, 'Probiotics', '["lactobacillus"]'::jsonb, 'probiotics lactobacillus', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000008'::uuid, 'Vitamin B12', '["cobalamin"]'::jsonb, 'vitamin b12 cobalamin', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000009'::uuid, 'Folic acid', '["folate","vitamin b9"]'::jsonb, 'folic acid folate vitamin b9', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000010'::uuid, 'Calcium', '["calcium carbonate"]'::jsonb, 'calcium calcium carbonate', (NOW() AT TIME ZONE 'utc')),
     ('c0000000-0000-4000-8000-000000000011'::uuid, 'Multivitamin', '[]'::jsonb, 'multivitamin', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000012'::uuid, 'Coenzyme Q10', '["CoQ10"]'::jsonb, 'coenzyme q10', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000012'::uuid, 'Coenzyme Q10', '["CoQ10"]'::jsonb, 'coenzyme q10 coq10', (NOW() AT TIME ZONE 'utc')),
     ('c0000000-0000-4000-8000-000000000013'::uuid, 'Melatonin', '[]'::jsonb, 'melatonin', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000014'::uuid, 'Turmeric', '["curcumin"]'::jsonb, 'turmeric', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000015'::uuid, 'Vitamin B6', '["pyridoxine"]'::jsonb, 'vitamin b6', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000016'::uuid, 'Biotin', '["vitamin b7"]'::jsonb, 'biotin', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000014'::uuid, 'Turmeric', '["curcumin"]'::jsonb, 'turmeric curcumin', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000015'::uuid, 'Vitamin B6', '["pyridoxine"]'::jsonb, 'vitamin b6 pyridoxine', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000016'::uuid, 'Biotin', '["vitamin b7"]'::jsonb, 'biotin vitamin b7', (NOW() AT TIME ZONE 'utc')),
     ('c0000000-0000-4000-8000-000000000017'::uuid, 'Potassium', '[]'::jsonb, 'potassium', (NOW() AT TIME ZONE 'utc')),
-    ('c0000000-0000-4000-8000-000000000018'::uuid, 'Psyllium fiber', '["fiber supplement"]'::jsonb, 'psyllium fiber', (NOW() AT TIME ZONE 'utc')),
+    ('c0000000-0000-4000-8000-000000000018'::uuid, 'Psyllium fiber', '["fiber supplement"]'::jsonb, 'psyllium fiber fiber supplement', (NOW() AT TIME ZONE 'utc')),
     ('c0000000-0000-4000-8000-000000000019'::uuid, 'Glucosamine', '[]'::jsonb, 'glucosamine', (NOW() AT TIME ZONE 'utc')),
     ('c0000000-0000-4000-8000-000000000020'::uuid, 'Ashwagandha', '[]'::jsonb, 'ashwagandha', (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO UPDATE SET "Name"=EXCLUDED."Name", "Aliases"=EXCLUDED."Aliases", "SearchText"=EXCLUDED."SearchText";
@@ -1811,6 +1811,7 @@ ON CONFLICT ("Id") DO NOTHING;
 --   POST   /api/supervision/patient/proposals/{proposal_id}/approve
 --   POST   /api/supervision/patient/proposals/{proposal_id}/reject
 -- Provider (HealthcareProvider):
+--   GET    /api/supervision/provider/requests
 --   POST   /api/supervision/provider/requests/request
 --   POST   /api/supervision/provider/requests/{request_id}/cancel
 --   GET    /api/supervision/provider/patients

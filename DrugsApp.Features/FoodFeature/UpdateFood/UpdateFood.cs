@@ -41,20 +41,25 @@ public sealed class UpdateFoodHandler(IFoodRepository _foodRepository) : IReques
         // update the name
         if (!string.IsNullOrWhiteSpace(command.Request.Name))
         {
-
             string normalizedName = NormalizeName(command.Request.Name);
 
-            if (food.Name.Equals(normalizedName, StringComparison.Ordinal))
+            if (!food.Name.Equals(normalizedName, StringComparison.Ordinal))
             {
-                return Error.Conflict(
-                    description: "Food with the same name already exists.",
-                    metadata: new Dictionary<string, object>
-                    {
-                        ["existingResourceId"] = food.Id.ToString()
-                    });
-            }
+                Food? existing = await _foodRepository.GetByNameAsync(
+                    normalizedName,
+                    cancellationToken);
+                if (existing is not null)
+                {
+                    return Error.Conflict(
+                        description: "Food with the same name already exists.",
+                        metadata: new Dictionary<string, object>
+                        {
+                            ["existingResourceId"] = existing.Id.ToString()
+                        });
+                }
 
-            food.UpdateName(normalizedName);
+                food.UpdateName(normalizedName);
+            }
         }
 
 
