@@ -68,6 +68,11 @@ def sql_str(value: str) -> str:
     return value.replace("'", "''")
 
 
+def build_catalog_search_text(name: str, aliases_json: str) -> str:
+    aliases = json.loads(aliases_json)
+    return " ".join([name, *aliases]).strip().lower()
+
+
 def catalog_uuid(stem: str, n: int) -> str:
     return f"{stem}-{n:012d}"
 
@@ -254,49 +259,49 @@ EXTRA_DRUGS = [
 ]
 
 FOODS = [
-    ("Grapefruit", '["pink grapefruit","citrus"]', "grapefruit"),
-    ("Milk", '["cow milk","dairy"]', "milk"),
-    ("Peanuts", '["groundnuts"]', "peanuts"),
-    ("Eggs", '["chicken eggs"]', "eggs"),
-    ("Shellfish", '["shrimp","prawns"]', "shellfish"),
-    ("Soy", '["soya","tofu"]', "soy"),
-    ("Wheat", '["gluten","bread"]', "wheat"),
-    ("Almonds", "[]", "almonds"),
-    ("Strawberries", "[]", "strawberries"),
-    ("Dark chocolate", '["cocoa"]', "dark chocolate"),
-    ("Aged cheese", '["cheddar","parmesan"]', "aged cheese"),
-    ("Tomatoes", "[]", "tomatoes"),
-    ("Avocado", "[]", "avocado"),
-    ("Spinach", "[]", "spinach"),
-    ("Bananas", "[]", "bananas"),
-    ("Coffee", '["espresso"]', "coffee"),
-    ("Honey", "[]", "honey"),
-    ("Garlic", "[]", "garlic"),
-    ("Onion", '["red onion"]', "onion"),
-    ("Celery", "[]", "celery"),
+    ("Grapefruit", '["pink grapefruit","citrus"]'),
+    ("Milk", '["cow milk","dairy"]'),
+    ("Peanuts", '["groundnuts"]'),
+    ("Eggs", '["chicken eggs"]'),
+    ("Shellfish", '["shrimp","prawns"]'),
+    ("Soy", '["soya","tofu"]'),
+    ("Wheat", '["gluten","bread"]'),
+    ("Almonds", "[]"),
+    ("Strawberries", "[]"),
+    ("Dark chocolate", '["cocoa"]'),
+    ("Aged cheese", '["cheddar","parmesan"]'),
+    ("Tomatoes", "[]"),
+    ("Avocado", "[]"),
+    ("Spinach", "[]"),
+    ("Bananas", "[]"),
+    ("Coffee", '["espresso"]'),
+    ("Honey", "[]"),
+    ("Garlic", "[]"),
+    ("Onion", '["red onion"]'),
+    ("Celery", "[]"),
 ]
 
 SUPPLEMENTS = [
-    ("Vitamin D3", '["cholecalciferol"]', "vitamin d3"),
-    ("Omega-3 Fish Oil", '["EPA","DHA"]', "omega-3 fish oil"),
-    ("Iron", '["ferrous sulfate"]', "iron"),
-    ("Magnesium", '["magnesium citrate"]', "magnesium"),
-    ("Vitamin C", '["ascorbic acid"]', "vitamin c"),
-    ("Zinc", "[]", "zinc"),
-    ("Probiotics", '["lactobacillus"]', "probiotics"),
-    ("Vitamin B12", '["cobalamin"]', "vitamin b12"),
-    ("Folic acid", '["folate","vitamin b9"]', "folic acid"),
-    ("Calcium", '["calcium carbonate"]', "calcium"),
-    ("Multivitamin", "[]", "multivitamin"),
-    ("Coenzyme Q10", '["CoQ10"]', "coenzyme q10"),
-    ("Melatonin", "[]", "melatonin"),
-    ("Turmeric", '["curcumin"]', "turmeric"),
-    ("Vitamin B6", '["pyridoxine"]', "vitamin b6"),
-    ("Biotin", '["vitamin b7"]', "biotin"),
-    ("Potassium", "[]", "potassium"),
-    ("Psyllium fiber", '["fiber supplement"]', "psyllium fiber"),
-    ("Glucosamine", "[]", "glucosamine"),
-    ("Ashwagandha", "[]", "ashwagandha"),
+    ("Vitamin D3", '["cholecalciferol"]'),
+    ("Omega-3 Fish Oil", '["EPA","DHA"]'),
+    ("Iron", '["ferrous sulfate"]'),
+    ("Magnesium", '["magnesium citrate"]'),
+    ("Vitamin C", '["ascorbic acid"]'),
+    ("Zinc", "[]"),
+    ("Probiotics", '["lactobacillus"]'),
+    ("Vitamin B12", '["cobalamin"]'),
+    ("Folic acid", '["folate","vitamin b9"]'),
+    ("Calcium", '["calcium carbonate"]'),
+    ("Multivitamin", "[]"),
+    ("Coenzyme Q10", '["CoQ10"]'),
+    ("Melatonin", "[]"),
+    ("Turmeric", '["curcumin"]'),
+    ("Vitamin B6", '["pyridoxine"]'),
+    ("Biotin", '["vitamin b7"]'),
+    ("Potassium", "[]"),
+    ("Psyllium fiber", '["fiber supplement"]'),
+    ("Glucosamine", "[]"),
+    ("Ashwagandha", "[]"),
 ]
 
 HEALTH_CONDITIONS = [
@@ -662,8 +667,8 @@ def catalog() -> None:
         route_rows.append(f"    ('a1000000-0000-4000-8000-{drug_i:012d}'::uuid, 'f2200000-0000-4000-8000-00000000000{rid:01d}'::uuid)")
     w('INSERT INTO "DrugFormRoutesOfAdministration" ("DrugFormId", "RouteOfAdministrationId")\nVALUES\n' + ",\n".join(route_rows) + "\nON CONFLICT DO NOTHING;")
     fvals = [
-        f"    ('b0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(s)}', {NOW})"
-        for i, (n, a, s) in enumerate(FOODS, 1)
+        f"    ('b0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(build_catalog_search_text(n, a))}', {NOW})"
+        for i, (n, a) in enumerate(FOODS, 1)
     ]
     w(
         'INSERT INTO "Foods" ("Id", "Name", "Aliases", "SearchText", "CreatedAtUtc")\nVALUES\n'
@@ -671,8 +676,8 @@ def catalog() -> None:
         + '\nON CONFLICT ("Id") DO UPDATE SET "Name"=EXCLUDED."Name", "Aliases"=EXCLUDED."Aliases", "SearchText"=EXCLUDED."SearchText";'
     )
     svals2 = [
-        f"    ('c0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(s)}', {NOW})"
-        for i, (n, a, s) in enumerate(SUPPLEMENTS, 1)
+        f"    ('c0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(build_catalog_search_text(n, a))}', {NOW})"
+        for i, (n, a) in enumerate(SUPPLEMENTS, 1)
     ]
     w(
         'INSERT INTO "Supplements" ("Id", "Name", "Aliases", "SearchText", "CreatedAtUtc")\nVALUES\n'
