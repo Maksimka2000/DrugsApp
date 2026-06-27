@@ -15,6 +15,12 @@ public sealed class RemoveUserHealthConditionHandler(
     IUserHealthConditionRepository _userHealthConditionRepository)
     : IRequestHandler<RemoveUserHealthConditionCommand, ErrorOr<Success>>
 {
+    /// <summary>
+    /// Removes a user health condition owned by the user.
+    /// </summary>
+    /// <param name="command">Command containing user id and condition id.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success or not-found error.</returns>
     public async Task<ErrorOr<Success>> Handle(
         RemoveUserHealthConditionCommand command,
         CancellationToken cancellationToken)

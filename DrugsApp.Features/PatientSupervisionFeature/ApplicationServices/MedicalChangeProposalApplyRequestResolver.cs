@@ -17,11 +17,20 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ApplicationServices;
 /// <summary>
 /// Resolves create requests from persisted proposal snapshots when apply_payload is incomplete.
 /// </summary>
+/// <summary>
+/// Resolves apply requests from proposal snapshots when payloads are incomplete.
+/// </summary>
 public sealed class MedicalChangeProposalApplyRequestResolver(
     IDrugFormRepository drugFormRepository,
     IFoodRepository foodRepository,
     ISupplementRepository supplementRepository)
 {
+    /// <summary>
+    /// Resolves a regular drug create request from a proposal item.
+    /// </summary>
+    /// <param name="item">Proposal item containing drug data.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Rehydrated create request or errors.</returns>
     public async Task<ErrorOr<CreateRegularDrugRequest>> ResolveRegularDrugRequestAsync(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
@@ -56,6 +65,12 @@ public sealed class MedicalChangeProposalApplyRequestResolver(
         return MergeRegularDrugSnapshot(rebuilt, item);
     }
 
+    /// <summary>
+    /// Resolves a regular food create request from a proposal item.
+    /// </summary>
+    /// <param name="item">Proposal item containing food data.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Rehydrated create request or errors.</returns>
     public async Task<ErrorOr<CreateRegularFoodRequest>> ResolveRegularFoodRequestAsync(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
@@ -87,6 +102,13 @@ public sealed class MedicalChangeProposalApplyRequestResolver(
         return MergeRegularFoodSnapshot(rebuilt, item);
     }
 
+    /// <summary>
+    /// Resolves a regular supplement create request from a proposal item.
+    /// </summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="item">Proposal item containing supplement data.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Rehydrated create request or errors.</returns>
     public async Task<ErrorOr<CreateRegularSupplementRequest>> ResolveRegularSupplementRequestAsync(
         Guid patientUserId,
         MedicalChangeProposalItem item,

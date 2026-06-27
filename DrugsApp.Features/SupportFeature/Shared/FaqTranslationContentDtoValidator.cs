@@ -7,6 +7,9 @@ namespace DrugsApp.Features.SupportFeature.Shared;
 /// </summary>
 public sealed class FaqTranslationContentDtoValidator : AbstractValidator<FaqTranslationContentDto>
 {
+    /// <summary>
+    /// Initializes validation rules for FAQ translation content.
+    /// </summary>
     public FaqTranslationContentDtoValidator()
     {
         RuleFor(content => content.Question)

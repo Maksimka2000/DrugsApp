@@ -2,6 +2,9 @@ using DrugsApp.Domain.AuthFeature.Interfaces;
 
 namespace DrugsApp.Features.AuthFeature.ResendConfirmationEmail;
 
+/// <summary>
+/// Mapping helpers for resend confirmation email use case.
+/// </summary>
 public static class ResendConfirmationEmailMapping
 {
     /// <summary>

@@ -4,8 +4,14 @@ using FluentValidation;
 
 namespace DrugsApp.Features.UserProfileFeature.UpdateUserProfile;
 
+/// <summary>
+/// Validator for updating user profile requests.
+/// </summary>
 public sealed class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserProfileRequest>
 {
+    /// <summary>
+    /// Initializes validation rules for user profile updates.
+    /// </summary>
     public UpdateUserProfileRequestValidator()
     {
         RuleFor(r => r.FirstName)

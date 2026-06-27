@@ -8,10 +8,36 @@ using MediatR;
 
 namespace DrugsApp.Features.AccountFeature.RequestLoginEmailChange;
 
-public sealed record RequestLoginEmailChangeRequest(
-    string NewEmail,
-    string CurrentPassword);
+/// <summary>
+/// Request payload for initiating a login email change.
+/// </summary>
+public sealed record RequestLoginEmailChangeRequest
+{
+    /// <summary>
+    /// New login email to assign to the user.
+    /// </summary>
+    public string NewEmail { get; init; }
 
+    /// <summary>
+    /// Current password used to authorize the change.
+    /// </summary>
+    public string CurrentPassword { get; init; }
+
+    /// <summary>
+    /// Creates an email change request with required credentials.
+    /// </summary>
+    /// <param name="newEmail">Desired new login email.</param>
+    /// <param name="currentPassword">Current password for verification.</param>
+    public RequestLoginEmailChangeRequest(string newEmail, string currentPassword)
+    {
+        NewEmail = newEmail;
+        CurrentPassword = currentPassword;
+    }
+}
+
+/// <summary>
+/// Command envelope for requesting a login email change.
+/// </summary>
 public sealed record RequestLoginEmailChangeCommand(
     Guid UserId,
     RequestLoginEmailChangeRequest Request) : IRequest<ErrorOr<RequestLoginEmailChangeResponse>>;

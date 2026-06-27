@@ -2,10 +2,16 @@ using FluentValidation;
 
 namespace DrugsApp.Features.UserProfileFeature.UploadUserProfilePhoto;
 
+/// <summary>
+/// Validator for upload profile photo requests.
+/// </summary>
 public sealed class UploadUserProfilePhotoRequestValidator : AbstractValidator<UploadUserProfilePhotoRequest>
 {
     private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5MB
 
+    /// <summary>
+    /// Initializes validation rules for profile photo uploads.
+    /// </summary>
     public UploadUserProfilePhotoRequestValidator()
     {
         RuleFor(r => r.File)

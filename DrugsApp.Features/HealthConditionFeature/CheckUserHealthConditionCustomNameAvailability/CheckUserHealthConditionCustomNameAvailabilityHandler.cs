@@ -13,6 +13,12 @@ public sealed class CheckUserHealthConditionCustomNameAvailabilityHandler(
     IUserHealthConditionRepository _userHealthConditionRepository)
     : IRequestHandler<CheckUserHealthConditionCustomNameAvailabilityQuery, ErrorOr<CheckUserHealthConditionCustomNameAvailabilityResponse>>
 {
+    /// <summary>
+    /// Checks whether a custom health condition name is available for a user.
+    /// </summary>
+    /// <param name="query">Query containing user id and normalized custom name.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Availability response.</returns>
     public async Task<ErrorOr<CheckUserHealthConditionCustomNameAvailabilityResponse>> Handle(
         CheckUserHealthConditionCustomNameAvailabilityQuery query,
         CancellationToken cancellationToken)

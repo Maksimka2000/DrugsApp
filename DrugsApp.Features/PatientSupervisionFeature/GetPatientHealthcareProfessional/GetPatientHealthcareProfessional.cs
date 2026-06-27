@@ -5,8 +5,17 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.GetPatientHealthcareProfessional;
 
+/// <summary>
+/// Request to load a healthcare professional visible to a patient.
+/// </summary>
+/// <param name="HealthcareProfessionalUserId">Healthcare professional user identifier.</param>
 public sealed record GetPatientHealthcareProfessionalRequest(Guid HealthcareProfessionalUserId);
 
+/// <summary>
+/// Query to load a patient-visible healthcare professional.
+/// </summary>
+/// <param name="PatientUserId">Patient user identifier.</param>
+/// <param name="HealthcareProfessionalUserId">Healthcare professional user identifier.</param>
 public sealed record GetPatientHealthcareProfessionalQuery(Guid PatientUserId, Guid HealthcareProfessionalUserId)
     : IRequest<ErrorOr<PatientHealthcareProfessionalDetailDto>>;
 

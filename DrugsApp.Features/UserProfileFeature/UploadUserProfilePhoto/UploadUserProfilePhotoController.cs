@@ -15,6 +15,9 @@ using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.UploadUserProfilePhoto;
 
+/// <summary>
+/// API controller for uploading the current user's profile photo.
+/// </summary>
 [ApiController]
 [Route("api/user-profile/photo")]
 [Authorize(Roles = AuthRoles.MemberRoles)]

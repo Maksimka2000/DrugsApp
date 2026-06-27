@@ -5,6 +5,10 @@ using MediatR;
 
 namespace DrugsApp.Features.AdminUserManagementFeature.CreateAdminUser;
 
+/// <summary>
+/// Command to create a new admin user.
+/// </summary>
+/// <param name="Request">Payload containing admin user attributes.</param>
 public sealed record CreateAdminUserCommand(CreateAdminUserRequest Request)
     : IRequest<ErrorOr<CreateAdminUserResponse>>;
 

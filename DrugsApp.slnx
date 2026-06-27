@@ -11,6 +11,7 @@
     <Project Path="DrugsApp.Infrastructure/DrugsApp.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/DrugsApp.IntegrationTests/DrugsApp.IntegrationTests.csproj" />
     <Project Path="tests/DrugsApp.UnitTests/DrugsApp.UnitTests.csproj" />
   </Folder>
   <Project Path="docker-compose.dcproj">

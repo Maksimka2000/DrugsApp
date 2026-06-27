@@ -12,6 +12,13 @@ namespace DrugsApp.Features.UserProfileFeature.ApplicationServices;
 /// </summary>
 public interface IHealthcareProviderProfileApplicationService
 {
+    /// <summary>
+    /// Upserts provider profile data during onboarding.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="request">Profile upsert payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Upsert result or errors.</returns>
     Task<ErrorOr<HealthcareProviderProfileUpsertResult>> UpsertFromOnboardingAsync(
         Guid userId,
         HealthcareProviderProfileUpsertRequest request,

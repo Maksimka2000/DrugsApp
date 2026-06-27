@@ -16,6 +16,12 @@ public sealed class UpdateHealthConditionHandler(
     IHealthConditionRepository _healthConditionRepository)
     : IRequestHandler<UpdateHealthConditionCommand, ErrorOr<HealthConditionDto>>
 {
+    /// <summary>
+    /// Updates a catalog health condition, enforcing unique normalized name.
+    /// </summary>
+    /// <param name="command">Command containing id and update payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Updated DTO or errors.</returns>
     public async Task<ErrorOr<HealthConditionDto>> Handle(
         UpdateHealthConditionCommand command,
         CancellationToken cancellationToken)

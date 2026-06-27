@@ -12,6 +12,9 @@ using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.RemoveUserProfilePhoto;
 
+/// <summary>
+/// API controller for removing the current user's profile photo.
+/// </summary>
 [ApiController]
 [Route("api/user-profile/photo")]
 [Authorize(Roles = AuthRoles.MemberRoles)]

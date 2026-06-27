@@ -18,6 +18,12 @@ namespace DrugsApp.Features.DrugProblemsFeature.CreateDrugProblem;
 /// <summary>
 /// Request model for creating a drug problem.
 /// </summary>
+/// <param name="DrugFormId">Catalog drug form identifier when creating a database-backed entry.</param>
+/// <param name="CustomDrugName">Custom drug name when creating a custom entry.</param>
+/// <param name="CustomActiveSubstances">Custom active substances text.</param>
+/// <param name="CustomFormulationName">Custom formulation text.</param>
+/// <param name="CustomDosage">Custom dosage text.</param>
+/// <param name="ProblemNote">Problem note describing the issue.</param>
 public sealed record CreateDrugProblemRequest(
     Guid? DrugFormId,
     string? CustomDrugName,
@@ -29,6 +35,8 @@ public sealed record CreateDrugProblemRequest(
 /// <summary>
 /// Command for creating a drug problem.
 /// </summary>
+/// <param name="UserId">Identifier of the current user.</param>
+/// <param name="Request">Creation payload.</param>
 public sealed record CreateDrugProblemCommand(
     Guid UserId,
     CreateDrugProblemRequest Request) : IRequest<ErrorOr<CreateDrugProblemResponse>>;
@@ -36,6 +44,7 @@ public sealed record CreateDrugProblemCommand(
 /// <summary>
 /// Response payload for drug problem creation.
 /// </summary>
+/// <param name="Item">Created drug problem details.</param>
 public sealed record CreateDrugProblemResponse(DrugProblemDetailsDto Item);
 
 /// <summary>
@@ -57,6 +66,8 @@ public sealed class CreateDrugProblemController(
     /// <summary>
     /// Creates a new drug problem entry for the current user.
     /// </summary>
+    /// <param name="request">Creation payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpPost(Name = RouteName)]
     [ProducesResponseType(typeof(CreateDrugProblemResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -10,6 +10,12 @@ namespace DrugsApp.Features.UserProfileFeature.ApplicationServices;
 /// </summary>
 public interface IHealthcareProviderTeardownService
 {
+    /// <summary>
+    /// Removes provider role and related data for a user.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Teardown result or errors.</returns>
     Task<ErrorOr<HealthcareProviderTeardownResult>> RemoveProviderRoleAsync(
         Guid userId,
         CancellationToken cancellationToken);

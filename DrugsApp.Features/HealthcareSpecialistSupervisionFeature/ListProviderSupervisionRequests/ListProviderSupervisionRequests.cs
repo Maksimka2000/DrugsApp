@@ -8,11 +8,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ListProviderSupervisionRequests;
 
+/// <summary>
+/// Request payload for listing provider supervision requests.
+/// </summary>
+/// <param name="OrderBy">Order direction (ascending/descending).</param>
+/// <param name="Skip">Number of records to skip.</param>
+/// <param name="Take">Number of records to take.</param>
 public sealed record ListProviderSupervisionRequestsRequest(
     [FromQuery(Name = "order_by")] string OrderBy = "descending",
     [FromQuery(Name = "skip")] int Skip = 0,
     [FromQuery(Name = "take")] int Take = 20);
 
+/// <summary>
+/// Query for listing provider supervision requests.
+/// </summary>
+/// <param name="ProviderUserId">Provider user identifier.</param>
+/// <param name="Ascending">Sort direction flag.</param>
+/// <param name="Skip">Number of records to skip.</param>
+/// <param name="Take">Number of records to take.</param>
 public sealed record ListProviderSupervisionRequestsQuery(
     Guid ProviderUserId,
     bool Ascending,

@@ -22,7 +22,7 @@ internal static class RegularDrugMappings
         TypeOfDrug: regularDrug.Drug.TypeOfDrug,
         ActiveSubstances: MapActiveSubstances(regularDrug.Drug),
         FormulationName: BuildFormulationName(regularDrug.DrugForm),
-        Dosage: regularDrug.DrugForm.Dosage,
+        Dosage: regularDrug.DrugForm.Dosage ?? string.Empty,
         Status: regularDrug.Status,
         StartDate: regularDrug.StartDate,
         EndDate: regularDrug.EndDate,
@@ -40,7 +40,7 @@ internal static class RegularDrugMappings
         TypeOfDrug: regularDrug.Drug.TypeOfDrug,
         ActiveSubstances: MapActiveSubstances(regularDrug.Drug),
         FormulationName: BuildFormulationName(regularDrug.DrugForm),
-        Dosage: regularDrug.DrugForm.Dosage,
+        Dosage: regularDrug.DrugForm.Dosage ?? string.Empty,
         Status: regularDrug.Status,
         StartDate: regularDrug.StartDate,
         EndDate: regularDrug.EndDate,
@@ -70,7 +70,8 @@ internal static class RegularDrugMappings
     public static string BuildNotificationSummary(ClientRegularDrug regularDrug)
     {
         string formulationName = BuildFormulationName(regularDrug.DrugForm);
-        return $"{regularDrug.Drug.CommercialName} ({formulationName}, {regularDrug.DrugForm.Dosage}) has ended.";
+        string dosage = regularDrug.DrugForm.Dosage ?? string.Empty;
+        return $"{regularDrug.Drug.CommercialName} ({formulationName}, {dosage}) has ended.";
     }
 
     private static IReadOnlyCollection<RegularDrugActiveSubstanceDto> MapActiveSubstances(Drug drug) =>

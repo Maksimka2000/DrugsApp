@@ -5,6 +5,7 @@ namespace DrugsApp.Features.MealTimeManagementFeature.ApplicationServices;
 /// </summary>
 public sealed class ClientMealTimeNormalizationService : IClientMealTimeNormalizationService
 {
+    /// <inheritdoc />
     public string NormalizeMealName(string mealName) =>
         mealName.Trim().ToUpperInvariant();
 }

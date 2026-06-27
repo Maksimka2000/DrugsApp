@@ -9,8 +9,18 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.ApproveSupervisionRequest;
 
+/// <summary>
+/// Request payload to approve a supervision request with a target access level.
+/// </summary>
+/// <param name="AccessLevelCode">Desired access level code.</param>
 public sealed record ApproveSupervisionRequestRequest(string AccessLevelCode);
 
+/// <summary>
+/// Command to approve a supervision request for a patient.
+/// </summary>
+/// <param name="PatientUserId">Patient user identifier.</param>
+/// <param name="RequestId">Request identifier.</param>
+/// <param name="AccessLevelCode">Desired access level code.</param>
 public sealed record ApproveSupervisionRequestCommand(
     Guid PatientUserId,
     Guid RequestId,

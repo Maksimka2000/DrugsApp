@@ -15,6 +15,8 @@ namespace DrugsApp.Features.DrugProblemsFeature.DeleteDrugProblem;
 /// <summary>
 /// Command for deleting a drug problem.
 /// </summary>
+/// <param name="UserId">Identifier of the current user.</param>
+/// <param name="Id">Identifier of the drug problem to delete.</param>
 public sealed record DeleteDrugProblemCommand(Guid UserId, Guid Id) : IRequest<ErrorOr<Success>>;
 
 /// <summary>
@@ -34,6 +36,8 @@ public sealed class DeleteDrugProblemController(IMediator _mediator) : Controlle
     /// <summary>
     /// Deletes a drug problem owned by the current user.
     /// </summary>
+    /// <param name="id">Identifier of the drug problem to delete.</param>
+    /// <param name="cancellationToken">Token to cancel the request.</param>
     [HttpDelete("{id:guid}", Name = RouteName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

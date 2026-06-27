@@ -583,6 +583,8 @@ public sealed class IdentityAuthenticationService(
             return MapIdentityFailure(changeResult);
         }
 
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
         IdentityResult usernameResult = await _userManager.SetUserNameAsync(user, pending.NewEmail);
         if (!usernameResult.Succeeded)
         {

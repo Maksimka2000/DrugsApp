@@ -9,12 +9,22 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.DownloadUserProfilePhoto;
 
+/// <summary>
+/// Query to download a user's profile photo.
+/// </summary>
+/// <param name="UserId">User identifier.</param>
 public sealed record DownloadUserProfilePhotoQuery(Guid UserId) : IRequest<ErrorOr<FileResponse>>;
 
 internal sealed class DownloadUserProfilePhotoHandler(
     IUserProfileRepository _userProfileRepository,
     IBlobService _blobService) : IRequestHandler<DownloadUserProfilePhotoQuery, ErrorOr<FileResponse>>
 {
+    /// <summary>
+    /// Retrieves the profile photo file or not-found error.
+    /// </summary>
+    /// <param name="query">Download query containing user id.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>File response or error.</returns>
     public async Task<ErrorOr<FileResponse>> Handle(DownloadUserProfilePhotoQuery query, CancellationToken cancellationToken)
     {
         UserProfile? profile = await _userProfileRepository.GetByUserIdAsync(query.UserId, cancellationToken);

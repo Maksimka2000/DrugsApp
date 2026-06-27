@@ -8,8 +8,16 @@ using DrugsApp.Features.DrugFeature.Shared;
 
 namespace DrugsApp.Features.AllergiesFeature.Shared;
 
+/// <summary>
+/// Shared mapping helpers for allergy sources, answers, and DTO projections.
+/// </summary>
 public static class AllergySharedMappings
 {
+    /// <summary>
+    /// Converts an allergy record source enum to its canonical token.
+    /// </summary>
+    /// <param name="source">Record source enum value.</param>
+    /// <returns>Lowercase source token.</returns>
     public static string MapSource(AllergyRecordSource source) =>
         source switch
         {
@@ -18,6 +26,11 @@ public static class AllergySharedMappings
             _ => "custom",
         };
 
+    /// <summary>
+    /// Converts an answer state enum to its canonical token.
+    /// </summary>
+    /// <param name="state">Nullable answer state.</param>
+    /// <returns>Lowercase answer token or null when unknown.</returns>
     public static string? MapAnswerState(AllergyAnswerState? state) =>
         state switch
         {
@@ -27,6 +40,11 @@ public static class AllergySharedMappings
             _ => null,
         };
 
+    /// <summary>
+    /// Parses an answer state token to its enum representation.
+    /// </summary>
+    /// <param name="token">Canonical answer token.</param>
+    /// <returns>Parsed answer state or null when invalid.</returns>
     public static AllergyAnswerState? MapAnswerStateFromToken(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -43,6 +61,11 @@ public static class AllergySharedMappings
         };
     }
 
+    /// <summary>
+    /// Parses a source token to its enum representation.
+    /// </summary>
+    /// <param name="token">Canonical source token.</param>
+    /// <returns>Parsed record source or null when invalid.</returns>
     public static AllergyRecordSource? MapSourceFromToken(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -58,6 +81,11 @@ public static class AllergySharedMappings
         };
     }
 
+    /// <summary>
+    /// Maps an allergy summary aggregate to its response DTO.
+    /// </summary>
+    /// <param name="summary">Aggregate to map.</param>
+    /// <returns>DTO with normalized answer tokens.</returns>
     public static AllergySummaryResponse MapToSummaryResponse(this ClientAllergySummary summary) =>
         new(
             Id: summary.Id,
@@ -69,6 +97,11 @@ public static class AllergySharedMappings
             CreatedAtUtc: summary.CreatedAtUtc,
             UpdatedAtUtc: summary.UpdatedAtUtc);
 
+    /// <summary>
+    /// Maps a drug allergy aggregate to its DTO with resolved display data.
+    /// </summary>
+    /// <param name="allergy">Drug allergy aggregate.</param>
+    /// <returns>Drug allergy DTO.</returns>
     public static ClientDrugAllergyDto MapToDto(this ClientDrugAllergy allergy)
     {
         ClientDrugAllergyDrugFormSummaryDto? drugFormSummary = null;
@@ -121,9 +154,19 @@ public static class AllergySharedMappings
             DrugFormSummary: drugFormSummary);
     }
 
+    /// <summary>
+    /// Maps a collection of drug allergies to DTOs.
+    /// </summary>
+    /// <param name="allergies">Source collection.</param>
+    /// <returns>List of DTOs.</returns>
     public static List<ClientDrugAllergyDto> MapToDrugDtoList(this IEnumerable<ClientDrugAllergy> allergies) =>
         allergies.Select(allergy => allergy.MapToDto()).ToList();
 
+    /// <summary>
+    /// Maps a supplement allergy aggregate to its DTO.
+    /// </summary>
+    /// <param name="allergy">Supplement allergy aggregate.</param>
+    /// <returns>Supplement allergy DTO.</returns>
     public static ClientSupplementAllergyDto MapToDto(this ClientSupplementAllergy allergy) =>
         new(
             Id: allergy.Id,
@@ -135,10 +178,20 @@ public static class AllergySharedMappings
             CreatedAtUtc: allergy.CreatedAtUtc,
             UpdatedAtUtc: allergy.UpdatedAtUtc);
 
+    /// <summary>
+    /// Maps a collection of supplement allergies to DTOs.
+    /// </summary>
+    /// <param name="allergies">Source collection.</param>
+    /// <returns>List of DTOs.</returns>
     public static List<ClientSupplementAllergyDto> MapToSupplementDtoList(
         this IEnumerable<ClientSupplementAllergy> allergies) =>
         allergies.Select(allergy => allergy.MapToDto()).ToList();
 
+    /// <summary>
+    /// Maps a food allergy aggregate to its DTO.
+    /// </summary>
+    /// <param name="allergy">Food allergy aggregate.</param>
+    /// <returns>Food allergy DTO.</returns>
     public static ClientFoodAllergyDto MapToDto(this ClientFoodAllergy allergy) =>
         new(
             Id: allergy.Id,
@@ -150,9 +203,19 @@ public static class AllergySharedMappings
             CreatedAtUtc: allergy.CreatedAtUtc,
             UpdatedAtUtc: allergy.UpdatedAtUtc);
 
+    /// <summary>
+    /// Maps a collection of food allergies to DTOs.
+    /// </summary>
+    /// <param name="allergies">Source collection.</param>
+    /// <returns>List of DTOs.</returns>
     public static List<ClientFoodAllergyDto> MapToFoodDtoList(this IEnumerable<ClientFoodAllergy> allergies) =>
         allergies.Select(allergy => allergy.MapToDto()).ToList();
 
+    /// <summary>
+    /// Maps an "other" allergy aggregate to its DTO.
+    /// </summary>
+    /// <param name="allergy">Other allergy aggregate.</param>
+    /// <returns>Other allergy DTO.</returns>
     public static ClientOtherAllergyDto MapToDto(this ClientOtherAllergy allergy) =>
         new(
             Id: allergy.Id,
@@ -161,9 +224,19 @@ public static class AllergySharedMappings
             CreatedAtUtc: allergy.CreatedAtUtc,
             UpdatedAtUtc: allergy.UpdatedAtUtc);
 
+    /// <summary>
+    /// Maps a collection of "other" allergies to DTOs.
+    /// </summary>
+    /// <param name="allergies">Source collection.</param>
+    /// <returns>List of DTOs.</returns>
     public static List<ClientOtherAllergyDto> MapToOtherDtoList(this IEnumerable<ClientOtherAllergy> allergies) =>
         allergies.Select(allergy => allergy.MapToDto()).ToList();
 
+    /// <summary>
+    /// Normalizes a string for case-insensitive lookup comparisons.
+    /// </summary>
+    /// <param name="value">Value to normalize.</param>
+    /// <returns>Lowercased, collapsed string.</returns>
     public static string NormalizeForLookup(string value)
     {
         string trimmed = value.Trim();

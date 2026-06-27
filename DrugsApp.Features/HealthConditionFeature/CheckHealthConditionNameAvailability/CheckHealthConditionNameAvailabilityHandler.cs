@@ -14,6 +14,12 @@ public sealed class CheckHealthConditionNameAvailabilityHandler(
     IHealthConditionRepository _healthConditionRepository)
     : IRequestHandler<CheckHealthConditionNameAvailabilityQuery, ErrorOr<CheckHealthConditionNameAvailabilityResponse>>
 {
+    /// <summary>
+    /// Determines whether a catalog health condition name is available.
+    /// </summary>
+    /// <param name="query">Availability query.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Availability response.</returns>
     public async Task<ErrorOr<CheckHealthConditionNameAvailabilityResponse>> Handle(
         CheckHealthConditionNameAvailabilityQuery query,
         CancellationToken cancellationToken)
