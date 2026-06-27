@@ -21,6 +21,11 @@ public sealed class RejectPatientProposalController(
 {
     public const string RouteName = "RejectPatientProposal";
 
+    /// <summary>
+    /// Rejects a patient proposal.
+    /// </summary>
+    /// <param name="proposal_id">Proposal identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpPost("{proposal_id:guid}/reject", Name = RouteName)]
     [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<RejectPatientProposalResponseDto>> Reject(

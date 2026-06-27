@@ -12,14 +12,29 @@ using Microsoft.AspNetCore.Http;
 
 namespace DrugsApp.Features.UserProfileFeature.UploadUserProfilePhoto;
 
+/// <summary>
+/// Request payload for uploading a user profile photo.
+/// </summary>
+/// <param name="File">File containing the photo.</param>
 public sealed record UploadUserProfilePhotoRequest(IFormFile File);
 
+/// <summary>
+/// Command to upload a user profile photo.
+/// </summary>
+/// <param name="UserId">User identifier.</param>
+/// <param name="File">File to upload.</param>
 public sealed record UploadUserProfilePhotoCommand(Guid UserId, IFormFile File) : IRequest<ErrorOr<UserProfilePhotoResponse>>;
 
 internal sealed class UploadUserProfilePhotoHandler(
     IUserProfileRepository _userProfileRepository,
     IBlobService _blobService) : IRequestHandler<UploadUserProfilePhotoCommand, ErrorOr<UserProfilePhotoResponse>>
 {
+    /// <summary>
+    /// Uploads a profile photo, updates the profile, and cleans up previous photo if present.
+    /// </summary>
+    /// <param name="command">Upload command with user id and file.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Profile photo response or errors.</returns>
     public async Task<ErrorOr<UserProfilePhotoResponse>> Handle(UploadUserProfilePhotoCommand command, CancellationToken cancellationToken)
     {
         UserProfile? profile = await _userProfileRepository.GetTrackedByUserIdAsync(command.UserId, cancellationToken);

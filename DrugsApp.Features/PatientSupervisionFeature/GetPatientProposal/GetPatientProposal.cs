@@ -5,8 +5,17 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.GetPatientProposal;
 
+/// <summary>
+/// Request payload for retrieving a patient proposal.
+/// </summary>
+/// <param name="ProposalId">Proposal identifier.</param>
 public sealed record GetPatientProposalRequest(Guid ProposalId);
 
+/// <summary>
+/// Query for retrieving a patient proposal detail.
+/// </summary>
+/// <param name="PatientUserId">Patient user identifier.</param>
+/// <param name="ProposalId">Proposal identifier.</param>
 public sealed record GetPatientProposalQuery(Guid PatientUserId, Guid ProposalId)
     : IRequest<ErrorOr<PatientProposalDetailResponse>>;
 

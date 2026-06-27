@@ -10,10 +10,10 @@ namespace DrugsApp.Features.RegularSupplementsFeature.ApplicationServices;
 public interface IRegularSupplementExpirationApplicationService
 {
     /// <summary>
-    /// 
+    /// Expires ended regular supplement rows and projects notifications.
     /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Batch result with counts.</returns>
     Task<ErrorOr<ExpireEndedRegularSupplementsResult>> ExpireEndedRowsAsync(
         CancellationToken cancellationToken);
 }

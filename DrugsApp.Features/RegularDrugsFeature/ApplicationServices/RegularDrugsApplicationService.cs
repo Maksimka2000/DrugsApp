@@ -29,6 +29,13 @@ public sealed class RegularDrugsApplicationService(
 {
     private const int ExpireBatchSize = 50;
 
+    /// <summary>
+    /// Creates a regular drug schedule for the user.
+    /// </summary>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="request">Creation payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Created regular drug DTO or errors.</returns>
     public async Task<ErrorOr<RegularDrugListItemDto>> CreateAsync(
         Guid userId,
         CreateRegularDrugRequest request,
@@ -107,6 +114,14 @@ public sealed class RegularDrugsApplicationService(
         return created.Value.MapToListItemDto();
     }
 
+    /// <summary>
+    /// Updates an existing regular drug schedule for the user.
+    /// </summary>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="id">Regular drug identifier.</param>
+    /// <param name="request">Update payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Updated regular drug DTO or errors.</returns>
     public async Task<ErrorOr<RegularDrugListItemDto>> UpdateScheduleAsync(
         Guid userId,
         Guid id,
@@ -155,6 +170,14 @@ public sealed class RegularDrugsApplicationService(
         return regularDrug.MapToListItemDto();
     }
 
+    /// <summary>
+    /// Moves a live regular drug schedule to history with a reason.
+    /// </summary>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="id">Regular drug identifier.</param>
+    /// <param name="reason">History reason.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>History summary or errors.</returns>
     public async Task<ErrorOr<MoveRegularDrugToHistorySummaryDto>> MoveToHistoryAsync(
         Guid userId,
         Guid id,
@@ -197,6 +220,11 @@ public sealed class RegularDrugsApplicationService(
         return regularDrug.MapToMoveToHistorySummaryDto();
     }
 
+    /// <summary>
+    /// Expires ended regular drug rows in batches and projects notifications.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Batch expire result.</returns>
     public async Task<ErrorOr<ExpireEndedRegularDrugsResult>> ExpireEndedRowsAsync(
         CancellationToken cancellationToken)
     {

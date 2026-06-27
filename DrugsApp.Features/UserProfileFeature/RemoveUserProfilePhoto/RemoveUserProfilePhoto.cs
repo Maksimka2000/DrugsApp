@@ -10,15 +10,21 @@ using MediatR;
 namespace DrugsApp.Features.UserProfileFeature.RemoveUserProfilePhoto;
 
 /// <summary>
-/// 
+/// Command to remove a user's profile photo.
 /// </summary>
-/// <param name="UserId"></param>
+/// <param name="UserId">User identifier.</param>
 public sealed record RemoveUserProfilePhotoCommand(Guid UserId) : IRequest<ErrorOr<Success>>;
 
 internal sealed class RemoveUserProfilePhotoHandler(
     IUserProfileRepository _userProfileRepository,
     IBlobService _blobService) : IRequestHandler<RemoveUserProfilePhotoCommand, ErrorOr<Success>>
 {
+    /// <summary>
+    /// Removes profile photo metadata and deletes stored file if present.
+    /// </summary>
+    /// <param name="command">Remove photo command.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success or errors.</returns>
     public async Task<ErrorOr<Success>> Handle(RemoveUserProfilePhotoCommand command, CancellationToken cancellationToken)
     {
         UserProfile? profile = await _userProfileRepository.GetTrackedByUserIdAsync(command.UserId, cancellationToken);

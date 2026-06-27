@@ -8,11 +8,21 @@ using ErrorOr;
 
 namespace DrugsApp.Features.UserProfileFeature.ApplicationServices;
 
+/// <summary>
+/// Application service for creating or updating reproductive health profiles.
+/// </summary>
 internal sealed class ReproductiveHealthProfileApplicationService(
     IUserProfileRepository _userProfileRepository,
     IClientReproductiveHealthProfileRepository _clientReproductiveHealthProfileRepository)
     : IReproductiveHealthProfileApplicationService
 {
+    /// <summary>
+    /// Upserts reproductive health profile for a user with gender validation.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="request">Upsert payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Upsert result or errors.</returns>
     public async Task<ErrorOr<ReproductiveHealthProfileUpsertResult>> UpsertAsync(
         Guid userId,
         ReproductiveHealthProfileUpsertRequest request,

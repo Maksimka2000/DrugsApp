@@ -7,6 +7,9 @@ namespace DrugsApp.Features.AllergiesFeature.Shared;
 /// </summary>
 public sealed class UpdateAllergyNoteRequestValidator : AbstractValidator<UpdateAllergyNoteRequest>
 {
+    /// <summary>
+    /// Initializes validation rules for allergy note updates.
+    /// </summary>
     public UpdateAllergyNoteRequestValidator()
     {
         RuleFor(request => request)

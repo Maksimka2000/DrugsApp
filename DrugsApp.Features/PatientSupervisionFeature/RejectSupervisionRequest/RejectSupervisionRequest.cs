@@ -7,8 +7,17 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.RejectSupervisionRequest;
 
+/// <summary>
+/// Request payload to reject a supervision request.
+/// </summary>
+/// <param name="RequestId">Identifier of the request to reject.</param>
 public sealed record RejectSupervisionRequestRequest(Guid RequestId);
 
+/// <summary>
+/// Command to reject a supervision request for a patient.
+/// </summary>
+/// <param name="PatientUserId">Patient user identifier.</param>
+/// <param name="RequestId">Request identifier.</param>
 public sealed record RejectSupervisionRequestCommand(Guid PatientUserId, Guid RequestId)
     : IRequest<ErrorOr<RejectSupervisionRequestResponseDto>>;
 

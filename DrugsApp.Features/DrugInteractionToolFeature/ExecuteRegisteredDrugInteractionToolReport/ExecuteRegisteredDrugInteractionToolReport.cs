@@ -12,6 +12,12 @@ public sealed class ExecuteRegisteredDrugInteractionToolReportHandler(
   IDrugInteractionToolReportApplicationService reportApplicationService)
   : IRequestHandler<ExecuteRegisteredDrugInteractionToolReportCommand, ErrorOr<ExecuteRegisteredDrugInteractionToolReportResponse>>
 {
+  /// <summary>
+  /// Executes the registered drug interaction tool report with user context and options.
+  /// </summary>
+  /// <param name="command">Request including user id, manual selections, and display flags.</param>
+  /// <param name="cancellationToken">Token to cancel the operation.</param>
+  /// <returns>Computed registered report or error collection.</returns>
   public async Task<ErrorOr<ExecuteRegisteredDrugInteractionToolReportResponse>> Handle(
     ExecuteRegisteredDrugInteractionToolReportCommand command,
     CancellationToken cancellationToken)

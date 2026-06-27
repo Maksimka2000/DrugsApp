@@ -21,6 +21,12 @@ public sealed class ApproveSupervisionRequestController(
 {
     public const string RouteName = "ApproveSupervisionRequest";
 
+    /// <summary>
+    /// Approves a supervision request for the current patient and sets access level.
+    /// </summary>
+    /// <param name="request_id">Identifier of the supervision request.</param>
+    /// <param name="request">Body containing the target access level code.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpPost("{request_id:guid}/approve", Name = RouteName)]
     [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<ApproveSupervisionRequestResponseDto>> Approve(

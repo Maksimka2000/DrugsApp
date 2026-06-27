@@ -68,12 +68,21 @@ public sealed class MedicalChangeProposalApplyService(
         public int RegularFood { get; set; }
     }
 
+    /// <summary>
+    /// Applies an approved medical change proposal into patient data across domains.
+    /// </summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="proposal">Proposal aggregate being applied.</param>
+    /// <param name="items">Proposal items to apply.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Apply result containing created record counts.</returns>
     public async Task<ErrorOr<ApplyProposalResult>> ApplyAsync(
         Guid patientUserId,
         MedicalChangeProposal proposal,
         IReadOnlyCollection<MedicalChangeProposalItem> items,
         CancellationToken cancellationToken)
     {
+        _ = drugRepository;
         var counts = new RegularIntakeApplyCounts();
 
         foreach (MedicalChangeProposalItem item in items)

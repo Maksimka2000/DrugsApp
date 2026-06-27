@@ -7,11 +7,21 @@ using ErrorOr;
 
 namespace DrugsApp.Features.UserProfileFeature.ApplicationServices;
 
+/// <summary>
+/// Application service for onboarding and updating healthcare provider profiles.
+/// </summary>
 internal sealed class HealthcareProviderProfileApplicationService(
     IUserProfileRepository _userProfileRepository,
     IHealthcareProviderProfileRepository _healthcareProviderProfileRepository)
     : IHealthcareProviderProfileApplicationService
 {
+    /// <summary>
+    /// Creates or updates a provider profile during onboarding and marks completion when provided.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="request">Profile upsert payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Upsert result or errors.</returns>
     public async Task<ErrorOr<HealthcareProviderProfileUpsertResult>> UpsertFromOnboardingAsync(
         Guid userId,
         HealthcareProviderProfileUpsertRequest request,

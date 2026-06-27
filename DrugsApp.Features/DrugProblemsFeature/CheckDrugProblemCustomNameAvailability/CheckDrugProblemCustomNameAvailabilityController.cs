@@ -17,6 +17,8 @@ namespace DrugsApp.Features.DrugProblemsFeature.CheckDrugProblemCustomNameAvaila
 /// <summary>
 /// Request model for checking custom drug problem name availability.
 /// </summary>
+/// <param name="CustomDrugName">Custom drug name to validate.</param>
+/// <param name="ExcludeId">Optional problem id to exclude from the check.</param>
 public sealed record CheckDrugProblemCustomNameAvailabilityRequest(
     [FromQuery(Name = "custom_drug_name")] string CustomDrugName,
     [FromQuery(Name = "exclude_id")] Guid? ExcludeId);
@@ -24,6 +26,9 @@ public sealed record CheckDrugProblemCustomNameAvailabilityRequest(
 /// <summary>
 /// Query for custom name availability check.
 /// </summary>
+/// <param name="UserId">Current user identifier.</param>
+/// <param name="CustomDrugName">Normalized custom drug name.</param>
+/// <param name="ExcludeId">Optional problem id to exclude.</param>
 public sealed record CheckDrugProblemCustomNameAvailabilityQuery(
     Guid UserId,
     string CustomDrugName,
@@ -32,6 +37,8 @@ public sealed record CheckDrugProblemCustomNameAvailabilityQuery(
 /// <summary>
 /// Availability response.
 /// </summary>
+/// <param name="IsAvailable">Indicates whether the name is free to use.</param>
+/// <param name="ConflictingResourceId">Id of the conflicting record when unavailable.</param>
 public sealed record DrugProblemCustomNameAvailabilityDto(bool IsAvailable, Guid? ConflictingResourceId);
 
 /// <summary>
@@ -53,6 +60,8 @@ public sealed class CheckDrugProblemCustomNameAvailabilityController(
     /// <summary>
     /// Checks availability of a custom drug problem name for the current user.
     /// </summary>
+    /// <param name="request">Query string payload with name and optional exclude id.</param>
+    /// <param name="cancellationToken">Token to cancel the request.</param>
     [HttpGet(Name = RouteName)]
     [ProducesResponseType(typeof(DrugProblemCustomNameAvailabilityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

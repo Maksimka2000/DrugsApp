@@ -5,12 +5,27 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.ListPatientProposals;
 
+/// <summary>
+/// Request payload for listing patient proposals.
+/// </summary>
+/// <param name="HealthcareProfessionalUserId">Optional healthcare professional filter.</param>
+/// <param name="ProposalState">Optional proposal state filter.</param>
+/// <param name="Skip">Number of records to skip.</param>
+/// <param name="Take">Number of records to take.</param>
 public sealed record ListPatientProposalsRequest(
     Guid? HealthcareProfessionalUserId = null,
     string? ProposalState = "pending",
     int Skip = 0,
     int Take = 20);
 
+/// <summary>
+/// Query for listing patient proposals.
+/// </summary>
+/// <param name="PatientUserId">Patient user identifier.</param>
+/// <param name="HealthcareProfessionalUserId">Optional healthcare professional filter.</param>
+/// <param name="ProposalState">Proposal state filter.</param>
+/// <param name="Skip">Number of records to skip.</param>
+/// <param name="Take">Number of records to take.</param>
 public sealed record ListPatientProposalsQuery(
     Guid PatientUserId,
     Guid? HealthcareProfessionalUserId,

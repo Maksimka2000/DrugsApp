@@ -1,5 +1,4 @@
 using System;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Features.AccountFeature.Shared;
@@ -40,8 +39,7 @@ public sealed class RequestLoginEmailChangeController(
             return validationResult.MapToProblem(HttpContext);
         }
 
-        string? subject = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(subject, out Guid userId))
+        if (!User.TryGetUserId(out Guid userId))
         {
             return Unauthorized();
         }

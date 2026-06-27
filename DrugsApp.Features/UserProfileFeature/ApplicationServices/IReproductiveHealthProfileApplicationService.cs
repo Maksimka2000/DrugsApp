@@ -12,6 +12,13 @@ namespace DrugsApp.Features.UserProfileFeature.ApplicationServices;
 /// </summary>
 public interface IReproductiveHealthProfileApplicationService
 {
+    /// <summary>
+    /// Upserts reproductive health profile for a user.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="request">Upsert payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Upsert result or errors.</returns>
     Task<ErrorOr<ReproductiveHealthProfileUpsertResult>> UpsertAsync(
         Guid userId,
         ReproductiveHealthProfileUpsertRequest request,

@@ -9,10 +9,22 @@ using ErrorOr;
 
 namespace DrugsApp.Features.AdminUserManagementFeature.ApplicationServices;
 
+/// <summary>
+/// Query-side application service for listing and reading admin users with UI-friendly DTOs.
+/// </summary>
 public sealed class AdminUserManagementApplicationService(
     IIdentityUserQueryRepository _identityUserQueryRepository,
     ISuperAdminGuard _superAdminGuard) : IAdminUserManagementApplicationService
 {
+    /// <summary>
+    /// Retrieves a paged list of admin users filtered by an optional search query.
+    /// </summary>
+    /// <param name="skip">Number of records to skip.</param>
+    /// <param name="take">Maximum number of records to return.</param>
+    /// <param name="search">Optional free-text search filter.</param>
+    /// <param name="currentUserId">Identifier of the requesting admin user.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the query.</param>
+    /// <returns>Paged list of admin users with total count.</returns>
     public async Task<ErrorOr<ListAdminUsersResponse>> ListAsync(
         int skip,
         int take,
@@ -35,6 +47,13 @@ public sealed class AdminUserManagementApplicationService(
         return new ListAdminUsersResponse(items, result.TotalCount);
     }
 
+    /// <summary>
+    /// Retrieves detail information for a specific admin user.
+    /// </summary>
+    /// <param name="adminUserId">Identifier of the admin user to retrieve.</param>
+    /// <param name="currentUserId">Identifier of the requesting admin user.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the query.</param>
+    /// <returns>Admin user details or a not-found error.</returns>
     public async Task<ErrorOr<AdminUserDetailDto>> GetByIdAsync(
         Guid adminUserId,
         Guid currentUserId,

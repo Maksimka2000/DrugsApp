@@ -3,8 +3,17 @@ using DrugsApp.Features.NotificationsFeature.Shared;
 
 namespace DrugsApp.Features.NotificationsFeature.GetNotificationDetail;
 
+/// <summary>
+/// Mapping helpers for building notification detail responses.
+/// </summary>
 public static class GetNotificationDetailMapping
 {
+    /// <summary>
+    /// Maps a notification entity and payload to a detail response DTO.
+    /// </summary>
+    /// <param name="notification">Notification entity.</param>
+    /// <param name="detail">Hydrated detail payload.</param>
+    /// <returns>Detail response DTO.</returns>
     public static NotificationDetailResponse MapToDetailResponse(
         this UserNotification notification,
         NotificationDetailPayloadDto detail)

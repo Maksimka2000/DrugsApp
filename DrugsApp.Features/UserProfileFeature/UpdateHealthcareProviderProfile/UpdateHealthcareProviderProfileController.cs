@@ -15,6 +15,9 @@ using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.UpdateHealthcareProviderProfile;
 
+/// <summary>
+/// API controller for updating healthcare provider profile details.
+/// </summary>
 [ApiController]
 [Route("api/healthcare-provider/profile")]
 [Authorize(Roles = AuthRoles.MemberRoles)]

@@ -13,9 +13,19 @@ using MediatR;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.SubmitProviderProposal;
 
+/// <summary>
+/// Request payload for submitting a provider proposal.
+/// </summary>
+/// <param name="DraftItems">Proposal draft items.</param>
 public sealed record SubmitProviderProposalRequest(
     IReadOnlyCollection<ProposalDraftItemDto> DraftItems);
 
+/// <summary>
+/// Command to submit a provider proposal for a patient.
+/// </summary>
+/// <param name="ProviderUserId">Provider user identifier.</param>
+/// <param name="PatientId">Patient identifier.</param>
+/// <param name="DraftItems">Draft items to submit.</param>
 public sealed record SubmitProviderProposalCommand(
     Guid ProviderUserId,
     Guid PatientId,

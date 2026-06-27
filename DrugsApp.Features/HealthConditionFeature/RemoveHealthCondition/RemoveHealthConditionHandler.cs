@@ -15,6 +15,12 @@ public sealed class RemoveHealthConditionHandler(
     IHealthConditionRepository _healthConditionRepository)
     : IRequestHandler<RemoveHealthConditionCommand, ErrorOr<Success>>
 {
+    /// <summary>
+    /// Removes a catalog health condition if it exists.
+    /// </summary>
+    /// <param name="command">Command containing the condition id.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success or not-found error.</returns>
     public async Task<ErrorOr<Success>> Handle(
         RemoveHealthConditionCommand command,
         CancellationToken cancellationToken)

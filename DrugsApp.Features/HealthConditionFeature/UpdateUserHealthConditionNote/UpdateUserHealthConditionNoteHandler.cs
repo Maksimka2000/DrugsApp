@@ -16,6 +16,12 @@ public sealed class UpdateUserHealthConditionNoteHandler(
     IUserHealthConditionRepository _userHealthConditionRepository)
     : IRequestHandler<UpdateUserHealthConditionNoteCommand, ErrorOr<UserHealthConditionDto>>
 {
+    /// <summary>
+    /// Updates the note for a user's health condition.
+    /// </summary>
+    /// <param name="command">Command containing user id, condition id, and note payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Updated user health condition DTO or errors.</returns>
     public async Task<ErrorOr<UserHealthConditionDto>> Handle(
         UpdateUserHealthConditionNoteCommand command,
         CancellationToken cancellationToken)

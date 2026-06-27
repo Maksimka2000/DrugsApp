@@ -13,14 +13,27 @@ using ErrorOr;
 
 namespace DrugsApp.Features.NotificationsFeature.ApplicationServices;
 
+/// <summary>
+/// Builds rich notification detail payloads based on notification type.
+/// </summary>
 public interface INotificationDetailHydrationApplicationService
 {
+    /// <summary>
+    /// Hydrates a notification with its detail payload for display.
+    /// </summary>
+    /// <param name="notification">Notification entity to hydrate.</param>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Hydrated detail payload or errors.</returns>
     Task<ErrorOr<NotificationDetailPayloadDto>> BuildDetailAsync(
         UserNotification notification,
         Guid userId,
         CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Default implementation that resolves notification-specific detail payloads.
+/// </summary>
 public sealed class NotificationDetailHydrationApplicationService(
     IPatientSupervisionNotificationReadService _patientSupervisionNotificationReadService,
     ISystemAnnouncementRepository _systemAnnouncementRepository,
@@ -28,6 +41,7 @@ public sealed class NotificationDetailHydrationApplicationService(
     IUserSecurityStatusReadService _userSecurityStatusReadService)
     : INotificationDetailHydrationApplicationService
 {
+    /// <inheritdoc />
     public async Task<ErrorOr<NotificationDetailPayloadDto>> BuildDetailAsync(
         UserNotification notification,
         Guid userId,

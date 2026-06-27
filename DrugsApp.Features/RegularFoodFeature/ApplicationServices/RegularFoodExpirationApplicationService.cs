@@ -21,6 +21,11 @@ public sealed class RegularFoodExpirationApplicationService(
 {
     private const int ExpireBatchSize = 50;
 
+    /// <summary>
+    /// Expires ended regular food schedules and projects notifications.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Batch result with expired and notification counts.</returns>
     public async Task<ErrorOr<ExpireEndedRegularFoodResult>> ExpireEndedRowsAsync(
         CancellationToken cancellationToken)
     {

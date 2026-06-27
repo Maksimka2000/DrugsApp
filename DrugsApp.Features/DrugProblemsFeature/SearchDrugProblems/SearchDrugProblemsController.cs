@@ -18,6 +18,8 @@ namespace DrugsApp.Features.DrugProblemsFeature.SearchDrugProblems;
 /// <summary>
 /// Request model for searching drug problems.
 /// </summary>
+/// <param name="Skip">Number of items to skip.</param>
+/// <param name="Take">Number of items to take.</param>
 public sealed record SearchDrugProblemsRequest(
     [FromQuery(Name = "skip")] int Skip = 0,
     [FromQuery(Name = "take")] int Take = 10);
@@ -25,6 +27,9 @@ public sealed record SearchDrugProblemsRequest(
 /// <summary>
 /// Query for searching drug problems scoped to the current user.
 /// </summary>
+/// <param name="UserId">Identifier of the current user.</param>
+/// <param name="Skip">Number of items to skip.</param>
+/// <param name="Take">Number of items to take.</param>
 public sealed record SearchDrugProblemsQuery(
     Guid UserId,
     int Skip,
@@ -33,6 +38,9 @@ public sealed record SearchDrugProblemsQuery(
 /// <summary>
 /// Response payload for drug problem search.
 /// </summary>
+/// <param name="Items">Returned list items.</param>
+/// <param name="TotalCount">Optional total count when available.</param>
+/// <param name="HasMore">Indicates if more items exist.</param>
 public sealed record SearchDrugProblemsResponse(
     IReadOnlyCollection<DrugProblemListItemDto> Items,
     int? TotalCount,
@@ -57,6 +65,8 @@ public sealed class SearchDrugProblemsController(
     /// <summary>
     /// Searches the current user's drug problems with paging metadata.
     /// </summary>
+    /// <param name="request">Search request with paging.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpGet(Name = RouteName)]
     [ProducesResponseType(typeof(SearchDrugProblemsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -10,6 +10,12 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ListPatientHealthcareProfe
 
 internal static class ListPatientHealthcareProfessionalsMapping
 {
+    /// <summary>
+    /// Builds a search query for patient healthcare professionals.
+    /// </summary>
+    /// <param name="request">Incoming request payload.</param>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <returns>Query with normalized filters.</returns>
     public static SearchPatientHealthcareProfessionalsQuery MapToQuery(
         this SearchPatientHealthcareProfessionalsRequest request,
         Guid patientUserId) =>
@@ -22,6 +28,15 @@ internal static class ListPatientHealthcareProfessionalsMapping
             Skip: request.Skip,
             Take: request.Take);
 
+    /// <summary>
+    /// Maps search results to a response with paging metadata.
+    /// </summary>
+    /// <param name="result">Search result from repository.</param>
+    /// <param name="requestedTake">Requested page size.</param>
+    /// <param name="totalCount">Optional total count.</param>
+    /// <param name="matchedFieldToken">Matched field token.</param>
+    /// <param name="matchedFailedFieldTokens">Tokens that did not match.</param>
+    /// <returns>Response DTO with items and paging info.</returns>
     public static PatientHealthcareProfessionalListResponse MapToResponse(
         this SearchPatientHealthcareProfessionalsResult result,
         int requestedTake,

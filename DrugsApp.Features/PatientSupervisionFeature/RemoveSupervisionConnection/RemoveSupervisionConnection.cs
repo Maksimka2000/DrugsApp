@@ -10,6 +10,12 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.RemoveSupervisionConnection;
 
+/// <summary>
+/// Command to remove a supervision connection, providing expected counterpart to validate ownership.
+/// </summary>
+/// <param name="CallerUserId">User initiating removal.</param>
+/// <param name="ExpectedHealthcareProfessionalUserId">Expected provider user id (if caller is patient).</param>
+/// <param name="ExpectedPatientUserId">Expected patient user id (if caller is provider).</param>
 public sealed record RemoveSupervisionConnectionCommand(
     Guid CallerUserId,
     Guid? ExpectedHealthcareProfessionalUserId = null,

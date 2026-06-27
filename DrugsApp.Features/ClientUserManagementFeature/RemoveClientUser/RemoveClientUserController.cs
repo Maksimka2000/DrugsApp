@@ -13,6 +13,11 @@ public sealed class RemoveClientUserController(IMediator mediator) : ControllerB
 {
     public const string RouteName = "RemoveClientUser";
 
+    /// <summary>
+    /// Removes a client user account.
+    /// </summary>
+    /// <param name="clientUserId">Identifier of the client user.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpDelete("{client_user_id:guid}", Name = RouteName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Remove(

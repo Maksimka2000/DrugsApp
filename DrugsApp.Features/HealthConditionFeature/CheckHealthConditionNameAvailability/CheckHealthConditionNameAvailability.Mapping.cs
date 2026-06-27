@@ -7,6 +7,11 @@ namespace DrugsApp.Features.HealthConditionFeature.CheckHealthConditionNameAvail
 /// </summary>
 public static class CheckHealthConditionNameAvailabilityMapping
 {
+    /// <summary>
+    /// Creates a query that checks whether a normalized health condition name is available.
+    /// </summary>
+    /// <param name="request">Incoming request containing the raw name and optional exclusion id.</param>
+    /// <returns>Query with normalized name and exclusion id.</returns>
     public static CheckHealthConditionNameAvailabilityQuery MapToQuery(
         this CheckHealthConditionNameAvailabilityRequest request)
     {

@@ -33,17 +33,22 @@ public sealed class MedicalChangeProposalDraftValidationService(
     IHealthConditionRepository healthConditionRepository) : IMedicalChangeProposalDraftValidationService
 {
     /// <summary>
-    /// 
+    /// Validates a collection of proposal draft items for a patient.
     /// </summary>
-    /// <param name="patientUserId"></param>
-    /// <param name="draftItems"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="patientUserId">Identifier of the patient owning the draft.</param>
+    /// <param name="draftItems">Draft items to validate.</param>
+    /// <param name="cancellationToken">Propagation token to cancel validation.</param>
+    /// <returns>Success when all items are valid; an error otherwise.</returns>
     public async Task<ErrorOr<Success>> ValidateAsync(
         Guid patientUserId,
         IReadOnlyCollection<ProposalDraftItem> draftItems,
         CancellationToken cancellationToken)
     {
+        _ = drugRepository;
+        _ = drugFormRepository;
+        _ = foodRepository;
+        _ = supplementRepository;
+        _ = healthConditionRepository;
         if (draftItems.Count == 0)
         {
             return Error.Validation(description: "At least one draft item is required.");

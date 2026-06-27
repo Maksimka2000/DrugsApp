@@ -9,10 +9,19 @@ using ErrorOr;
 
 namespace DrugsApp.Features.AccountFeature.ApplicationServices;
 
+/// <summary>
+/// Admin-facing service that validates a client account and performs a full teardown.
+/// </summary>
 public sealed class ClientAccountAdminDeletionService(
     IUserRoleReadService _userRoleReadService,
     IIdentityAuthenticationService _identityAuthenticationService) : IClientAccountAdminDeletionService
 {
+    /// <summary>
+    /// Removes a client portal account after verifying that the user exists and is a client.
+    /// </summary>
+    /// <param name="clientUserId">Identifier of the client account to delete.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the command.</param>
+    /// <returns>Success when the account is torn down; an error when validation or deletion fails.</returns>
     public async Task<ErrorOr<Success>> DeleteByAdminAsync(
         Guid clientUserId,
         CancellationToken cancellationToken)

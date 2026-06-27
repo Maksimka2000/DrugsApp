@@ -17,6 +17,12 @@ public sealed class AddUserHealthConditionHandler(
     IHealthConditionRepository _healthConditionRepository)
     : IRequestHandler<AddUserHealthConditionCommand, ErrorOr<UserHealthConditionDto>>
 {
+    /// <summary>
+    /// Adds a user health condition using either catalog or custom name.
+    /// </summary>
+    /// <param name="command">Command containing user id and request payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Created user health condition DTO or errors.</returns>
     public async Task<ErrorOr<UserHealthConditionDto>> Handle(
         AddUserHealthConditionCommand command,
         CancellationToken cancellationToken)

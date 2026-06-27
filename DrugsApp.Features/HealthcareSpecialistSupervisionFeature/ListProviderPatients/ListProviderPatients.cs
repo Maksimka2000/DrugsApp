@@ -9,7 +9,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ListProviderPatients;
 
-// GET search request — canonical query params for provider patient list.
+/// <summary>
+/// Request payload for searching provider patients.
+/// </summary>
+/// <param name="SearchQuery">Optional search query.</param>
+/// <param name="SortBy">Sort field token.</param>
+/// <param name="OrderBy">Order direction.</param>
+/// <param name="Statuses">Optional relationship status filters.</param>
+/// <param name="Skip">Number of records to skip.</param>
+/// <param name="Take">Number of records to take.</param>
 public sealed record SearchProviderPatientsRequest(
     [FromQuery(Name = "search_query")] string? SearchQuery,
     [FromQuery(Name = "sort_by")] string SortBy = "status",
@@ -18,6 +26,16 @@ public sealed record SearchProviderPatientsRequest(
     [FromQuery(Name = "skip")] int Skip = 0,
     [FromQuery(Name = "take")] int Take = 20);
 
+/// <summary>
+/// Query for searching provider patients.
+/// </summary>
+/// <param name="ProviderUserId">Provider user identifier.</param>
+/// <param name="SearchQuery">Optional search query.</param>
+/// <param name="Statuses">Status filters.</param>
+/// <param name="SortBy">Sort field.</param>
+/// <param name="Ascending">Order direction flag.</param>
+/// <param name="Skip">Number of records to skip.</param>
+/// <param name="Take">Number of records to take.</param>
 public sealed record SearchProviderPatientsQuery(
     Guid ProviderUserId,
     string? SearchQuery,

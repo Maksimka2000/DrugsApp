@@ -20,6 +20,9 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ApplicationServices;
 /// <summary>
 /// Builds proposal draft items and apply payloads from structured provider input.
 /// </summary>
+/// <summary>
+/// Builds proposal draft items and apply payloads from structured provider input.
+/// </summary>
 public sealed class ProposalDraftItemComposer(
     IDrugFormRepository drugFormRepository,
     IFoodRepository foodRepository,
@@ -30,6 +33,13 @@ public sealed class ProposalDraftItemComposer(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    /// <summary>
+    /// Composes proposal draft items for a patient from inputs.
+    /// </summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="draftItems">Draft items to compose.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Composed draft items with display names.</returns>
     public async Task<ErrorOr<IReadOnlyCollection<ComposedProposalDraftItem>>> ComposeAsync(
         Guid patientUserId,
         IReadOnlyCollection<ProposalDraftItemInput> draftItems,

@@ -10,8 +10,17 @@ using MediatR;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CancelProviderSupervisionRequest;
 
+/// <summary>
+/// Request payload for canceling a provider supervision request.
+/// </summary>
+/// <param name="RequestId">Identifier of the request to cancel.</param>
 public sealed record CancelProviderSupervisionRequestRequest(Guid RequestId);
 
+/// <summary>
+/// Command to cancel a provider supervision request.
+/// </summary>
+/// <param name="ProviderUserId">Provider user identifier.</param>
+/// <param name="RequestId">Identifier of the request to cancel.</param>
 public sealed record CancelProviderSupervisionRequestCommand(Guid ProviderUserId, Guid RequestId)
     : IRequest<ErrorOr<CancelProviderSupervisionRequestResponseDto>>;
 

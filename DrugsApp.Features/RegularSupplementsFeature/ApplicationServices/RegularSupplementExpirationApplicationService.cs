@@ -22,6 +22,11 @@ public sealed class RegularSupplementExpirationApplicationService(
 {
     private const int ExpireBatchSize = 50;
 
+    /// <summary>
+    /// Expires ended supplement schedules and emits corresponding notifications.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Batch result with expired and notification counts.</returns>
     public async Task<ErrorOr<ExpireEndedRegularSupplementsResult>> ExpireEndedRowsAsync(
         CancellationToken cancellationToken)
     {
