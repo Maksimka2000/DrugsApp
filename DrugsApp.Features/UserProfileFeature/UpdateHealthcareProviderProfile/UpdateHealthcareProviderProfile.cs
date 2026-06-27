@@ -10,13 +10,13 @@ using MediatR;
 namespace DrugsApp.Features.UserProfileFeature.UpdateHealthcareProviderProfile;
 
 /// <summary>
-/// 
+/// Request payload to update provider profile details.
 /// </summary>
-/// <param name="ProfessionCode"></param>
-/// <param name="OtherProfessionLabel"></param>
-/// <param name="WorkplaceLabel"></param>
-/// <param name="ShortDescription"></param>
-/// <param name="OnboardingCompletedAtUtc"></param>
+/// <param name="ProfessionCode">Provider profession code.</param>
+/// <param name="OtherProfessionLabel">Custom profession label.</param>
+/// <param name="WorkplaceLabel">Workplace label.</param>
+/// <param name="ShortDescription">Short description.</param>
+/// <param name="OnboardingCompletedAtUtc">Onboarding completion timestamp.</param>
 public sealed record UpdateHealthcareProviderProfileRequest(
     HealthcareProviderProfession? ProfessionCode,
     string? OtherProfessionLabel,
@@ -24,6 +24,11 @@ public sealed record UpdateHealthcareProviderProfileRequest(
     string? ShortDescription,
     DateTime? OnboardingCompletedAtUtc);
 
+/// <summary>
+/// Command to upsert a healthcare provider profile.
+/// </summary>
+/// <param name="UserId">User identifier.</param>
+/// <param name="Request">Update payload.</param>
 public sealed record UpdateHealthcareProviderProfileCommand(
     Guid UserId,
     UpdateHealthcareProviderProfileRequest Request) : IRequest<ErrorOr<HealthcareProviderProfileResponse>>;
@@ -32,6 +37,12 @@ internal sealed class UpdateHealthcareProviderProfileHandler(
     IHealthcareProviderProfileApplicationService _service)
     : IRequestHandler<UpdateHealthcareProviderProfileCommand, ErrorOr<HealthcareProviderProfileResponse>>
 {
+    /// <summary>
+    /// Upserts healthcare provider profile data for the user.
+    /// </summary>
+    /// <param name="command">Command containing user id and payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Upserted profile response or errors.</returns>
     public async Task<ErrorOr<HealthcareProviderProfileResponse>> Handle(UpdateHealthcareProviderProfileCommand command, CancellationToken cancellationToken)
     {
         ErrorOr<HealthcareProviderProfileUpsertResult> result = await _service.UpsertFromOnboardingAsync(

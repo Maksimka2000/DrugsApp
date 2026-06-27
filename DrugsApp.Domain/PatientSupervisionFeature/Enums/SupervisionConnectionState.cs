@@ -5,6 +5,13 @@ namespace DrugsApp.Domain.PatientSupervisionFeature.Enums;
 /// </summary>
 public enum SupervisionConnectionState
 {
+    /// <summary>
+    /// Connection is active.
+    /// </summary>
     Active,
+
+    /// <summary>
+    /// Connection has been removed.
+    /// </summary>
     Removed
 }

@@ -15,6 +15,12 @@ public sealed class AddHealthConditionHandler(
     IHealthConditionRepository _healthConditionRepository)
     : IRequestHandler<AddHealthConditionCommand, ErrorOr<HealthConditionDto>>
 {
+    /// <summary>
+    /// Creates a new catalog health condition if the normalized name is unique.
+    /// </summary>
+    /// <param name="command">Command containing name and description.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Created health condition DTO or errors.</returns>
     public async Task<ErrorOr<HealthConditionDto>> Handle(
         AddHealthConditionCommand command,
         CancellationToken cancellationToken)

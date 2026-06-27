@@ -17,6 +17,11 @@ public sealed class RemoveSupervisionConnectionController(IMediator mediator) : 
 {
     public const string RouteName = "RemoveSupervisionConnection";
 
+    /// <summary>
+    /// Removes the supervision connection between the current patient and a healthcare professional.
+    /// </summary>
+    /// <param name="healthcareProfessionalUserId">Healthcare professional identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpDelete("{healthcare_professional_user_id:guid}", Name = RouteName)]
     [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<RemoveSupervisionConnectionResponseDto>> Remove(

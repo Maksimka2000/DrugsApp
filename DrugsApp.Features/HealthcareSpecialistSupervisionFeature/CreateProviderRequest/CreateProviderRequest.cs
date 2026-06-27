@@ -13,8 +13,17 @@ using MediatR;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.CreateProviderRequest;
 
+/// <summary>
+/// Request payload for creating a provider supervision request to a patient.
+/// </summary>
+/// <param name="PatientEmail">Email of the patient to invite.</param>
 public sealed record CreateProviderRequestRequest(string PatientEmail);
 
+/// <summary>
+/// Command to create a provider supervision request.
+/// </summary>
+/// <param name="ProviderUserId">Provider user identifier.</param>
+/// <param name="PatientEmail">Target patient email.</param>
 public sealed record CreateProviderRequestCommand(Guid ProviderUserId, string PatientEmail)
     : IRequest<ErrorOr<CreateProviderRequestResponseDto>>;
 

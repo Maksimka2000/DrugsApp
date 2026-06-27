@@ -21,6 +21,11 @@ public sealed class RejectSupervisionRequestController(
 {
     public const string RouteName = "RejectSupervisionRequest";
 
+    /// <summary>
+    /// Rejects a supervision request for the current patient.
+    /// </summary>
+    /// <param name="request_id">Identifier of the supervision request.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpPost("{request_id:guid}/reject", Name = RouteName)]
     [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<RejectSupervisionRequestResponseDto>> Reject(

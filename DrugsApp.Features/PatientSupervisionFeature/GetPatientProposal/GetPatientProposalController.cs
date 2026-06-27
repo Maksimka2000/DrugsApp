@@ -21,6 +21,11 @@ public sealed class GetPatientProposalController(
 {
     public const string RouteName = "GetPatientProposal";
 
+    /// <summary>
+    /// Gets a patient proposal detail for the current user.
+    /// </summary>
+    /// <param name="proposal_id">Proposal identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpGet("{proposal_id:guid}", Name = RouteName)]
     [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<PatientProposalDetailResponse>> Get(

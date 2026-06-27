@@ -9,8 +9,17 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.ApprovePatientProposal;
 
+/// <summary>
+/// Request payload to approve a patient proposal.
+/// </summary>
+/// <param name="ProposalId">Proposal identifier.</param>
 public sealed record ApprovePatientProposalRequest(Guid ProposalId);
 
+/// <summary>
+/// Command to approve a patient proposal.
+/// </summary>
+/// <param name="PatientUserId">Patient user identifier.</param>
+/// <param name="ProposalId">Proposal identifier.</param>
 public sealed record ApprovePatientProposalCommand(Guid PatientUserId, Guid ProposalId)
     : IRequest<ErrorOr<ApprovePatientProposalResponseDto>>;
 

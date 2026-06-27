@@ -4,6 +4,11 @@ using MediatR;
 
 namespace DrugsApp.Features.AdminUserManagementFeature.RemoveAdminUser;
 
+/// <summary>
+/// Command to remove an admin user account.
+/// </summary>
+/// <param name="AdminUserId">Identifier of the admin user to remove.</param>
+/// <param name="CallerUserId">Identifier of the admin performing the action.</param>
 public sealed record RemoveAdminUserCommand(Guid AdminUserId, Guid CallerUserId)
     : IRequest<ErrorOr<Success>>;
 

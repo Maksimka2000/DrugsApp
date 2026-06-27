@@ -17,6 +17,7 @@ public static class FoodMappings
         Id: food.Id,
         Name: food.Name,
         Aliases: food.Aliases.ToList(),
+        SearchOutputText: food.BuildSearchOutputText(),
         Type: InteractionType.Food.ToString());
 
     /// <summary>

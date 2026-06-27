@@ -75,6 +75,15 @@ public sealed class DrugInteractionToolReportApplicationService(
 
     private sealed record CrossDrugPairKey(Guid LeftFormId, Guid RightFormId);
 
+    /// <summary>
+    /// Builds a public (anonymous) drug interaction tool report from manual selections.
+    /// </summary>
+    /// <param name="manualDrugFormIds">Manual drug form identifiers provided by the caller.</param>
+    /// <param name="showAllDrugsInteractions">Whether to include all drug interactions.</param>
+    /// <param name="showOralGuidance">Whether to include oral guidance sections.</param>
+    /// <param name="showAllFoodAndSupplementInteractions">Whether to include all food/supplement interactions.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Report read model or error collection.</returns>
     public async Task<ErrorOr<PublicDrugInteractionToolReportReadModel>> ComputePublicReportAsync(
         IReadOnlyCollection<Guid> manualDrugFormIds,
         bool showAllDrugsInteractions,
@@ -101,6 +110,17 @@ public sealed class DrugInteractionToolReportApplicationService(
             cancellationToken);
     }
 
+    /// <summary>
+    /// Builds a registered (authenticated) drug interaction tool report with optional user data.
+    /// </summary>
+    /// <param name="userId">User identifier owning the report context.</param>
+    /// <param name="manualDrugFormIds">Manual drug form identifiers provided by the caller.</param>
+    /// <param name="includeUserData">Whether to merge user data (regular intakes, allergies, problems).</param>
+    /// <param name="showAllDrugsInteractions">Whether to include all drug interactions.</param>
+    /// <param name="showOralGuidance">Whether to include oral guidance sections.</param>
+    /// <param name="showAllFoodAndSupplementInteractions">Whether to include all food/supplement interactions.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Registered report read model or error collection.</returns>
     public async Task<ErrorOr<RegisteredDrugInteractionToolReportReadModel>> ComputeRegisteredReportAsync(
         Guid userId,
         IReadOnlyCollection<Guid> manualDrugFormIds,
@@ -1370,12 +1390,12 @@ public sealed class DrugInteractionToolReportApplicationService(
                 && supplementGroups.TryGetValue(supplementParty.SupplementGroupId.Value, out SupplementGroup? group))
             {
                 supplementId = group.Id;
-                supplementName = group.Name;
+                supplementName = group.Name ?? string.Empty;
             }
             else if (supplements.TryGetValue(expanded.PartyIdB, out Supplement? supplement))
             {
                 supplementId = supplement.Id;
-                supplementName = supplement.Name;
+                supplementName = supplement.Name ?? string.Empty;
             }
             else
             {

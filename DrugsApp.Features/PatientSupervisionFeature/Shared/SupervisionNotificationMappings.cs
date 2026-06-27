@@ -8,32 +8,70 @@ namespace DrugsApp.Features.PatientSupervisionFeature.Shared;
 /// </summary>
 public static class SupervisionNotificationMappings
 {
+    /// <summary>
+    /// Aggregate type key for supervision requests.
+    /// </summary>
     public const string SupervisionRequestAggregateType = "supervision_request";
 
+    /// <summary>
+    /// Aggregate type key for medical change proposals.
+    /// </summary>
     public const string MedicalChangeProposalAggregateType = "medical_change_proposal";
 
+    /// <summary>
+    /// Aggregate type key for supervision connections.
+    /// </summary>
     public const string SupervisionConnectionAggregateType = "supervision_connection";
 
+    /// <summary>
+    /// Patient deep link base for supervision requests.
+    /// </summary>
     public const string PatientSupervisionRequestsDeepLink = "/supervision/patient/requests";
 
+    /// <summary>
+    /// Patient deep link base for healthcare professionals.
+    /// </summary>
     public const string PatientHealthcareProfessionalsDeepLink = "/supervision/patient/healthcare-professionals";
 
+    /// <summary>
+    /// Patient deep link base for proposals.
+    /// </summary>
     public const string PatientProposalsDeepLink = "/supervision/patient/proposals";
 
+    /// <summary>
+    /// Provider deep link base for patient list.
+    /// </summary>
     public const string ProviderPatientsDeepLink = "/supervision/provider/patients";
 
+    /// <summary>Builds a patient deep link to a supervision request.</summary>
+    /// <param name="requestId">Request identifier.</param>
+    /// <returns>Deep link path.</returns>
     public static string BuildPatientRequestDeepLink(Guid requestId) =>
         $"{PatientSupervisionRequestsDeepLink}/{requestId}";
 
+    /// <summary>Builds a patient deep link to a healthcare professional.</summary>
+    /// <param name="healthcareProfessionalUserId">Healthcare professional user id.</param>
+    /// <returns>Deep link path.</returns>
     public static string BuildPatientHealthcareProfessionalDeepLink(Guid healthcareProfessionalUserId) =>
         $"{PatientHealthcareProfessionalsDeepLink}/{healthcareProfessionalUserId}";
 
+    /// <summary>Builds a patient deep link to a proposal.</summary>
+    /// <param name="proposalId">Proposal identifier.</param>
+    /// <returns>Deep link path.</returns>
     public static string BuildPatientProposalDeepLink(Guid proposalId) =>
         $"{PatientProposalsDeepLink}/{proposalId}";
 
+    /// <summary>Builds a provider deep link to a patient.</summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <returns>Deep link path.</returns>
     public static string BuildProviderPatientDeepLink(Guid patientUserId) =>
         $"{ProviderPatientsDeepLink}/{patientUserId}";
 
+    /// <summary>Creates a projection draft for a new supervision request.</summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="requestId">Request identifier.</param>
+    /// <param name="healthcareProfessionalSummary">Summary of the healthcare professional.</param>
+    /// <returns>Notification projection draft.</returns>
     public static NotificationProjectionDraft BuildRequestCreatedDraft(
         Guid patientUserId,
         Guid requestId,
@@ -54,6 +92,11 @@ public static class SupervisionNotificationMappings
             RequiresAction: true,
             ActionState: NotificationActionState.Pending);
 
+    /// <summary>Creates a projection draft for a submitted medical change proposal.</summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="proposalId">Proposal identifier.</param>
+    /// <param name="proposalSummary">Proposal summary.</param>
+    /// <returns>Notification projection draft.</returns>
     public static NotificationProjectionDraft BuildProposalSubmittedDraft(
         Guid patientUserId,
         Guid proposalId,
@@ -74,6 +117,13 @@ public static class SupervisionNotificationMappings
             RequiresAction: true,
             ActionState: NotificationActionState.Pending);
 
+    /// <summary>Creates a projection draft when a patient changes access level.</summary>
+    /// <param name="providerUserId">Provider user identifier.</param>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="connectionId">Connection identifier.</param>
+    /// <param name="patientSummary">Patient summary text.</param>
+    /// <param name="accessLevelCode">New access level code.</param>
+    /// <returns>Notification projection draft.</returns>
     public static NotificationProjectionDraft BuildAccessLevelChangedDraft(
         Guid providerUserId,
         Guid patientUserId,
@@ -96,6 +146,12 @@ public static class SupervisionNotificationMappings
             RequiresAction: false,
             ActionState: NotificationActionState.Informational);
 
+    /// <summary>Creates a projection draft when a patient removes supervision.</summary>
+    /// <param name="providerUserId">Provider user identifier.</param>
+    /// <param name="connectionId">Connection identifier.</param>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="patientSummary">Patient summary text.</param>
+    /// <returns>Notification projection draft.</returns>
     public static NotificationProjectionDraft BuildRemovedByPatientDraft(
         Guid providerUserId,
         Guid connectionId,
@@ -117,6 +173,12 @@ public static class SupervisionNotificationMappings
             RequiresAction: false,
             ActionState: NotificationActionState.Informational);
 
+    /// <summary>Creates a projection draft when a provider removes supervision.</summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="connectionId">Connection identifier.</param>
+    /// <param name="providerUserId">Provider user identifier.</param>
+    /// <param name="providerSummary">Provider summary text.</param>
+    /// <returns>Notification projection draft.</returns>
     public static NotificationProjectionDraft BuildRemovedByDoctorDraft(
         Guid patientUserId,
         Guid connectionId,
@@ -138,16 +200,41 @@ public static class SupervisionNotificationMappings
             RequiresAction: false,
             ActionState: NotificationActionState.Informational);
 
+    /// <summary>
+    /// Builds a source event key for a supervision request.
+    /// </summary>
+    /// <param name="requestId">Request identifier.</param>
+    /// <returns>Source event key.</returns>
     public static string BuildRequestSourceEventKey(Guid requestId) => $"supervision-request:{requestId}";
 
+    /// <summary>
+    /// Builds a source event key for a medical change proposal.
+    /// </summary>
+    /// <param name="proposalId">Proposal identifier.</param>
+    /// <returns>Source event key.</returns>
     public static string BuildProposalSourceEventKey(Guid proposalId) => $"medical-change-proposal:{proposalId}";
 
+    /// <summary>
+    /// Builds a source event key for an access level change.
+    /// </summary>
+    /// <param name="connectionId">Connection identifier.</param>
+    /// <returns>Source event key.</returns>
     public static string BuildAccessLevelChangedSourceEventKey(Guid connectionId) =>
         $"supervision-connection-access-level:{connectionId}";
 
+    /// <summary>
+    /// Builds a source event key for patient-initiated removal.
+    /// </summary>
+    /// <param name="connectionId">Connection identifier.</param>
+    /// <returns>Source event key.</returns>
     public static string BuildRemovedByPatientSourceEventKey(Guid connectionId) =>
         $"supervision-connection-removed-by-patient:{connectionId}";
 
+    /// <summary>
+    /// Builds a source event key for provider-initiated removal.
+    /// </summary>
+    /// <param name="connectionId">Connection identifier.</param>
+    /// <returns>Source event key.</returns>
     public static string BuildRemovedByDoctorSourceEventKey(Guid connectionId) =>
         $"supervision-connection-removed-by-doctor:{connectionId}";
 

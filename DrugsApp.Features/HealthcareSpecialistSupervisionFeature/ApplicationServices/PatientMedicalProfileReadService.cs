@@ -20,6 +20,9 @@ using DrugsApp.Features.RegularSupplementsFeature.Shared;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ApplicationServices;
 
+/// <summary>
+/// Builds aggregated patient medical profiles for healthcare specialists.
+/// </summary>
 public sealed class PatientMedicalProfileReadService(
     IClientReproductiveHealthProfileRepository reproductiveHealthProfileRepository,
     IClientRegularDrugRepository clientRegularDrugRepository,
@@ -35,6 +38,12 @@ public sealed class PatientMedicalProfileReadService(
 {
     private const int PageSize = 100;
 
+    /// <summary>
+    /// Loads a patient's medical profile including reproductive health, conditions, problems, allergies, and regular intake data.
+    /// </summary>
+    /// <param name="patientUserId">Identifier of the patient user.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Composed medical detail data.</returns>
     public async Task<ProviderPatientMedicalDetailData> LoadAsync(
         Guid patientUserId,
         CancellationToken cancellationToken)

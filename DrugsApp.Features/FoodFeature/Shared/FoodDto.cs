@@ -10,4 +10,5 @@ public sealed record FoodDto(
     Guid Id,
     string Name,
     IReadOnlyCollection<string> Aliases,
+    string SearchOutputText,
     string Type);

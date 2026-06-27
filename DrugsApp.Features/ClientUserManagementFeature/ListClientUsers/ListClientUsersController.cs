@@ -18,6 +18,11 @@ public sealed class ListClientUsersController(
 {
     public const string RouteName = "ListClientUsers";
 
+    /// <summary>
+    /// Lists client users with paging and optional search.
+    /// </summary>
+    /// <param name="request">Query payload including paging and search.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpGet(Name = RouteName)]
     public async Task<ActionResult<ListClientUsersResponse>> List(
         [FromQuery] ListClientUsersRequest request,

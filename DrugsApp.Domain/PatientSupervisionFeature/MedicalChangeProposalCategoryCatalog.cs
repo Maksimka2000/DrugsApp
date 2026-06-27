@@ -7,6 +7,12 @@ namespace DrugsApp.Domain.PatientSupervisionFeature;
 /// </summary>
 public static class MedicalChangeProposalCategoryCatalog
 {
+    /// <summary>
+    /// Attempts to parse a category token into a <see cref="MedicalChangeProposalCategory"/>.
+    /// </summary>
+    /// <param name="token">Category token from API input.</param>
+    /// <param name="category">Parsed category when successful.</param>
+    /// <returns>True when the token resolves to a known category.</returns>
     public static bool TryParseCategory(string? token, out MedicalChangeProposalCategory category)
     {
         category = default;
@@ -32,6 +38,12 @@ public static class MedicalChangeProposalCategoryCatalog
         };
     }
 
+    /// <summary>
+    /// Attempts to parse a source token into a <see cref="MedicalChangeProposalSource"/>.
+    /// </summary>
+    /// <param name="token">Source token from API input.</param>
+    /// <param name="source">Parsed source when successful.</param>
+    /// <returns>True when the token resolves to a known source.</returns>
     public static bool TryParseSource(string? token, out MedicalChangeProposalSource source)
     {
         source = default;
@@ -56,6 +68,11 @@ public static class MedicalChangeProposalCategoryCatalog
         return true;
     }
 
+    /// <summary>
+    /// Maps a category enum value to its API token.
+    /// </summary>
+    /// <param name="category">Category to convert.</param>
+    /// <returns>API token string.</returns>
     public static string ToCategoryToken(MedicalChangeProposalCategory category) =>
         category switch
         {
@@ -72,6 +89,11 @@ public static class MedicalChangeProposalCategoryCatalog
             _ => category.ToString()
         };
 
+    /// <summary>
+    /// Maps a source enum value to its API token.
+    /// </summary>
+    /// <param name="source">Source to convert.</param>
+    /// <returns>API token string.</returns>
     public static string ToSourceToken(MedicalChangeProposalSource source) =>
         source switch
         {

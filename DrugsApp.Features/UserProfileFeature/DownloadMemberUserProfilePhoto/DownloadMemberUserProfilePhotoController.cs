@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DrugsApp.Features.UserProfileFeature.DownloadMemberUserProfilePhoto;
 
+/// <summary>
+/// API controller for downloading other member profile photos.
+/// </summary>
 [ApiController]
 [Route("api/user-profiles/{user_id:guid}/photo")]
 [Authorize(Roles = AuthRoles.MemberRoles)]
@@ -21,6 +24,12 @@ public sealed class DownloadMemberUserProfilePhotoController(IMediator mediator)
 {
     public const string RouteName = "DownloadMemberUserProfilePhoto";
 
+    /// <summary>
+    /// Downloads a member's profile photo by user id.
+    /// </summary>
+    /// <param name="userId">Target user identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>File stream result or problem response.</returns>
     [HttpGet(Name = RouteName)]
     public async Task<IActionResult> Download(
         [FromRoute(Name = "user_id")] Guid userId,

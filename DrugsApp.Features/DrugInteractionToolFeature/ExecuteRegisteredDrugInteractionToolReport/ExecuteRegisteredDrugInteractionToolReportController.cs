@@ -15,8 +15,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrugsApp.Features.DrugInteractionToolFeature.ExecuteRegisteredDrugInteractionToolReport;
 
 /// <summary>
-/// Request payload for the registered drug interaction tool report [description].
+/// Request payload for the registered drug interaction tool report.
 /// </summary>
+/// <param name="ManualDrugFormIds">Manual drug form identifiers provided by the caller.</param>
+/// <param name="IncludeUserData">Flag to merge user data (regular intakes, allergies, problems).</param>
+/// <param name="ShowAllDrugsInteractions">Flag to include all drug interactions.</param>
+/// <param name="ShowOralGuidance">Flag to include oral guidance.</param>
+/// <param name="ShowAllFoodAndSupplementInteractions">Flag to include all food and supplement interactions.</param>
 public sealed record ExecuteRegisteredDrugInteractionToolReportRequest(
   IReadOnlyCollection<Guid>? ManualDrugFormIds,
   bool IncludeUserData,
@@ -25,14 +30,17 @@ public sealed record ExecuteRegisteredDrugInteractionToolReportRequest(
   bool ShowAllFoodAndSupplementInteractions);
 
 /// <summary>
-/// Response envelope for the registered drug interaction tool report [description].
+/// Response envelope for the registered drug interaction tool report.
 /// </summary>
+/// <param name="Report">Computed registered report data.</param>
 public sealed record ExecuteRegisteredDrugInteractionToolReportResponse(
   RegisteredDrugInteractionToolReportReadModel Report);
 
 /// <summary>
-/// MediatR command for the registered drug interaction tool report [description].
+/// MediatR command for the registered drug interaction tool report.
 /// </summary>
+/// <param name="UserId">Authenticated user identifier.</param>
+/// <param name="Request">Request payload for execution.</param>
 public sealed record ExecuteRegisteredDrugInteractionToolReportCommand(
   Guid UserId,
   ExecuteRegisteredDrugInteractionToolReportRequest Request)
@@ -51,6 +59,8 @@ public sealed class ExecuteRegisteredDrugInteractionToolReportController(
   /// <summary>
   /// Computes the authenticated client drug interaction tool report (CASE ONE).
   /// </summary>
+  /// <param name="request">Request payload with manual selections and display flags.</param>
+  /// <param name="cancellationToken">Token to cancel the operation.</param>
   [HttpPost("report", Name = RouteName)]
   [ProducesResponseType(typeof(ExecuteRegisteredDrugInteractionToolReportResponse), StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status400BadRequest)]

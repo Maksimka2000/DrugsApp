@@ -21,6 +21,11 @@ public sealed class ListPatientHealthcareProfessionalsController(
 {
     public const string RouteName = "ListPatientHealthcareProfessionals";
 
+    /// <summary>
+    /// Lists healthcare professionals for the current patient with filtering and paging.
+    /// </summary>
+    /// <param name="request">Query parameters including search, sort, and paging.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpGet(Name = RouteName)]
     [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<PatientHealthcareProfessionalListResponse>> List(

@@ -13,6 +13,13 @@ namespace DrugsApp.Features.RegularSupplementsFeature.ApplicationServices;
 public sealed class ClientOwnSupplementDeletionApplicationService(
     IClientOwnSupplementRepository _clientOwnSupplementRepository) : IClientOwnSupplementDeletionApplicationService
 {
+    /// <summary>
+    /// Deletes an own supplement with cascade, returning counts of related deletions.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="ownSupplementId">Own supplement identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Deletion response or error.</returns>
     public async Task<ErrorOr<DeleteOwnSupplementResponse>> DeleteWithCascadeAsync(
         Guid userId,
         Guid ownSupplementId,

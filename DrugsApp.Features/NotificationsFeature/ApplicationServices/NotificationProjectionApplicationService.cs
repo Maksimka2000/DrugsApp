@@ -10,9 +10,18 @@ using ErrorOr;
 
 namespace DrugsApp.Features.NotificationsFeature.ApplicationServices;
 
+/// <summary>
+/// Projects notifications into user inboxes and keeps action state in sync.
+/// </summary>
 public sealed class NotificationProjectionApplicationService(
     IUserNotificationRepository _userNotificationRepository) : INotificationProjectionService
 {
+    /// <summary>
+    /// Creates or updates a projected notification for the user.
+    /// </summary>
+    /// <param name="draft">Projection draft to apply.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success or validation/error result.</returns>
     public async Task<ErrorOr<Success>> ProjectAsync(
         NotificationProjectionDraft draft,
         CancellationToken cancellationToken)
@@ -72,6 +81,15 @@ public sealed class NotificationProjectionApplicationService(
         return updated;
     }
 
+    /// <summary>
+    /// Synchronizes action state for an existing notification.
+    /// </summary>
+    /// <param name="userId">Notification owner identifier.</param>
+    /// <param name="sourceEventKey">Source event key identifying the notification.</param>
+    /// <param name="actionState">Updated action state.</param>
+    /// <param name="requiresAction">Whether the notification requires action.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success result, ignoring missing projections.</returns>
     public async Task<ErrorOr<Success>> SyncActionStateAsync(
         Guid userId,
         string sourceEventKey,

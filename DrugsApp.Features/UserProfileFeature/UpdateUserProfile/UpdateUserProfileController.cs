@@ -15,6 +15,9 @@ using DrugsApp.Domain.AuthFeature;
 
 namespace DrugsApp.Features.UserProfileFeature.UpdateUserProfile;
 
+/// <summary>
+/// API controller for updating the current user's profile data.
+/// </summary>
 [ApiController]
 [Route("api/user-profile")]
 [Authorize(Roles = AuthRoles.MemberRoles)]

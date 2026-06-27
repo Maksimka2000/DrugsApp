@@ -13,8 +13,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrugsApp.Features.DrugInteractionToolFeature.ExecutePublicDrugInteractionToolReport;
 
 /// <summary>
-/// Request payload for the public drug interaction tool report [description].
+/// Request payload for the public drug interaction tool report.
 /// </summary>
+/// <param name="ManualDrugFormIds">Manual drug form identifiers provided by the caller.</param>
+/// <param name="ShowAllDrugsInteractions">Flag to include all drug interactions.</param>
+/// <param name="ShowOralGuidance">Flag to include oral guidance.</param>
+/// <param name="ShowAllFoodAndSupplementInteractions">Flag to include all food and supplement interactions.</param>
 public sealed record ExecutePublicDrugInteractionToolReportRequest(
   IReadOnlyCollection<Guid>? ManualDrugFormIds,
   bool ShowAllDrugsInteractions,
@@ -22,14 +26,16 @@ public sealed record ExecutePublicDrugInteractionToolReportRequest(
   bool ShowAllFoodAndSupplementInteractions);
 
 /// <summary>
-/// Response envelope for the public drug interaction tool report [description].
+/// Response envelope for the public drug interaction tool report.
 /// </summary>
+/// <param name="Report">Computed public report data.</param>
 public sealed record ExecutePublicDrugInteractionToolReportResponse(
   PublicDrugInteractionToolReportReadModel Report);
 
 /// <summary>
-/// MediatR command for the public drug interaction tool report [description].
+/// MediatR command for the public drug interaction tool report.
 /// </summary>
+/// <param name="Request">Request payload for execution.</param>
 public sealed record ExecutePublicDrugInteractionToolReportCommand(
   ExecutePublicDrugInteractionToolReportRequest Request) : IRequest<ErrorOr<ExecutePublicDrugInteractionToolReportResponse>>;
 
@@ -46,6 +52,8 @@ public sealed class ExecutePublicDrugInteractionToolReportController(
   /// <summary>
   /// Computes the anonymous public drug interaction tool report (CASE TWO).
   /// </summary>
+  /// <param name="request">Request payload with manual selections and flags.</param>
+  /// <param name="cancellationToken">Token to cancel the operation.</param>
   [HttpPost("report", Name = RouteName)]
   [ProducesResponseType(typeof(ExecutePublicDrugInteractionToolReportResponse), StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status400BadRequest)]

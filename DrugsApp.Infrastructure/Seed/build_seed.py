@@ -64,8 +64,45 @@ def canonical_pair(short_type: str, id_a: str, id_b: str) -> tuple[str, str, str
     return short_type, id_b, short_type, id_a
 
 
+PARTY_TYPE_ORDER = {
+    "Substance": 0,
+    "SubstanceGroup": 1,
+    "Food": 2,
+    "FoodGroup": 3,
+    "Supplement": 4,
+    "SupplementGroup": 5,
+}
+
+
+def canonical_mixed_pair(
+    left_type: str,
+    left_id: str,
+    right_type: str,
+    right_id: str,
+) -> tuple[str, str, str, str]:
+    left_key = (PARTY_TYPE_ORDER[left_type], UUID(left_id))
+    right_key = (PARTY_TYPE_ORDER[right_type], UUID(right_id))
+
+    if left_key <= right_key:
+        return left_type, left_id, right_type, right_id
+
+    return right_type, right_id, left_type, left_id
+
+
+PARTY_FK_COLUMN = {
+    "Substance": "ActiveSubstanceId",
+    "Food": "FoodId",
+    "Supplement": "SupplementId",
+}
+
+
 def sql_str(value: str) -> str:
     return value.replace("'", "''")
+
+
+def build_catalog_search_text(name: str, aliases_json: str) -> str:
+    aliases = json.loads(aliases_json)
+    return " ".join([name, *aliases]).strip().lower()
 
 
 def catalog_uuid(stem: str, n: int) -> str:
@@ -254,49 +291,49 @@ EXTRA_DRUGS = [
 ]
 
 FOODS = [
-    ("Grapefruit", '["pink grapefruit","citrus"]', "grapefruit"),
-    ("Milk", '["cow milk","dairy"]', "milk"),
-    ("Peanuts", '["groundnuts"]', "peanuts"),
-    ("Eggs", '["chicken eggs"]', "eggs"),
-    ("Shellfish", '["shrimp","prawns"]', "shellfish"),
-    ("Soy", '["soya","tofu"]', "soy"),
-    ("Wheat", '["gluten","bread"]', "wheat"),
-    ("Almonds", "[]", "almonds"),
-    ("Strawberries", "[]", "strawberries"),
-    ("Dark chocolate", '["cocoa"]', "dark chocolate"),
-    ("Aged cheese", '["cheddar","parmesan"]', "aged cheese"),
-    ("Tomatoes", "[]", "tomatoes"),
-    ("Avocado", "[]", "avocado"),
-    ("Spinach", "[]", "spinach"),
-    ("Bananas", "[]", "bananas"),
-    ("Coffee", '["espresso"]', "coffee"),
-    ("Honey", "[]", "honey"),
-    ("Garlic", "[]", "garlic"),
-    ("Onion", '["red onion"]', "onion"),
-    ("Celery", "[]", "celery"),
+    ("Grapefruit", '["pink grapefruit","citrus"]'),
+    ("Milk", '["cow milk","dairy"]'),
+    ("Peanuts", '["groundnuts"]'),
+    ("Eggs", '["chicken eggs"]'),
+    ("Shellfish", '["shrimp","prawns"]'),
+    ("Soy", '["soya","tofu"]'),
+    ("Wheat", '["gluten","bread"]'),
+    ("Almonds", "[]"),
+    ("Strawberries", "[]"),
+    ("Dark chocolate", '["cocoa"]'),
+    ("Aged cheese", '["cheddar","parmesan"]'),
+    ("Tomatoes", "[]"),
+    ("Avocado", "[]"),
+    ("Spinach", "[]"),
+    ("Bananas", "[]"),
+    ("Coffee", '["espresso"]'),
+    ("Honey", "[]"),
+    ("Garlic", "[]"),
+    ("Onion", '["red onion"]'),
+    ("Celery", "[]"),
 ]
 
 SUPPLEMENTS = [
-    ("Vitamin D3", '["cholecalciferol"]', "vitamin d3"),
-    ("Omega-3 Fish Oil", '["EPA","DHA"]', "omega-3 fish oil"),
-    ("Iron", '["ferrous sulfate"]', "iron"),
-    ("Magnesium", '["magnesium citrate"]', "magnesium"),
-    ("Vitamin C", '["ascorbic acid"]', "vitamin c"),
-    ("Zinc", "[]", "zinc"),
-    ("Probiotics", '["lactobacillus"]', "probiotics"),
-    ("Vitamin B12", '["cobalamin"]', "vitamin b12"),
-    ("Folic acid", '["folate","vitamin b9"]', "folic acid"),
-    ("Calcium", '["calcium carbonate"]', "calcium"),
-    ("Multivitamin", "[]", "multivitamin"),
-    ("Coenzyme Q10", '["CoQ10"]', "coenzyme q10"),
-    ("Melatonin", "[]", "melatonin"),
-    ("Turmeric", '["curcumin"]', "turmeric"),
-    ("Vitamin B6", '["pyridoxine"]', "vitamin b6"),
-    ("Biotin", '["vitamin b7"]', "biotin"),
-    ("Potassium", "[]", "potassium"),
-    ("Psyllium fiber", '["fiber supplement"]', "psyllium fiber"),
-    ("Glucosamine", "[]", "glucosamine"),
-    ("Ashwagandha", "[]", "ashwagandha"),
+    ("Vitamin D3", '["cholecalciferol"]'),
+    ("Omega-3 Fish Oil", '["EPA","DHA"]'),
+    ("Iron", '["ferrous sulfate"]'),
+    ("Magnesium", '["magnesium citrate"]'),
+    ("Vitamin C", '["ascorbic acid"]'),
+    ("Zinc", "[]"),
+    ("Probiotics", '["lactobacillus"]'),
+    ("Vitamin B12", '["cobalamin"]'),
+    ("Folic acid", '["folate","vitamin b9"]'),
+    ("Calcium", '["calcium carbonate"]'),
+    ("Multivitamin", "[]"),
+    ("Coenzyme Q10", '["CoQ10"]'),
+    ("Melatonin", "[]"),
+    ("Turmeric", '["curcumin"]'),
+    ("Vitamin B6", '["pyridoxine"]'),
+    ("Biotin", '["vitamin b7"]'),
+    ("Potassium", "[]"),
+    ("Psyllium fiber", '["fiber supplement"]'),
+    ("Glucosamine", "[]"),
+    ("Ashwagandha", "[]"),
 ]
 
 HEALTH_CONDITIONS = [
@@ -319,9 +356,10 @@ PHARMA_FORM_FOR_PRIMARY = [
 
 def add_interactions(
     section: str,
-    party_type: str,
-    short_type: str,
-    entity_prefix: str,
+    left_party_type: str,
+    right_party_type: str,
+    left_entity_prefix: str,
+    right_entity_prefix: str,
     i_prefix: str,
     p_prefix: str,
     e_prefix: str,
@@ -332,9 +370,17 @@ def add_interactions(
         iid = uid(i_prefix, i)
         sev = SEV[(i - 1) % 4]
         left_num, right_num = i, (i % 20) + 1
-        left_id = uid(entity_prefix, left_num)
-        right_id = uid(entity_prefix, right_num)
-        ta, ida, tb, idb = canonical_pair(short_type, left_id, right_id)
+        left_id = uid(left_entity_prefix, left_num)
+        right_id = uid(right_entity_prefix, right_num)
+        if left_party_type == right_party_type:
+            ta, ida, tb, idb = canonical_pair(left_party_type, left_id, right_id)
+        else:
+            ta, ida, tb, idb = canonical_mixed_pair(
+                left_party_type,
+                left_id,
+                right_party_type,
+                right_id,
+            )
         txt = sql_str(texts[i % len(texts)])
         w(
             f'INSERT INTO "Interactions" ("Id", "InteractionSeverityId", "DefaultText", "StomachText", "CreatedAtUtc") '
@@ -343,15 +389,14 @@ def add_interactions(
         )
         pa, pb = uid(p_prefix, i * 2 - 1), uid(p_prefix, i * 2)
         pe = uid(e_prefix, i)
-        fk = {
-            "Substance": "ActiveSubstanceId",
-            "Food": "FoodId",
-            "Supplement": "SupplementId",
-        }[party_type]
-        for pid, eid in ((pa, left_id), (pb, right_id)):
+        for pid, party_type, entity_id in (
+            (pa, left_party_type, left_id),
+            (pb, right_party_type, right_id),
+        ):
+            fk = PARTY_FK_COLUMN[party_type]
             w(
                 f'INSERT INTO "InteractionParties" ("Id", "InteractionId", "PartyType", "{fk}", "CreatedAtUtc") '
-                f"VALUES ('{pid}'::uuid, '{iid}'::uuid, '{party_type}', '{eid}'::uuid, {NOW}) "
+                f"VALUES ('{pid}'::uuid, '{iid}'::uuid, '{party_type}', '{entity_id}'::uuid, {NOW}) "
                 f'ON CONFLICT ("Id") DO NOTHING;'
             )
         w(
@@ -662,8 +707,8 @@ def catalog() -> None:
         route_rows.append(f"    ('a1000000-0000-4000-8000-{drug_i:012d}'::uuid, 'f2200000-0000-4000-8000-00000000000{rid:01d}'::uuid)")
     w('INSERT INTO "DrugFormRoutesOfAdministration" ("DrugFormId", "RouteOfAdministrationId")\nVALUES\n' + ",\n".join(route_rows) + "\nON CONFLICT DO NOTHING;")
     fvals = [
-        f"    ('b0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(s)}', {NOW})"
-        for i, (n, a, s) in enumerate(FOODS, 1)
+        f"    ('b0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(build_catalog_search_text(n, a))}', {NOW})"
+        for i, (n, a) in enumerate(FOODS, 1)
     ]
     w(
         'INSERT INTO "Foods" ("Id", "Name", "Aliases", "SearchText", "CreatedAtUtc")\nVALUES\n'
@@ -671,8 +716,8 @@ def catalog() -> None:
         + '\nON CONFLICT ("Id") DO UPDATE SET "Name"=EXCLUDED."Name", "Aliases"=EXCLUDED."Aliases", "SearchText"=EXCLUDED."SearchText";'
     )
     svals2 = [
-        f"    ('c0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(s)}', {NOW})"
-        for i, (n, a, s) in enumerate(SUPPLEMENTS, 1)
+        f"    ('c0000000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(n)}', '{a}'::jsonb, '{sql_str(build_catalog_search_text(n, a))}', {NOW})"
+        for i, (n, a) in enumerate(SUPPLEMENTS, 1)
     ]
     w(
         'INSERT INTO "Supplements" ("Id", "Name", "Aliases", "SearchText", "CreatedAtUtc")\nVALUES\n'
@@ -713,9 +758,39 @@ def extras() -> None:
         "Electrolyte imbalance may worsen adverse effects.",
         "Antioxidant supplement alters therapeutic response.",
     ]
-    add_interactions("Active substance interactions (20)", "Substance", "Substance", "f2000000-0000-4000-8000", INT_SUB_I, INT_SUB_P, INT_SUB_E, substance_texts)
-    add_interactions("Food interactions (20)", "Food", "Food", "b0000000-0000-4000-8000", INT_FOOD_I, INT_FOOD_P, INT_FOOD_E, food_texts)
-    add_interactions("Supplement interactions (20)", "Supplement", "Supplement", "c0000000-0000-4000-8000", INT_SUPP_I, INT_SUPP_P, INT_SUPP_E, supplement_texts)
+    add_interactions(
+        "Active substance interactions (20)",
+        "Substance",
+        "Substance",
+        "f2000000-0000-4000-8000",
+        "f2000000-0000-4000-8000",
+        INT_SUB_I,
+        INT_SUB_P,
+        INT_SUB_E,
+        substance_texts,
+    )
+    add_interactions(
+        "Food interactions (20)",
+        "Substance",
+        "Food",
+        "f2000000-0000-4000-8000",
+        "b0000000-0000-4000-8000",
+        INT_FOOD_I,
+        INT_FOOD_P,
+        INT_FOOD_E,
+        food_texts,
+    )
+    add_interactions(
+        "Supplement interactions (20)",
+        "Substance",
+        "Supplement",
+        "f2000000-0000-4000-8000",
+        "c0000000-0000-4000-8000",
+        INT_SUPP_I,
+        INT_SUPP_P,
+        INT_SUPP_E,
+        supplement_texts,
+    )
     w("-- Alcohol interaction overrides (20)")
     for i in range(1, 21):
         w(
@@ -727,12 +802,27 @@ def extras() -> None:
     w("")
     w("-- FAQ entries (20)")
     for i in range(1, 21):
-        q = f"How should I track supplement {i} with my prescriptions?"
+        q_en = f"How should I track supplement {i} with my prescriptions?"
+        q_pl = f"Jak powinienem śledzić suplement {i} wraz z moimi receptami?"
+        a_en = "Log intake times in the app and review interactions before adding new items."
+        a_pl = "Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji."
+        faq_id = f"fa100000-0000-4000-8000-{i:012d}"
         w(
-            f'INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")\n'
-            f"VALUES ('fa100000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(q)}', '{sql_str(q.lower())}', "
-            f"'Log intake times in the app and review interactions before adding new items.', {NOW})\n"
-            f'ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";'
+            f'INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")\n'
+            f"VALUES ('{faq_id}'::uuid, {NOW})\n"
+            f'ON CONFLICT ("Id") DO NOTHING;'
+        )
+        w(
+            f'INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")\n'
+            f"VALUES ('fa200000-0000-4000-8000-{i:012d}'::uuid, '{faq_id}'::uuid, 'en', '{sql_str(q_en)}', '{sql_str(q_en.lower())}', "
+            f"'{sql_str(a_en)}', {NOW})\n"
+            f'ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";'
+        )
+        w(
+            f'INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")\n'
+            f"VALUES ('fa300000-0000-4000-8000-{i:012d}'::uuid, '{faq_id}'::uuid, 'pl', '{sql_str(q_pl)}', '{sql_str(q_pl.lower())}', "
+            f"'{sql_str(a_pl)}', {NOW})\n"
+            f'ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";'
         )
     w("")
     w("-- Drug problem types (5)")

@@ -5,6 +5,11 @@ namespace DrugsApp.Features.PatientSupervisionFeature.GetPatientProposal;
 
 internal static class GetPatientProposalMapping
 {
+    /// <summary>
+    /// Maps a proposal draft item from repository DTO to API DTO.
+    /// </summary>
+    /// <param name="item">Draft item from repository.</param>
+    /// <returns>API-facing draft item DTO.</returns>
     public static PatientProposalDraftItemDto MapToDto(this MedicalChangeProposalDraftItemDto item) =>
         new(
             CategoryCode: item.CategoryCode,

@@ -218,3 +218,5 @@ if (regularSupplementExpirationSettings.Enabled)
 
 await app.RunAsync();
 
+public partial class Program;
+

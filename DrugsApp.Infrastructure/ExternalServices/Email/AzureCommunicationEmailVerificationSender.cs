@@ -19,6 +19,13 @@ public sealed class AzureCommunicationEmailVerificationSender(
 {
     private readonly EmailSettings _settings = emailSettings.Value;
 
+    /// <summary>
+    /// Sends an email confirmation message for a newly registered user.
+    /// </summary>
+    /// <param name="userId">User identifier for correlation.</param>
+    /// <param name="email">Destination email address.</param>
+    /// <param name="confirmationToken">Identity email confirmation token.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task SendConfirmationAsync(
         Guid userId,
         string email,
@@ -33,6 +40,13 @@ public sealed class AzureCommunicationEmailVerificationSender(
         await SendAsync(email, subject, htmlBody, cancellationToken);
     }
 
+    /// <summary>
+    /// Sends a login email change confirmation message.
+    /// </summary>
+    /// <param name="userId">User identifier for correlation.</param>
+    /// <param name="newEmail">New email address to verify.</param>
+    /// <param name="confirmationToken">Email change confirmation token.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task SendEmailChangeConfirmationAsync(
         Guid userId,
         string newEmail,
@@ -47,6 +61,13 @@ public sealed class AzureCommunicationEmailVerificationSender(
         await SendAsync(newEmail, subject, htmlBody, cancellationToken);
     }
 
+    /// <summary>
+    /// Sends a password reset email.
+    /// </summary>
+    /// <param name="userId">User identifier for correlation.</param>
+    /// <param name="email">Destination email address.</param>
+    /// <param name="confirmationToken">Password reset token.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task SendPasswordResetAsync(
         Guid userId,
         string email,

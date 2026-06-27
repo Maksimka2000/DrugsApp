@@ -17,6 +17,12 @@ public sealed class SearchUserHealthConditionsHandler(
     IUserHealthConditionRepository _userHealthConditionRepository)
     : IRequestHandler<SearchUserHealthConditionsQuery, ErrorOr<SearchUserHealthConditionsResponse>>
 {
+    /// <summary>
+    /// Searches user health conditions with paging and optional name filter.
+    /// </summary>
+    /// <param name="query">Search query including user id and display name filter.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Paged search response.</returns>
     public async Task<ErrorOr<SearchUserHealthConditionsResponse>> Handle(
         SearchUserHealthConditionsQuery query,
         CancellationToken cancellationToken)

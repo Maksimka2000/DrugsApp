@@ -7,6 +7,12 @@ namespace DrugsApp.Features.PatientSupervisionFeature.ListPatientSupervisionRequ
 
 internal static class ListPatientSupervisionRequestsMapping
 {
+    /// <summary>
+    /// Builds a query for listing supervision requests for a patient.
+    /// </summary>
+    /// <param name="request">Incoming request payload.</param>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <returns>Query with normalized sort and paging.</returns>
     public static ListPatientSupervisionRequestsQuery MapToQuery(
         this ListPatientSupervisionRequestsRequest request,
         Guid patientUserId) =>
@@ -16,6 +22,13 @@ internal static class ListPatientSupervisionRequestsMapping
             Skip: request.Skip,
             Take: request.Take);
 
+    /// <summary>
+    /// Maps supervision request rows to a response with paging metadata.
+    /// </summary>
+    /// <param name="rows">Fetched rows.</param>
+    /// <param name="requestedTake">Requested page size.</param>
+    /// <param name="totalCount">Optional total count.</param>
+    /// <returns>Response DTO with items and paging info.</returns>
     public static PatientSupervisionRequestListResponse MapToResponse(
         this IReadOnlyCollection<PatientSupervisionRequestListRow> rows,
         int requestedTake,

@@ -5,8 +5,17 @@ using MediatR;
 
 namespace DrugsApp.Features.AdminUserManagementFeature.GetAdminUser;
 
+/// <summary>
+/// Request payload for retrieving an admin user by identifier.
+/// </summary>
+/// <param name="AdminUserId">Identifier of the admin user.</param>
 public sealed record GetAdminUserRequest(Guid AdminUserId);
 
+/// <summary>
+/// Query to retrieve admin user details including current user context.
+/// </summary>
+/// <param name="AdminUserId">Identifier of the admin user to load.</param>
+/// <param name="CurrentUserId">Identifier of the requesting admin.</param>
 public sealed record GetAdminUserQuery(Guid AdminUserId, Guid CurrentUserId)
     : IRequest<ErrorOr<AdminUserDetailDto>>;
 

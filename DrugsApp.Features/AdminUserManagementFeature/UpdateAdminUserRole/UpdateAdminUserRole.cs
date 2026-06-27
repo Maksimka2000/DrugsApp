@@ -6,6 +6,12 @@ using MediatR;
 
 namespace DrugsApp.Features.AdminUserManagementFeature.UpdateAdminUserRole;
 
+/// <summary>
+/// Command to update an admin user's role.
+/// </summary>
+/// <param name="AdminUserId">Identifier of the admin being updated.</param>
+/// <param name="CurrentUserId">Identifier of the admin performing the change.</param>
+/// <param name="Request">Payload containing the new role.</param>
 public sealed record UpdateAdminUserRoleCommand(
     Guid AdminUserId,
     Guid CurrentUserId,

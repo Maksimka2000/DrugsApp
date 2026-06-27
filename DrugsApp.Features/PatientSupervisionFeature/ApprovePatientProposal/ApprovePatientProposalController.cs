@@ -21,6 +21,11 @@ public sealed class ApprovePatientProposalController(
 {
     public const string RouteName = "ApprovePatientProposal";
 
+    /// <summary>
+    /// Approves a patient proposal and applies changes.
+    /// </summary>
+    /// <param name="proposal_id">Proposal identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpPost("{proposal_id:guid}/approve", Name = RouteName)]
     [Authorize(Roles = AuthRoles.MemberRoles)]
     public async Task<ActionResult<ApprovePatientProposalResponseDto>> Approve(

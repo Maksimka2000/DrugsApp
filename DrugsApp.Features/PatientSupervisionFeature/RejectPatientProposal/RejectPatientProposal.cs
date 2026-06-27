@@ -8,8 +8,17 @@ using MediatR;
 
 namespace DrugsApp.Features.PatientSupervisionFeature.RejectPatientProposal;
 
+/// <summary>
+/// Request payload to reject a patient proposal.
+/// </summary>
+/// <param name="ProposalId">Proposal identifier.</param>
 public sealed record RejectPatientProposalRequest(Guid ProposalId);
 
+/// <summary>
+/// Command to reject a patient proposal.
+/// </summary>
+/// <param name="PatientUserId">Patient user identifier.</param>
+/// <param name="ProposalId">Proposal identifier.</param>
 public sealed record RejectPatientProposalCommand(Guid PatientUserId, Guid ProposalId)
     : IRequest<ErrorOr<RejectPatientProposalResponseDto>>;
 

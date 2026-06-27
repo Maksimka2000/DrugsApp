@@ -19,6 +19,7 @@ public static class SupplementMappings
             supplement.Id,
             supplement.Name,
             supplement.Aliases.ToList(),
+            supplement.BuildSearchOutputText(),
             InteractionType.Supplement.ToString());
     }
 
@@ -35,15 +36,15 @@ public static class SupplementMappings
     }
 
     /// <summary>
-    /// 
+    /// Maps a <see cref="SupplementGroup"/> entity to a <see cref="SupplementGroupDto"/> object.
     /// </summary>
-    /// <param name="group"></param>
-    /// <returns></returns>
+    /// <param name="group">Group entity to map.</param>
+    /// <returns>DTO representation of the group.</returns>
     public static SupplementGroupDto MapToDto(this SupplementGroup group)
     {
         return new SupplementGroupDto(
             group.Id,
-            group.Name,
+            group.Name ?? string.Empty,
             group.Supplements
                 .Select(member => new SupplementMemberDto(member.Id, member.Name))
                 .ToList(),

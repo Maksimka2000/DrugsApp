@@ -21,6 +21,12 @@ public sealed class UpdateSupervisionAccessLevelController(
 {
     public const string RouteName = "UpdateSupervisionAccessLevel";
 
+    /// <summary>
+    /// Updates the supervision access level for a healthcare professional.
+    /// </summary>
+    /// <param name="healthcareProfessionalUserId">Healthcare professional user identifier.</param>
+    /// <param name="request">Body containing the desired access level code.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpPut("{healthcare_professional_user_id:guid}/access-level", Name = RouteName)]
     [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<UpdateSupervisionAccessLevelResponseDto>> Update(

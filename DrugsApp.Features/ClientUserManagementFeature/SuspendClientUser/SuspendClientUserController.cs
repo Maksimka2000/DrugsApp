@@ -18,6 +18,12 @@ public sealed class SuspendClientUserController(
 {
     public const string RouteName = "SuspendClientUser";
 
+    /// <summary>
+    /// Suspends or unsuspends a client user.
+    /// </summary>
+    /// <param name="clientUserId">Identifier of the client user.</param>
+    /// <param name="body">Body containing the target suspension state.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpPut("{client_user_id:guid}/suspension", Name = RouteName)]
     public async Task<ActionResult<ClientUserSuspensionResponse>> Suspend(
         [FromRoute(Name = "client_user_id")] Guid clientUserId,

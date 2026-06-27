@@ -12,7 +12,7 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
     // Attributes
 
     /// <summary>
-    /// Owner user identifier (matches <see cref="UserProfile.Id" />).
+    /// Owner user identifier matching the associated user profile.
     /// </summary>
     public Guid UserId { get; private set; }
 
@@ -72,6 +72,7 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
     /// <param name="userId">Profile owner identifier.</param>
     /// <param name="currentlyPregnant">Pregnancy declaration.</param>
     /// <param name="planningToGetPregnant">Pregnancy planning flag.</param>
+    /// <param name="pregnancyPlanningUnknown">Explicitly marks planning status as unknown.</param>
     /// <param name="menopause">Menopause declaration.</param>
     /// <param name="contraceptionMethodCode">Optional contraception method code.</param>
     /// <returns>Validated <see cref="ClientReproductiveHealthProfile"/> or validation errors.</returns>
@@ -109,6 +110,7 @@ public sealed class ClientReproductiveHealthProfile : BaseEntity
     /// </summary>
     /// <param name="currentlyPregnant">Updated pregnancy declaration.</param>
     /// <param name="planningToGetPregnant">Updated planning flag.</param>
+    /// <param name="pregnancyPlanningUnknown">Updated unknown planning flag.</param>
     /// <param name="menopause">Updated menopause flag.</param>
     /// <param name="contraceptionMethodCode">Optional contraception method code.</param>
     /// <returns>Success or validation errors.</returns>

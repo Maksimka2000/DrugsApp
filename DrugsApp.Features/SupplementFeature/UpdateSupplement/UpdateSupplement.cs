@@ -46,13 +46,34 @@ public sealed class UpdateSupplementHandler(ISupplementRepository _supplementRep
         // update the name if provided
         if (!string.IsNullOrWhiteSpace(command.Request.Name))
         {
-            supplement.UpdateName(command.Request.Name);
+            string normalizedName = command.Request.Name.Trim();
+            normalizedName = string.Join(
+                ' ',
+                normalizedName.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+            if (!supplement.Name.Equals(normalizedName, StringComparison.Ordinal))
+            {
+                Supplement? existing = await _supplementRepository.GetByNameAsync(
+                    normalizedName,
+                    cancellationToken);
+                if (existing is not null)
+                {
+                    return Error.Conflict(
+                        description: "Supplement name already exists.",
+                        metadata: new()
+                        {
+                            ["existingResourceId"] = existing.Id.ToString()
+                        });
+                }
+
+                supplement.UpdateName(normalizedName);
+            }
         }
 
         // update the aliases if provided
         if (command.Request.Aliases is not null)
         {
-            supplement.UpdateAliases(command.Request.Aliases);
+            supplement.ReplaceAliases(command.Request.Aliases);
         }
 
         // update the manufacturer if provided

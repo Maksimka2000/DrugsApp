@@ -11,6 +11,18 @@ namespace DrugsApp.Features.DrugProblemsFeature.Shared;
 /// <summary>
 /// List item DTO for a drug problem entry.
 /// </summary>
+/// <param name="Id">Drug problem identifier.</param>
+/// <param name="Source">Indicates whether the problem comes from database or custom source.</param>
+/// <param name="DrugFormId">Catalog drug form identifier when applicable.</param>
+/// <param name="CustomDrugName">Custom drug name when user entered.</param>
+/// <param name="CustomActiveSubstances">Custom active substances description.</param>
+/// <param name="CustomFormulationName">Custom pharmaceutical form description.</param>
+/// <param name="CustomDosage">Custom dosage text.</param>
+/// <param name="DisplayName">Human readable display line.</param>
+/// <param name="ProblemNote">User-provided problem note.</param>
+/// <param name="CreatedAtUtc">Creation timestamp.</param>
+/// <param name="UpdatedAtUtc">Last update timestamp.</param>
+/// <param name="DrugFormSummary">Catalog drug form summary when present.</param>
 public sealed record DrugProblemListItemDto(
     Guid Id,
     string Source,
@@ -28,11 +40,20 @@ public sealed record DrugProblemListItemDto(
 /// <summary>
 /// Full details DTO for a drug problem entry.
 /// </summary>
+/// <param name="Item">Wrapped list item DTO.</param>
 public sealed record DrugProblemDetailsDto(DrugProblemListItemDto Item);
 
 /// <summary>
 /// Compact drug form summary used when a drug problem references a catalog drug form.
 /// </summary>
+/// <param name="DrugFormId">Identifier of the drug form.</param>
+/// <param name="DrugId">Identifier of the parent drug.</param>
+/// <param name="CommercialName">Drug commercial name.</param>
+/// <param name="TypeOfProduct">Type of product descriptor.</param>
+/// <param name="TypeOfDrug">Drug type enumeration value.</param>
+/// <param name="ActiveSubstances">Active substances involved.</param>
+/// <param name="FormulationName">Name of the pharmaceutical formulation.</param>
+/// <param name="Dosage">Dosage text if available.</param>
 public sealed record DrugProblemDrugFormSummaryDto(
     Guid DrugFormId,
     Guid DrugId,
@@ -43,8 +64,16 @@ public sealed record DrugProblemDrugFormSummaryDto(
     string FormulationName,
     string? Dosage);
 
+/// <summary>
+/// Mapping helpers for transforming drug problems to DTOs.
+/// </summary>
 public static class DrugProblemMappings
 {
+    /// <summary>
+    /// Projects a drug problem entity to a list item DTO, resolving source and display name.
+    /// </summary>
+    /// <param name="drugProblem">Drug problem entity to map.</param>
+    /// <returns>DTO representing the list item.</returns>
     public static DrugProblemListItemDto MapToListItemDto(this DrugProblem drugProblem)
     {
         string source = MapSource(drugProblem.Source);
@@ -90,6 +119,11 @@ public static class DrugProblemMappings
             drugFormSummary);
     }
 
+    /// <summary>
+    /// Projects a drug problem entity to a details DTO.
+    /// </summary>
+    /// <param name="drugProblem">Drug problem entity to map.</param>
+    /// <returns>DTO with full details.</returns>
     public static DrugProblemDetailsDto MapToDetailsDto(this DrugProblem drugProblem) =>
         new(drugProblem.MapToListItemDto());
 

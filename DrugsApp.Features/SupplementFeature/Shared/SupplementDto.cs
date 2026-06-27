@@ -7,4 +7,5 @@ public sealed record SupplementDto(
     Guid Id,
     string Name,
     IReadOnlyCollection<string> Aliases,
+    string SearchOutputText,
     string Type);

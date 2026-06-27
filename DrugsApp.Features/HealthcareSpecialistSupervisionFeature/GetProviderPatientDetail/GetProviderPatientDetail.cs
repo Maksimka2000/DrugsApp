@@ -22,12 +22,18 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.GetProviderPa
 
 
 
+/// <summary>
+/// Request payload to retrieve a patient's details for a provider.
+/// </summary>
+/// <param name="PatientId">Patient user identifier.</param>
 public sealed record GetProviderPatientDetailRequest(Guid PatientId);
 
-
-
+/// <summary>
+/// Query to retrieve patient details for a provider.
+/// </summary>
+/// <param name="ProviderUserId">Provider user identifier.</param>
+/// <param name="PatientId">Patient user identifier.</param>
 public sealed record GetProviderPatientDetailQuery(Guid ProviderUserId, Guid PatientId)
-
     : IRequest<ErrorOr<ProviderPatientDetailResponse>>;
 
 

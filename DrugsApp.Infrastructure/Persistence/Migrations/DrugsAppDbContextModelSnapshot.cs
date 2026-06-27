@@ -2156,6 +2156,26 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "UpdatedAtUtc", "CreatedAtUtc", "Id" }, "Index_FaqEntries_UpdatedAtUtc_CreatedAtUtc_Id");
+
+                    b.ToTable("FaqEntries", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.SupportFeature.Entities.FaqEntryTranslation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Answer")
                         .IsRequired()
                         .HasColumnType("text");
@@ -2163,6 +2183,14 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid>("FaqEntryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
 
                     b.Property<string>("NormalizedQuestion")
                         .IsRequired()
@@ -2180,19 +2208,20 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex(new[] { "NormalizedQuestion" }, "Index_FaqEntries_NormalizedQuestion")
+                    b.HasIndex(new[] { "FaqEntryId", "LanguageCode" }, "Index_FaqEntryTranslations_FaqEntryId_LanguageCode")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "NormalizedQuestion" }, "Index_FaqEntries_NormalizedQuestion_trgm");
+                    b.HasIndex(new[] { "LanguageCode", "NormalizedQuestion" }, "Index_FaqEntryTranslations_LanguageCode_NormalizedQuestion")
+                        .IsUnique();
 
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "NormalizedQuestion" }, "Index_FaqEntries_NormalizedQuestion_trgm"), "GIN");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "NormalizedQuestion" }, "Index_FaqEntries_NormalizedQuestion_trgm"), new[] { "gin_trgm_ops" });
+                    b.HasIndex(new[] { "NormalizedQuestion" }, "Index_FaqEntryTranslations_NormalizedQuestion_trgm");
 
-                    b.HasIndex(new[] { "Question", "CreatedAtUtc", "Id" }, "Index_FaqEntries_Question_CreatedAtUtc_Id");
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "NormalizedQuestion" }, "Index_FaqEntryTranslations_NormalizedQuestion_trgm"), "GIN");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "NormalizedQuestion" }, "Index_FaqEntryTranslations_NormalizedQuestion_trgm"), new[] { "gin_trgm_ops" });
 
-                    b.HasIndex(new[] { "UpdatedAtUtc", "CreatedAtUtc", "Id" }, "Index_FaqEntries_UpdatedAtUtc_CreatedAtUtc_Id");
+                    b.HasIndex(new[] { "Question", "CreatedAtUtc", "Id" }, "Index_FaqEntryTranslations_Question_CreatedAtUtc_Id");
 
-                    b.ToTable("FaqEntries", (string)null);
+                    b.ToTable("FaqEntryTranslations", (string)null);
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.SystemTextFeature.Entities.SystemText", b =>
@@ -3342,6 +3371,17 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("RegularSupplement");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.SupportFeature.Entities.FaqEntryTranslation", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.SupportFeature.Entities.FaqEntry", "FaqEntry")
+                        .WithMany("Translations")
+                        .HasForeignKey("FaqEntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FaqEntry");
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.UserProfileFeature.Entities.ClientReproductiveHealthProfile", b =>
                 {
                     b.HasOne("DrugsApp.Domain.UserProfileFeature.Entities.UserProfile", null)
@@ -3493,6 +3533,11 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplement", b =>
                 {
                     b.Navigation("IntakeTimes");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.SupportFeature.Entities.FaqEntry", b =>
+                {
+                    b.Navigation("Translations");
                 });
 #pragma warning restore 612, 618
         }

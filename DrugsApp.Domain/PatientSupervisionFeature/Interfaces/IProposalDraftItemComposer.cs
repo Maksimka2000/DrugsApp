@@ -8,6 +8,13 @@ namespace DrugsApp.Domain.PatientSupervisionFeature.Interfaces;
 /// </summary>
 public interface IProposalDraftItemComposer
 {
+    /// <summary>
+    /// Composes validated draft items with display snapshots for the specified patient.
+    /// </summary>
+    /// <param name="patientUserId">Patient owner for whom the draft is being composed.</param>
+    /// <param name="draftItems">Raw provider-supplied draft items.</param>
+    /// <param name="cancellationToken">Propagation token to cancel composition.</param>
+    /// <returns>Collection of composed draft items or a domain error.</returns>
     Task<ErrorOr<IReadOnlyCollection<ComposedProposalDraftItem>>> ComposeAsync(
         Guid patientUserId,
         IReadOnlyCollection<ProposalDraftItemInput> draftItems,

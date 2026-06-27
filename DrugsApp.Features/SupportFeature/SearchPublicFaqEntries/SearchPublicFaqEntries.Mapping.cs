@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using DrugsApp.Domain.SupportFeature;
+using DrugsApp.Domain.SupportFeature.Enums;
 using DrugsApp.Features.SupportFeature.Shared;
 
 namespace DrugsApp.Features.SupportFeature.SearchPublicFaqEntries;
@@ -12,6 +14,7 @@ public static class SearchPublicFaqEntriesMapping
     /// Maps the HTTP request to the MediatR query.
     /// </summary>
     public static SearchPublicFaqEntriesQuery MapToQuery(this SearchPublicFaqEntriesRequest request) => new(
+        LanguageCode: FaqLanguageCodeExtensions.ParseCode(request.Language),
         QuestionQuery: NormalizeQuestionQuery(request.QuestionQuery),
         Skip: request.Skip,
         Take: request.Take);
@@ -20,7 +23,7 @@ public static class SearchPublicFaqEntriesMapping
     /// Maps the response envelope for the public FAQ list.
     /// </summary>
     public static SearchPublicFaqEntriesResponse MapToResponse(
-        this IReadOnlyCollection<FaqEntryDto> items,
+        this IReadOnlyCollection<PublicFaqEntryDto> items,
         int? totalCount,
         bool hasMore) => new(
         Items: items,

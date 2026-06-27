@@ -21,6 +21,11 @@ public sealed class ListPatientSupervisionRequestsController(
 {
     public const string RouteName = "ListPatientSupervisionRequests";
 
+    /// <summary>
+    /// Lists supervision requests for the current patient with paging.
+    /// </summary>
+    /// <param name="request">Query parameters including order and paging.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     [HttpGet(Name = RouteName)]
     [Authorize(Roles = AuthRoles.Client)]
     public async Task<ActionResult<PatientSupervisionRequestListResponse>> List(

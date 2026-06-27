@@ -5,6 +5,11 @@ using MediatR;
 
 namespace DrugsApp.Features.ClientUserManagementFeature.SuspendClientUser;
 
+/// <summary>
+/// Command to update client user suspension state.
+/// </summary>
+/// <param name="ClientUserId">Identifier of the client user.</param>
+/// <param name="IsSuspended">Desired suspension state.</param>
 public sealed record SuspendClientUserCommand(
     Guid ClientUserId,
     bool IsSuspended) : IRequest<ErrorOr<ClientUserSuspensionResponse>>;

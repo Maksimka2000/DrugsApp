@@ -12,6 +12,14 @@ using MediatR;
 
 namespace DrugsApp.Features.UserProfileFeature.UpdateUserProfile;
 
+/// <summary>
+/// Request payload for updating a user's profile.
+/// </summary>
+/// <param name="FirstName">First name.</param>
+/// <param name="LastName">Last name.</param>
+/// <param name="DateOfBirth">Date of birth.</param>
+/// <param name="Gender">Gender string.</param>
+/// <param name="ConfirmReproductiveHealthDeletion">Confirmation flag to delete reproductive profile when changing gender away from female.</param>
 public sealed record UpdateUserProfileRequest(
     string FirstName,
     string LastName,
@@ -20,11 +28,11 @@ public sealed record UpdateUserProfileRequest(
     bool? ConfirmReproductiveHealthDeletion);
 
 /// <summary>
-/// 
+/// Command to update a user's profile data.
 /// </summary>
-/// <param name="UserId"></param>
-/// <param name="Email"></param>
-/// <param name="Request"></param>
+/// <param name="UserId">User identifier.</param>
+/// <param name="Email">Current user email.</param>
+/// <param name="Request">Update payload.</param>
 public sealed record UpdateUserProfileCommand(
     Guid UserId,
     string Email,
@@ -36,6 +44,12 @@ internal sealed class UpdateUserProfileHandler(
     IPendingEmailChangeRepository _pendingEmailChangeRepository)
     : IRequestHandler<UpdateUserProfileCommand, ErrorOr<UserProfileResponse>>
 {
+    /// <summary>
+    /// Updates personal data, handles reproductive profile deletion, and returns updated profile response.
+    /// </summary>
+    /// <param name="command">Update command with user id, email, and payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Updated user profile response or errors.</returns>
     public async Task<ErrorOr<UserProfileResponse>> Handle(UpdateUserProfileCommand command, CancellationToken cancellationToken)
     {
         UserProfile? profile = await _userProfileRepository.GetTrackedByUserIdAsync(command.UserId, cancellationToken);

@@ -10,6 +10,12 @@ namespace DrugsApp.Domain.NotificationsFeature.Interfaces;
 /// </summary>
 public interface IUserSecurityStatusReadService
 {
+    /// <summary>
+    /// Retrieves the current security status flags for the specified user.
+    /// </summary>
+    /// <param name="userId">User whose security status should be returned.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the query.</param>
+    /// <returns>Security snapshot describing email confirmation and MFA flags.</returns>
     Task<ErrorOr<UserSecurityStatusSnapshot>> GetStatusAsync(
         Guid userId,
         CancellationToken cancellationToken);
