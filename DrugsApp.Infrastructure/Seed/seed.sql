@@ -619,66 +619,186 @@ VALUES ('f2900000-0000-4000-8000-000000000020'::uuid, 'f2000000-0000-4000-8000-0
 ON CONFLICT ("ActiveSubstanceId") DO UPDATE SET "AlcoholSpecialText"=EXCLUDED."AlcoholSpecialText";
 
 -- FAQ entries (20)
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000001'::uuid, 'How should I track supplement 1 with my prescriptions?', 'how should i track supplement 1 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000002'::uuid, 'How should I track supplement 2 with my prescriptions?', 'how should i track supplement 2 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000003'::uuid, 'How should I track supplement 3 with my prescriptions?', 'how should i track supplement 3 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000004'::uuid, 'How should I track supplement 4 with my prescriptions?', 'how should i track supplement 4 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000005'::uuid, 'How should I track supplement 5 with my prescriptions?', 'how should i track supplement 5 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000006'::uuid, 'How should I track supplement 6 with my prescriptions?', 'how should i track supplement 6 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000007'::uuid, 'How should I track supplement 7 with my prescriptions?', 'how should i track supplement 7 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000008'::uuid, 'How should I track supplement 8 with my prescriptions?', 'how should i track supplement 8 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000009'::uuid, 'How should I track supplement 9 with my prescriptions?', 'how should i track supplement 9 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000010'::uuid, 'How should I track supplement 10 with my prescriptions?', 'how should i track supplement 10 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000011'::uuid, 'How should I track supplement 11 with my prescriptions?', 'how should i track supplement 11 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000012'::uuid, 'How should I track supplement 12 with my prescriptions?', 'how should i track supplement 12 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000013'::uuid, 'How should I track supplement 13 with my prescriptions?', 'how should i track supplement 13 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000014'::uuid, 'How should I track supplement 14 with my prescriptions?', 'how should i track supplement 14 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000015'::uuid, 'How should I track supplement 15 with my prescriptions?', 'how should i track supplement 15 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000016'::uuid, 'How should I track supplement 16 with my prescriptions?', 'how should i track supplement 16 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000017'::uuid, 'How should I track supplement 17 with my prescriptions?', 'how should i track supplement 17 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000018'::uuid, 'How should I track supplement 18 with my prescriptions?', 'how should i track supplement 18 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000019'::uuid, 'How should I track supplement 19 with my prescriptions?', 'how should i track supplement 19 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
-INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
-VALUES ('fa100000-0000-4000-8000-000000000020'::uuid, 'How should I track supplement 20 with my prescriptions?', 'how should i track supplement 20 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
-ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000001'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000001'::uuid, 'fa100000-0000-4000-8000-000000000001'::uuid, 'en', 'How should I track supplement 1 with my prescriptions?', 'how should i track supplement 1 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000001'::uuid, 'fa100000-0000-4000-8000-000000000001'::uuid, 'pl', 'Jak powinienem śledzić suplement 1 wraz z moimi receptami?', 'jak powinienem śledzić suplement 1 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000002'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000002'::uuid, 'fa100000-0000-4000-8000-000000000002'::uuid, 'en', 'How should I track supplement 2 with my prescriptions?', 'how should i track supplement 2 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000002'::uuid, 'fa100000-0000-4000-8000-000000000002'::uuid, 'pl', 'Jak powinienem śledzić suplement 2 wraz z moimi receptami?', 'jak powinienem śledzić suplement 2 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000003'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000003'::uuid, 'fa100000-0000-4000-8000-000000000003'::uuid, 'en', 'How should I track supplement 3 with my prescriptions?', 'how should i track supplement 3 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000003'::uuid, 'fa100000-0000-4000-8000-000000000003'::uuid, 'pl', 'Jak powinienem śledzić suplement 3 wraz z moimi receptami?', 'jak powinienem śledzić suplement 3 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000004'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000004'::uuid, 'fa100000-0000-4000-8000-000000000004'::uuid, 'en', 'How should I track supplement 4 with my prescriptions?', 'how should i track supplement 4 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000004'::uuid, 'fa100000-0000-4000-8000-000000000004'::uuid, 'pl', 'Jak powinienem śledzić suplement 4 wraz z moimi receptami?', 'jak powinienem śledzić suplement 4 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000005'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000005'::uuid, 'fa100000-0000-4000-8000-000000000005'::uuid, 'en', 'How should I track supplement 5 with my prescriptions?', 'how should i track supplement 5 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000005'::uuid, 'fa100000-0000-4000-8000-000000000005'::uuid, 'pl', 'Jak powinienem śledzić suplement 5 wraz z moimi receptami?', 'jak powinienem śledzić suplement 5 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000006'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000006'::uuid, 'fa100000-0000-4000-8000-000000000006'::uuid, 'en', 'How should I track supplement 6 with my prescriptions?', 'how should i track supplement 6 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000006'::uuid, 'fa100000-0000-4000-8000-000000000006'::uuid, 'pl', 'Jak powinienem śledzić suplement 6 wraz z moimi receptami?', 'jak powinienem śledzić suplement 6 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000007'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000007'::uuid, 'fa100000-0000-4000-8000-000000000007'::uuid, 'en', 'How should I track supplement 7 with my prescriptions?', 'how should i track supplement 7 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000007'::uuid, 'fa100000-0000-4000-8000-000000000007'::uuid, 'pl', 'Jak powinienem śledzić suplement 7 wraz z moimi receptami?', 'jak powinienem śledzić suplement 7 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000008'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000008'::uuid, 'fa100000-0000-4000-8000-000000000008'::uuid, 'en', 'How should I track supplement 8 with my prescriptions?', 'how should i track supplement 8 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000008'::uuid, 'fa100000-0000-4000-8000-000000000008'::uuid, 'pl', 'Jak powinienem śledzić suplement 8 wraz z moimi receptami?', 'jak powinienem śledzić suplement 8 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000009'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000009'::uuid, 'fa100000-0000-4000-8000-000000000009'::uuid, 'en', 'How should I track supplement 9 with my prescriptions?', 'how should i track supplement 9 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000009'::uuid, 'fa100000-0000-4000-8000-000000000009'::uuid, 'pl', 'Jak powinienem śledzić suplement 9 wraz z moimi receptami?', 'jak powinienem śledzić suplement 9 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000010'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000010'::uuid, 'fa100000-0000-4000-8000-000000000010'::uuid, 'en', 'How should I track supplement 10 with my prescriptions?', 'how should i track supplement 10 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000010'::uuid, 'fa100000-0000-4000-8000-000000000010'::uuid, 'pl', 'Jak powinienem śledzić suplement 10 wraz z moimi receptami?', 'jak powinienem śledzić suplement 10 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000011'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000011'::uuid, 'fa100000-0000-4000-8000-000000000011'::uuid, 'en', 'How should I track supplement 11 with my prescriptions?', 'how should i track supplement 11 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000011'::uuid, 'fa100000-0000-4000-8000-000000000011'::uuid, 'pl', 'Jak powinienem śledzić suplement 11 wraz z moimi receptami?', 'jak powinienem śledzić suplement 11 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000012'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000012'::uuid, 'fa100000-0000-4000-8000-000000000012'::uuid, 'en', 'How should I track supplement 12 with my prescriptions?', 'how should i track supplement 12 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000012'::uuid, 'fa100000-0000-4000-8000-000000000012'::uuid, 'pl', 'Jak powinienem śledzić suplement 12 wraz z moimi receptami?', 'jak powinienem śledzić suplement 12 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000013'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000013'::uuid, 'fa100000-0000-4000-8000-000000000013'::uuid, 'en', 'How should I track supplement 13 with my prescriptions?', 'how should i track supplement 13 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000013'::uuid, 'fa100000-0000-4000-8000-000000000013'::uuid, 'pl', 'Jak powinienem śledzić suplement 13 wraz z moimi receptami?', 'jak powinienem śledzić suplement 13 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000014'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000014'::uuid, 'fa100000-0000-4000-8000-000000000014'::uuid, 'en', 'How should I track supplement 14 with my prescriptions?', 'how should i track supplement 14 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000014'::uuid, 'fa100000-0000-4000-8000-000000000014'::uuid, 'pl', 'Jak powinienem śledzić suplement 14 wraz z moimi receptami?', 'jak powinienem śledzić suplement 14 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000015'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000015'::uuid, 'fa100000-0000-4000-8000-000000000015'::uuid, 'en', 'How should I track supplement 15 with my prescriptions?', 'how should i track supplement 15 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000015'::uuid, 'fa100000-0000-4000-8000-000000000015'::uuid, 'pl', 'Jak powinienem śledzić suplement 15 wraz z moimi receptami?', 'jak powinienem śledzić suplement 15 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000016'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000016'::uuid, 'fa100000-0000-4000-8000-000000000016'::uuid, 'en', 'How should I track supplement 16 with my prescriptions?', 'how should i track supplement 16 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000016'::uuid, 'fa100000-0000-4000-8000-000000000016'::uuid, 'pl', 'Jak powinienem śledzić suplement 16 wraz z moimi receptami?', 'jak powinienem śledzić suplement 16 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000017'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000017'::uuid, 'fa100000-0000-4000-8000-000000000017'::uuid, 'en', 'How should I track supplement 17 with my prescriptions?', 'how should i track supplement 17 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000017'::uuid, 'fa100000-0000-4000-8000-000000000017'::uuid, 'pl', 'Jak powinienem śledzić suplement 17 wraz z moimi receptami?', 'jak powinienem śledzić suplement 17 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000018'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000018'::uuid, 'fa100000-0000-4000-8000-000000000018'::uuid, 'en', 'How should I track supplement 18 with my prescriptions?', 'how should i track supplement 18 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000018'::uuid, 'fa100000-0000-4000-8000-000000000018'::uuid, 'pl', 'Jak powinienem śledzić suplement 18 wraz z moimi receptami?', 'jak powinienem śledzić suplement 18 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000019'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000019'::uuid, 'fa100000-0000-4000-8000-000000000019'::uuid, 'en', 'How should I track supplement 19 with my prescriptions?', 'how should i track supplement 19 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000019'::uuid, 'fa100000-0000-4000-8000-000000000019'::uuid, 'pl', 'Jak powinienem śledzić suplement 19 wraz z moimi receptami?', 'jak powinienem śledzić suplement 19 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")
+VALUES ('fa100000-0000-4000-8000-000000000020'::uuid, (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("Id") DO NOTHING;
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa200000-0000-4000-8000-000000000020'::uuid, 'fa100000-0000-4000-8000-000000000020'::uuid, 'en', 'How should I track supplement 20 with my prescriptions?', 'how should i track supplement 20 with my prescriptions?', 'Log intake times in the app and review interactions before adding new items.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
+INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")
+VALUES ('fa300000-0000-4000-8000-000000000020'::uuid, 'fa100000-0000-4000-8000-000000000020'::uuid, 'pl', 'Jak powinienem śledzić suplement 20 wraz z moimi receptami?', 'jak powinienem śledzić suplement 20 wraz z moimi receptami?', 'Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji.', (NOW() AT TIME ZONE 'utc'))
+ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";
 
 -- Drug problem types (5)
 INSERT INTO "DrugProblemTypes" ("Id", "ProblemTypeName", "CreatedAtUtc")

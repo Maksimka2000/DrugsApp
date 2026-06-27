@@ -5,7 +5,18 @@ namespace DrugsApp.Domain.NotificationsFeature.Enums;
 /// </summary>
 public enum NotificationAudienceScope
 {
+    /// <summary>
+    /// Visible to all registered clients.
+    /// </summary>
     SharedRegisteredClient,
+
+    /// <summary>
+    /// Visible only to patient users.
+    /// </summary>
     PatientOnly,
+
+    /// <summary>
+    /// Visible only to healthcare providers.
+    /// </summary>
     ProviderOnly
 }

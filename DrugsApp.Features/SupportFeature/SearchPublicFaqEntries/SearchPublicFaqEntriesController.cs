@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using DrugsApp.Domain.SupportFeature.Enums;
 using DrugsApp.Features.Common.Extensions;
 using DrugsApp.Features.SupportFeature.Shared;
 using ErrorOr;
@@ -16,15 +17,16 @@ namespace DrugsApp.Features.SupportFeature.SearchPublicFaqEntries;
 /// Request model for public FAQ search parameters.
 /// </summary>
 public sealed record SearchPublicFaqEntriesRequest(
-    [FromQuery(Name = "question_query")] string? QuestionQuery,
-    [FromQuery(Name = "skip")] int Skip = 0,
-    [FromQuery(Name = "take")] int Take = 20);
+    string Language,
+    string? QuestionQuery,
+    int Skip = 0,
+    int Take = 20);
 
 /// <summary>
 /// Response containing public FAQ items and paging metadata.
 /// </summary>
 public sealed record SearchPublicFaqEntriesResponse(
-    IReadOnlyCollection<FaqEntryDto> Items,
+    IReadOnlyCollection<PublicFaqEntryDto> Items,
     int? TotalCount,
     bool HasMore);
 
@@ -32,6 +34,7 @@ public sealed record SearchPublicFaqEntriesResponse(
 /// Query for searching public FAQ entries.
 /// </summary>
 public sealed record SearchPublicFaqEntriesQuery(
+    FaqLanguageCode LanguageCode,
     string? QuestionQuery,
     int Skip,
     int Take) : IRequest<ErrorOr<SearchPublicFaqEntriesResponse>>;
@@ -41,7 +44,7 @@ public sealed record SearchPublicFaqEntriesQuery(
 /// </summary>
 [ApiController]
 [Tags("Support")]
-[Route("api/support/faqs")]
+[Route("api/support/faqs/{language}")]
 public sealed class SearchPublicFaqEntriesController(
     IMediator mediator,
     IValidator<SearchPublicFaqEntriesRequest> validator) : ControllerBase
@@ -57,7 +60,10 @@ public sealed class SearchPublicFaqEntriesController(
     /// <summary>
     /// Searches public FAQ entries with optional question filtering and pagination.
     /// </summary>
-    /// <param name="request">Public FAQ query parameters.</param>
+    /// <param name="language">Requested FAQ language code (<c>en</c> or <c>pl</c>).</param>
+    /// <param name="questionQuery">Optional free-text query for FAQ matching.</param>
+    /// <param name="skip">Number of results to skip for pagination.</param>
+    /// <param name="take">Maximum number of results to return.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <response code="200">Returns a page of public FAQ entries.</response>
     /// <response code="400">Invalid query parameters.</response>
@@ -65,9 +71,18 @@ public sealed class SearchPublicFaqEntriesController(
     [ProducesResponseType(typeof(SearchPublicFaqEntriesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchPublicFaqEntriesResponse>> Search(
-        [FromQuery] SearchPublicFaqEntriesRequest request,
-        CancellationToken cancellationToken)
+        [FromRoute] string language,
+        [FromQuery(Name = "question_query")] string? questionQuery,
+        [FromQuery(Name = "skip")] int skip = 0,
+        [FromQuery(Name = "take")] int take = 20,
+        CancellationToken cancellationToken = default)
     {
+        SearchPublicFaqEntriesRequest request = new(
+            Language: language,
+            QuestionQuery: questionQuery,
+            Skip: skip,
+            Take: take);
+
         ValidationResult validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {

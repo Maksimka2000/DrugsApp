@@ -14,8 +14,8 @@ public static class AddFaqEntryMapping
         Request: request);
 
     /// <summary>
-    /// Maps the created FAQ DTO to the response envelope.
+    /// Maps the created admin FAQ DTO to the response envelope.
     /// </summary>
-    public static CreatedFaqEntryResponse MapToResponse(this FaqEntryDto faqEntry) => new(
+    public static CreatedFaqEntryResponse MapToResponse(this AdminFaqEntryDto faqEntry) => new(
         FaqEntry: faqEntry);
 }

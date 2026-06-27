@@ -802,12 +802,27 @@ def extras() -> None:
     w("")
     w("-- FAQ entries (20)")
     for i in range(1, 21):
-        q = f"How should I track supplement {i} with my prescriptions?"
+        q_en = f"How should I track supplement {i} with my prescriptions?"
+        q_pl = f"Jak powinienem śledzić suplement {i} wraz z moimi receptami?"
+        a_en = "Log intake times in the app and review interactions before adding new items."
+        a_pl = "Rejestruj czasy przyjmowania w aplikacji i sprawdzaj interakcje przed dodaniem nowych pozycji."
+        faq_id = f"fa100000-0000-4000-8000-{i:012d}"
         w(
-            f'INSERT INTO "FaqEntries" ("Id", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")\n'
-            f"VALUES ('fa100000-0000-4000-8000-{i:012d}'::uuid, '{sql_str(q)}', '{sql_str(q.lower())}', "
-            f"'Log intake times in the app and review interactions before adding new items.', {NOW})\n"
-            f'ON CONFLICT ("Id") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";'
+            f'INSERT INTO "FaqEntries" ("Id", "CreatedAtUtc")\n'
+            f"VALUES ('{faq_id}'::uuid, {NOW})\n"
+            f'ON CONFLICT ("Id") DO NOTHING;'
+        )
+        w(
+            f'INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")\n'
+            f"VALUES ('fa200000-0000-4000-8000-{i:012d}'::uuid, '{faq_id}'::uuid, 'en', '{sql_str(q_en)}', '{sql_str(q_en.lower())}', "
+            f"'{sql_str(a_en)}', {NOW})\n"
+            f'ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";'
+        )
+        w(
+            f'INSERT INTO "FaqEntryTranslations" ("Id", "FaqEntryId", "LanguageCode", "Question", "NormalizedQuestion", "Answer", "CreatedAtUtc")\n'
+            f"VALUES ('fa300000-0000-4000-8000-{i:012d}'::uuid, '{faq_id}'::uuid, 'pl', '{sql_str(q_pl)}', '{sql_str(q_pl.lower())}', "
+            f"'{sql_str(a_pl)}', {NOW})\n"
+            f'ON CONFLICT ("FaqEntryId", "LanguageCode") DO UPDATE SET "Question"=EXCLUDED."Question", "NormalizedQuestion"=EXCLUDED."NormalizedQuestion", "Answer"=EXCLUDED."Answer";'
         )
     w("")
     w("-- Drug problem types (5)")

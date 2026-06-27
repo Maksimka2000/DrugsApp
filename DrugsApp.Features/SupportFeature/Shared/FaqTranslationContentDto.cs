@@ -1,11 +1,8 @@
-using System;
-
 namespace DrugsApp.Features.SupportFeature.Shared;
 
 /// <summary>
-/// Public-facing FAQ entry payload.
+/// Localized FAQ question and answer content.
 /// </summary>
-public sealed record FaqEntryDto(
-    Guid Id,
+public sealed record FaqTranslationContentDto(
     string Question,
     string Answer);

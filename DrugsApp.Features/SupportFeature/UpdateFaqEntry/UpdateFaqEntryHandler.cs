@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.SupportFeature.Entities;
+using DrugsApp.Domain.SupportFeature.Enums;
 using DrugsApp.Domain.SupportFeature.Repositories;
 using DrugsApp.Features.SupportFeature.Shared;
 using ErrorOr;
@@ -38,40 +39,85 @@ internal sealed class UpdateFaqEntryHandler(IFaqEntryRepository _faqEntryReposit
                 });
         }
 
-        if (command.Request.Question is not null)
+        if (command.Request.En?.Question is not null)
         {
-            FaqEntry? duplicateFaqEntry = await _faqEntryRepository.GetByNormalizedQuestionAsync(
-                question: command.Request.Question,
+            ErrorOr<Success> duplicateCheck = await EnsureNoDuplicateQuestionAsync(
+                question: command.Request.En.Question,
+                languageCode: FaqLanguageCode.En,
+                excludedFaqEntryId: faqEntry.Id,
                 cancellationToken: cancellationToken);
 
-            if (duplicateFaqEntry is not null && duplicateFaqEntry.Id != faqEntry.Id)
+            if (duplicateCheck.IsError)
             {
-                return Error.Conflict(
-                    code: "FaqEntry.QuestionAlreadyExists",
-                    description: "A FAQ entry with the same question already exists.",
-                    metadata: new Dictionary<string, object>
-                    {
-                        ["existingResourceId"] = duplicateFaqEntry.Id.ToString()
-                    });
-            }
-
-            ErrorOr<Success> updateQuestionResult = faqEntry.UpdateQuestion(command.Request.Question);
-            if (updateQuestionResult.IsError)
-            {
-                return updateQuestionResult.Errors;
+                return duplicateCheck.Errors;
             }
         }
 
-        if (command.Request.Answer is not null)
+        if (command.Request.Pl?.Question is not null)
         {
-            ErrorOr<Success> updateAnswerResult = faqEntry.UpdateAnswer(command.Request.Answer);
-            if (updateAnswerResult.IsError)
+            ErrorOr<Success> duplicateCheck = await EnsureNoDuplicateQuestionAsync(
+                question: command.Request.Pl.Question,
+                languageCode: FaqLanguageCode.Pl,
+                excludedFaqEntryId: faqEntry.Id,
+                cancellationToken: cancellationToken);
+
+            if (duplicateCheck.IsError)
             {
-                return updateAnswerResult.Errors;
+                return duplicateCheck.Errors;
+            }
+        }
+
+        if (command.Request.En is not null)
+        {
+            ErrorOr<Success> updateEnglishResult = faqEntry.UpdateEnglish(
+                question: command.Request.En.Question,
+                answer: command.Request.En.Answer);
+
+            if (updateEnglishResult.IsError)
+            {
+                return updateEnglishResult.Errors;
+            }
+        }
+
+        if (command.Request.Pl is not null)
+        {
+            ErrorOr<Success> updatePolishResult = faqEntry.UpdatePolish(
+                question: command.Request.Pl.Question,
+                answer: command.Request.Pl.Answer);
+
+            if (updatePolishResult.IsError)
+            {
+                return updatePolishResult.Errors;
             }
         }
 
         AdminFaqEntryDto updatedFaqEntry = faqEntry.MapToAdminDto();
         return updatedFaqEntry.MapToResponse();
+    }
+
+    private async Task<ErrorOr<Success>> EnsureNoDuplicateQuestionAsync(
+        string question,
+        FaqLanguageCode languageCode,
+        Guid excludedFaqEntryId,
+        CancellationToken cancellationToken)
+    {
+        FaqEntry? duplicateFaqEntry = await _faqEntryRepository.GetByNormalizedQuestionAsync(
+            question: question,
+            languageCode: languageCode,
+            cancellationToken: cancellationToken);
+
+        if (duplicateFaqEntry is not null && duplicateFaqEntry.Id != excludedFaqEntryId)
+        {
+            return Error.Conflict(
+                code: "FaqEntry.QuestionAlreadyExists",
+                description: "A FAQ entry with the same question already exists.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["existingResourceId"] = duplicateFaqEntry.Id.ToString(),
+                    ["languageCode"] = languageCode.ToString()
+                });
+        }
+
+        return Result.Success;
     }
 }

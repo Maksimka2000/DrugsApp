@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.SupportFeature.Entities;
+using DrugsApp.Domain.SupportFeature.Enums;
 using DrugsApp.Domain.SupportFeature.Repositories;
 using DrugsApp.Features.SupportFeature.Shared;
 using ErrorOr;
@@ -19,7 +20,7 @@ internal sealed class SearchPublicFaqEntriesHandler(IFaqEntryRepository _faqEntr
     /// <summary>
     /// Searches public FAQ entries using the support repository.
     /// </summary>
-    /// <param name="query">Search query containing optional filter and paging data.</param>
+    /// <param name="query">Search query containing language, optional filter, and paging data.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Public FAQ search response with page items and metadata.</returns>
     public async Task<ErrorOr<SearchPublicFaqEntriesResponse>> Handle(
@@ -30,6 +31,7 @@ internal sealed class SearchPublicFaqEntriesHandler(IFaqEntryRepository _faqEntr
         int? totalCount = null;
 
         List<FaqEntry> faqEntries = await _faqEntryRepository.SearchPublicAsync(
+            languageCode: query.LanguageCode,
             questionQuery: query.QuestionQuery,
             skip: query.Skip,
             take: takePlusOne,
@@ -40,13 +42,14 @@ internal sealed class SearchPublicFaqEntriesHandler(IFaqEntryRepository _faqEntr
             ? faqEntries.Take(query.Take).ToList()
             : faqEntries;
 
-        IReadOnlyCollection<FaqEntryDto> items = page.MapToDtoList();
+        IReadOnlyCollection<PublicFaqEntryDto> items = page.MapToPublicDtoList(query.LanguageCode);
 
         if (query.Skip == 0)
         {
             totalCount = faqEntries.Count == 0
                 ? 0
                 : await _faqEntryRepository.CountPublicAsync(
+                    languageCode: query.LanguageCode,
                     questionQuery: query.QuestionQuery,
                     cancellationToken: cancellationToken);
         }
