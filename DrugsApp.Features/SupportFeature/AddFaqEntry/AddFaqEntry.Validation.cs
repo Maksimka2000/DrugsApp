@@ -1,4 +1,5 @@
 using FluentValidation;
+using DrugsApp.Features.SupportFeature.Shared;
 
 namespace DrugsApp.Features.SupportFeature.AddFaqEntry;
 
@@ -9,18 +10,14 @@ public sealed class AddFaqEntryRequestValidator : AbstractValidator<AddFaqEntryR
 {
     public AddFaqEntryRequestValidator()
     {
-        RuleFor(request => request.Question)
-            .NotEmpty()
-            .WithMessage("Question is required.")
-            .Must(question => !string.IsNullOrWhiteSpace(question))
-            .WithMessage("Question must not be whitespace.")
-            .MaximumLength(300)
-            .WithMessage("Question must not exceed 300 characters.");
+        RuleFor(request => request.En)
+            .NotNull()
+            .WithMessage("English translation is required.")
+            .SetValidator(new FaqTranslationContentDtoValidator());
 
-        RuleFor(request => request.Answer)
-            .NotEmpty()
-            .WithMessage("Answer is required.")
-            .Must(answer => !string.IsNullOrWhiteSpace(answer))
-            .WithMessage("Answer must not be whitespace.");
+        RuleFor(request => request.Pl)
+            .NotNull()
+            .WithMessage("Polish translation is required.")
+            .SetValidator(new FaqTranslationContentDtoValidator());
     }
 }

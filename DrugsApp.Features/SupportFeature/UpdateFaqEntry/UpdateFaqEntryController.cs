@@ -13,11 +13,18 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrugsApp.Features.SupportFeature.UpdateFaqEntry;
 
 /// <summary>
+/// Request model for partially updating localized FAQ content.
+/// </summary>
+public sealed record UpdateFaqTranslationRequest(
+    string? Question,
+    string? Answer);
+
+/// <summary>
 /// Request model for partially updating a FAQ entry.
 /// </summary>
 public sealed record UpdateFaqEntryRequest(
-    string? Question,
-    string? Answer);
+    UpdateFaqTranslationRequest? En,
+    UpdateFaqTranslationRequest? Pl);
 
 /// <summary>
 /// Response returned after a FAQ entry update.

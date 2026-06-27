@@ -1,174 +1,167 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using DrugsApp.Domain.Common;
+using DrugsApp.Domain.SupportFeature.Enums;
 using ErrorOr;
 
 namespace DrugsApp.Domain.SupportFeature.Entities;
 
 /// <summary>
-/// Represents a support FAQ entry exposed to public and admin clients.
+/// Represents a logical support FAQ entry with localized translations.
 /// </summary>
 public sealed class FaqEntry : BaseEntity
 {
-    // Attributes
-
-    /// <summary>
-    /// Public display question shown in FAQ lists.
-    /// </summary>
-    /// <remarks>
-    /// The value is trimmed and collapsed into a single-space representation.
-    /// </remarks>
-    public string Question { get; private set; } = string.Empty;
-
-    /// <summary>
-    /// Normalized question value used for uniqueness and search.
-    /// </summary>
-    /// <remarks>
-    /// The value is derived from <see cref="Question"/> and stored in a lower-case collapsed form.
-    /// </remarks>
-    public string NormalizedQuestion { get; private set; } = string.Empty;
-
-    /// <summary>
-    /// Answer content rendered in the FAQ details area.
-    /// </summary>
-    /// <remarks>
-    /// Boundary whitespace is trimmed while meaningful inner formatting is preserved.
-    /// </remarks>
-    public string Answer { get; private set; } = string.Empty;
-
     // Relationships
+
+    private readonly List<FaqEntryTranslation> _translations = new();
+
+    /// <summary>
+    /// Localized question and answer variants for the FAQ entry.
+    /// </summary>
+    public IReadOnlyCollection<FaqEntryTranslation> Translations => _translations.AsReadOnly();
 
     private FaqEntry() : base()
     {
     }
 
-    private FaqEntry(
-        string question,
-        string normalizedQuestion,
-        string answer) : this()
-    {
-        Question = question;
-        NormalizedQuestion = normalizedQuestion;
-        Answer = answer;
-    }
-
     // Methods
 
     /// <summary>
-    /// Creates a new FAQ entry aggregate.
+    /// Creates a new FAQ entry aggregate with English and Polish translations.
     /// </summary>
-    /// <param name="question">Question text to display publicly.</param>
-    /// <param name="answer">Answer text shown for the FAQ item.</param>
+    /// <param name="englishQuestion">English question text.</param>
+    /// <param name="englishAnswer">English answer text.</param>
+    /// <param name="polishQuestion">Polish question text.</param>
+    /// <param name="polishAnswer">Polish answer text.</param>
     /// <returns>
     /// A validated <see cref="FaqEntry"/> aggregate or validation errors describing why creation failed.
     /// </returns>
-    public static ErrorOr<FaqEntry> Create(string question, string answer)
+    public static ErrorOr<FaqEntry> Create(
+        string englishQuestion,
+        string englishAnswer,
+        string polishQuestion,
+        string polishAnswer)
     {
-        ErrorOr<(string DisplayValue, string LookupValue)> normalizedQuestion = NormalizeQuestion(question);
-        if (normalizedQuestion.IsError)
+        FaqEntry faqEntry = new();
+
+        ErrorOr<Success> englishResult = faqEntry.AddTranslation(
+            languageCode: FaqLanguageCode.En,
+            question: englishQuestion,
+            answer: englishAnswer);
+
+        if (englishResult.IsError)
         {
-            return normalizedQuestion.Errors;
+            return englishResult.Errors;
         }
 
-        ErrorOr<string> normalizedAnswer = NormalizeAnswer(answer);
-        if (normalizedAnswer.IsError)
+        ErrorOr<Success> polishResult = faqEntry.AddTranslation(
+            languageCode: FaqLanguageCode.Pl,
+            question: polishQuestion,
+            answer: polishAnswer);
+
+        if (polishResult.IsError)
         {
-            return normalizedAnswer.Errors;
+            return polishResult.Errors;
         }
 
-        return new FaqEntry(
-            question: normalizedQuestion.Value.DisplayValue,
-            normalizedQuestion: normalizedQuestion.Value.LookupValue,
-            answer: normalizedAnswer.Value);
+        return faqEntry;
     }
 
     /// <summary>
-    /// Updates the FAQ question while keeping the normalized lookup field in sync.
+    /// Returns the translation for the requested language when it exists.
     /// </summary>
-    /// <param name="question">Replacement question text.</param>
-    /// <returns>
-    /// Success when the question is valid; otherwise validation errors describing the failure.
-    /// </returns>
-    public ErrorOr<Success> UpdateQuestion(string question)
+    /// <param name="languageCode">Requested language code.</param>
+    /// <returns>The matching translation or <see langword="null"/>.</returns>
+    public FaqEntryTranslation? GetTranslation(FaqLanguageCode languageCode) =>
+        _translations.FirstOrDefault(translation => translation.LanguageCode == languageCode);
+
+    /// <summary>
+    /// Updates the English translation question and/or answer.
+    /// </summary>
+    /// <param name="question">Replacement English question text when provided.</param>
+    /// <param name="answer">Replacement English answer text when provided.</param>
+    /// <returns>Success or validation errors.</returns>
+    public ErrorOr<Success> UpdateEnglish(string? question, string? answer) =>
+        UpdateTranslation(FaqLanguageCode.En, question, answer);
+
+    /// <summary>
+    /// Updates the Polish translation question and/or answer.
+    /// </summary>
+    /// <param name="question">Replacement Polish question text when provided.</param>
+    /// <param name="answer">Replacement Polish answer text when provided.</param>
+    /// <returns>Success or validation errors.</returns>
+    public ErrorOr<Success> UpdatePolish(string? question, string? answer) =>
+        UpdateTranslation(FaqLanguageCode.Pl, question, answer);
+
+    private ErrorOr<Success> AddTranslation(
+        FaqLanguageCode languageCode,
+        string question,
+        string answer)
     {
-        ErrorOr<(string DisplayValue, string LookupValue)> normalizedQuestion = NormalizeQuestion(question);
-        if (normalizedQuestion.IsError)
+        if (_translations.Any(translation => translation.LanguageCode == languageCode))
         {
-            return normalizedQuestion.Errors;
+            return Error.Validation(
+                code: "FaqEntry.TranslationAlreadyExists",
+                description: "A translation for the requested language already exists.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["languageCode"] = languageCode.ToString()
+                });
         }
 
-        Question = normalizedQuestion.Value.DisplayValue;
-        NormalizedQuestion = normalizedQuestion.Value.LookupValue;
+        ErrorOr<FaqEntryTranslation> translationResult = FaqEntryTranslation.Create(
+            languageCode: languageCode,
+            question: question,
+            answer: answer);
+
+        if (translationResult.IsError)
+        {
+            return translationResult.Errors;
+        }
+
+        FaqEntryTranslation translation = translationResult.Value;
+        translation.AttachToFaqEntry(this);
+        _translations.Add(translation);
 
         return Result.Success;
     }
 
-    /// <summary>
-    /// Updates the FAQ answer content.
-    /// </summary>
-    /// <param name="answer">Replacement answer text.</param>
-    /// <returns>
-    /// Success when the answer is valid; otherwise validation errors describing the failure.
-    /// </returns>
-    public ErrorOr<Success> UpdateAnswer(string answer)
+    private ErrorOr<Success> UpdateTranslation(
+        FaqLanguageCode languageCode,
+        string? question,
+        string? answer)
     {
-        ErrorOr<string> normalizedAnswer = NormalizeAnswer(answer);
-        if (normalizedAnswer.IsError)
+        FaqEntryTranslation? translation = GetTranslation(languageCode);
+        if (translation is null)
         {
-            return normalizedAnswer.Errors;
+            return Error.NotFound(
+                code: "FaqEntry.TranslationNotFound",
+                description: "The requested FAQ translation was not found.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["languageCode"] = languageCode.ToString()
+                });
         }
 
-        Answer = normalizedAnswer.Value;
+        if (question is not null)
+        {
+            ErrorOr<Success> updateQuestionResult = translation.UpdateQuestion(question);
+            if (updateQuestionResult.IsError)
+            {
+                return updateQuestionResult.Errors;
+            }
+        }
+
+        if (answer is not null)
+        {
+            ErrorOr<Success> updateAnswerResult = translation.UpdateAnswer(answer);
+            if (updateAnswerResult.IsError)
+            {
+                return updateAnswerResult.Errors;
+            }
+        }
 
         return Result.Success;
-    }
-
-    private static ErrorOr<(string DisplayValue, string LookupValue)> NormalizeQuestion(string value)
-    {
-        string trimmed = value.Trim();
-        string collapsed = string.Join(
-            ' ',
-            trimmed.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-
-        if (string.IsNullOrWhiteSpace(collapsed))
-        {
-            return Error.Validation(
-                code: "FaqEntry.QuestionEmpty",
-                description: "Question must be provided.",
-                metadata: new()
-                {
-                    ["field"] = "question"
-                });
-        }
-
-        if (collapsed.Length > 300)
-        {
-            return Error.Validation(
-                code: "FaqEntry.QuestionTooLong",
-                description: "Question must not exceed 300 characters.",
-                metadata: new()
-                {
-                    ["field"] = "question",
-                    ["maxLength"] = 300
-                });
-        }
-
-        return (collapsed, collapsed.ToLowerInvariant());
-    }
-
-    private static ErrorOr<string> NormalizeAnswer(string value)
-    {
-        string trimmed = value.Trim();
-        if (trimmed.Length == 0)
-        {
-            return Error.Validation(
-                code: "FaqEntry.AnswerEmpty",
-                description: "Answer must be provided.",
-                metadata: new()
-                {
-                    ["field"] = "answer"
-                });
-        }
-
-        return trimmed;
     }
 }

@@ -53,6 +53,7 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<InteractionSeverity> InteractionSeverities { get; set; } = null!;
     public DbSet<SystemText> SystemTexts { get; set; } = null!;
     public DbSet<FaqEntry> FaqEntries { get; set; } = null!;
+    public DbSet<FaqEntryTranslation> FaqEntryTranslations { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
     public DbSet<UserProfile> UserProfiles { get; set; } = null!;
     public DbSet<ClientReproductiveHealthProfile> ClientReproductiveHealthProfiles { get; set; } = null!;

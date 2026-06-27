@@ -10,39 +10,91 @@ namespace DrugsApp.Domain.AuthFeature.Interfaces;
 /// </summary>
 public interface IIdentityUserManagementService
 {
+    /// <summary>
+    /// Creates a new admin user with the specified role and returns generated credentials.
+    /// </summary>
+    /// <param name="fullName">Full display name for the admin.</param>
+    /// <param name="email">Login email for the admin.</param>
+    /// <param name="adminRole">Role to assign.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Creation result containing credentials.</returns>
     Task<ErrorOr<CreateAdminUserResult>> CreateAdminUserAsync(
         string fullName,
         string email,
         string adminRole,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Replaces an admin user's role and returns the updated identity snapshot.
+    /// </summary>
+    /// <param name="adminUserId">Identifier of the admin to update.</param>
+    /// <param name="adminRole">Role to assign.</param>
+    /// <param name="callerUserId">Admin performing the change.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Mutation result with refreshed values.</returns>
     Task<ErrorOr<AdminUserMutationResult>> ReplaceAdminRoleAsync(
         Guid adminUserId,
         string adminRole,
         Guid callerUserId,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Sets a new password for an admin user.
+    /// </summary>
+    /// <param name="adminUserId">Identifier of the admin.</param>
+    /// <param name="newPassword">New password to store.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Success when the password is updated.</returns>
     Task<ErrorOr<Success>> SetAdminPasswordAsync(
         Guid adminUserId,
         string newPassword,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Changes the login email for an admin user.
+    /// </summary>
+    /// <param name="adminUserId">Identifier of the admin to update.</param>
+    /// <param name="email">New email value.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Mutation result with updated email.</returns>
     Task<ErrorOr<AdminUserMutationResult>> ChangeAdminLoginEmailAsync(
         Guid adminUserId,
         string email,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Removes an admin user from the system.
+    /// </summary>
+    /// <param name="adminUserId">Identifier of the admin to remove.</param>
+    /// <param name="callerUserId">Admin performing the removal.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Success when the user is removed.</returns>
     Task<ErrorOr<Success>> RemoveAdminUserAsync(
         Guid adminUserId,
         Guid callerUserId,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Toggles suspension state for an admin user.
+    /// </summary>
+    /// <param name="adminUserId">Identifier of the admin.</param>
+    /// <param name="isSuspended">Suspension flag.</param>
+    /// <param name="callerUserId">Admin performing the action.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Suspension result containing status.</returns>
     Task<ErrorOr<UserSuspensionResult>> SetAdminSuspensionAsync(
         Guid adminUserId,
         bool isSuspended,
         Guid callerUserId,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Toggles suspension state for a client user.
+    /// </summary>
+    /// <param name="clientUserId">Identifier of the client user.</param>
+    /// <param name="isSuspended">Suspension flag.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Suspension result containing status.</returns>
     Task<ErrorOr<UserSuspensionResult>> SetClientSuspensionAsync(
         Guid clientUserId,
         bool isSuspended,

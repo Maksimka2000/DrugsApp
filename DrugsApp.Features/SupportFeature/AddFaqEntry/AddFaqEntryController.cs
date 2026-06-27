@@ -13,17 +13,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrugsApp.Features.SupportFeature.AddFaqEntry;
 
 /// <summary>
-/// Request model for creating a FAQ entry.
+/// Request model for creating a FAQ entry with English and Polish translations.
 /// </summary>
 public sealed record AddFaqEntryRequest(
-    string Question,
-    string Answer);
+    FaqTranslationContentDto En,
+    FaqTranslationContentDto Pl);
 
 /// <summary>
 /// Response returned after a FAQ entry is created.
 /// </summary>
 public sealed record CreatedFaqEntryResponse(
-    FaqEntryDto FaqEntry);
+    AdminFaqEntryDto FaqEntry);
 
 /// <summary>
 /// Command for creating a FAQ entry.
@@ -52,7 +52,7 @@ public sealed class AddFaqEntryController(
     /// <summary>
     /// Creates a new FAQ entry.
     /// </summary>
-    /// <param name="request">Create request containing question and answer content.</param>
+    /// <param name="request">Create request containing English and Polish FAQ content.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <response code="201">Returns the created FAQ entry.</response>
     /// <response code="400">Invalid request payload.</response>

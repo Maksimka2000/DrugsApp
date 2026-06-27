@@ -12,7 +12,7 @@ public sealed class HealthcareProviderProfile : BaseEntity
     // Attributes
 
     /// <summary>
-    /// Owner user identifier (matches <see cref="UserProfile.Id" />).
+    /// Owner user identifier matching the associated user profile.
     /// </summary>
     public Guid UserId { get; private set; }
 

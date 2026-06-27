@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DrugsApp.Domain.SupportFeature;
 using DrugsApp.Domain.SupportFeature.Entities;
+using DrugsApp.Domain.SupportFeature.Enums;
 using DrugsApp.Domain.SupportFeature.Repositories;
 using DrugsApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -22,15 +24,14 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
     }
 
     public async Task<List<FaqEntry>> SearchPublicAsync(
+        FaqLanguageCode languageCode,
         string? questionQuery,
         int skip,
         int take,
         CancellationToken cancellationToken)
     {
-        IQueryable<FaqEntry> query = _context.FaqEntries.AsNoTracking();
-
-        query = ApplyQuestionFilter(query, questionQuery);
-        query = ApplyPublicSort(query);
+        IQueryable<FaqEntry> query = BuildPublicQuery(languageCode, questionQuery);
+        query = ApplyPublicSort(query, languageCode);
 
         return await query
             .Skip(skip)
@@ -39,12 +40,11 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
     }
 
     public async Task<int> CountPublicAsync(
+        FaqLanguageCode languageCode,
         string? questionQuery,
         CancellationToken cancellationToken)
     {
-        IQueryable<FaqEntry> query = _context.FaqEntries.AsNoTracking();
-
-        query = ApplyQuestionFilter(query, questionQuery);
+        IQueryable<FaqEntry> query = BuildPublicQuery(languageCode, questionQuery);
 
         return await query.CountAsync(cancellationToken);
     }
@@ -55,9 +55,7 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
         int take,
         CancellationToken cancellationToken)
     {
-        IQueryable<FaqEntry> query = _context.FaqEntries.AsNoTracking();
-
-        query = ApplyQuestionFilter(query, questionQuery);
+        IQueryable<FaqEntry> query = BuildAdminQuery(questionQuery);
         query = ApplyAdminSort(query);
 
         return await query
@@ -70,9 +68,7 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
         string? questionQuery,
         CancellationToken cancellationToken)
     {
-        IQueryable<FaqEntry> query = _context.FaqEntries.AsNoTracking();
-
-        query = ApplyQuestionFilter(query, questionQuery);
+        IQueryable<FaqEntry> query = BuildAdminQuery(questionQuery);
 
         return await query.CountAsync(cancellationToken);
     }
@@ -80,10 +76,14 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
     public async Task<FaqEntry?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _context.FaqEntries
+            .Include(faqEntry => faqEntry.Translations)
             .FirstOrDefaultAsync(faqEntry => faqEntry.Id == id, cancellationToken);
     }
 
-    public async Task<FaqEntry?> GetByNormalizedQuestionAsync(string question, CancellationToken cancellationToken)
+    public async Task<FaqEntry?> GetByNormalizedQuestionAsync(
+        string question,
+        FaqLanguageCode languageCode,
+        CancellationToken cancellationToken)
     {
         string normalizedQuestion = NormalizeQuestionQuery(question);
         if (normalizedQuestion.Length == 0)
@@ -91,11 +91,17 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
             return null;
         }
 
-        return await _context.FaqEntries
+        FaqEntryTranslation? translation = await _context.FaqEntryTranslations
             .AsNoTracking()
+            .Include(entryTranslation => entryTranslation.FaqEntry)
+                .ThenInclude(faqEntry => faqEntry.Translations)
             .FirstOrDefaultAsync(
-                faqEntry => faqEntry.NormalizedQuestion == normalizedQuestion,
+                entryTranslation =>
+                    entryTranslation.LanguageCode == languageCode &&
+                    entryTranslation.NormalizedQuestion == normalizedQuestion,
                 cancellationToken);
+
+        return translation?.FaqEntry;
     }
 
     public async Task AddAsync(FaqEntry faqEntry, CancellationToken cancellationToken)
@@ -108,7 +114,56 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
         _context.FaqEntries.Remove(faqEntry);
     }
 
-    private static IQueryable<FaqEntry> ApplyQuestionFilter(
+    private IQueryable<FaqEntry> BuildPublicQuery(
+        FaqLanguageCode languageCode,
+        string? questionQuery)
+    {
+        IQueryable<FaqEntry> query = _context.FaqEntries
+            .AsNoTracking()
+            .Include(faqEntry => faqEntry.Translations)
+            .Where(faqEntry => faqEntry.Translations.Any(
+                translation => translation.LanguageCode == languageCode));
+
+        return ApplyTranslationQuestionFilter(query, languageCode, questionQuery);
+    }
+
+    private IQueryable<FaqEntry> BuildAdminQuery(string? questionQuery)
+    {
+        IQueryable<FaqEntry> query = _context.FaqEntries
+            .AsNoTracking()
+            .Include(faqEntry => faqEntry.Translations);
+
+        return ApplyAnyTranslationQuestionFilter(query, questionQuery);
+    }
+
+    private static IQueryable<FaqEntry> ApplyTranslationQuestionFilter(
+        IQueryable<FaqEntry> query,
+        FaqLanguageCode languageCode,
+        string? questionQuery)
+    {
+        string normalizedQuestionQuery = NormalizeQuestionQuery(questionQuery);
+        if (normalizedQuestionQuery.Length == 0)
+        {
+            return query;
+        }
+
+        string prefixPattern = $"{normalizedQuestionQuery}%";
+        string containsPattern = $"%{normalizedQuestionQuery}%";
+        bool useTrigram = normalizedQuestionQuery.Length >= 3;
+
+        return query.Where(faqEntry =>
+            faqEntry.Translations.Any(translation =>
+                translation.LanguageCode == languageCode &&
+                (
+                    EF.Functions.ILike(translation.NormalizedQuestion, prefixPattern) ||
+                    EF.Functions.ILike(translation.NormalizedQuestion, containsPattern) ||
+                    useTrigram &&
+                    EF.Functions.TrigramsSimilarity(
+                        translation.NormalizedQuestion,
+                        normalizedQuestionQuery) >= SimilarityThreshold)));
+    }
+
+    private static IQueryable<FaqEntry> ApplyAnyTranslationQuestionFilter(
         IQueryable<FaqEntry> query,
         string? questionQuery)
     {
@@ -123,15 +178,23 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
         bool useTrigram = normalizedQuestionQuery.Length >= 3;
 
         return query.Where(faqEntry =>
-            EF.Functions.ILike(faqEntry.NormalizedQuestion, prefixPattern) ||
-            EF.Functions.ILike(faqEntry.NormalizedQuestion, containsPattern) ||
-            useTrigram &&
-            EF.Functions.TrigramsSimilarity(faqEntry.NormalizedQuestion, normalizedQuestionQuery) >= SimilarityThreshold);
+            faqEntry.Translations.Any(translation =>
+                EF.Functions.ILike(translation.NormalizedQuestion, prefixPattern) ||
+                EF.Functions.ILike(translation.NormalizedQuestion, containsPattern) ||
+                useTrigram &&
+                EF.Functions.TrigramsSimilarity(
+                    translation.NormalizedQuestion,
+                    normalizedQuestionQuery) >= SimilarityThreshold));
     }
 
-    private static IQueryable<FaqEntry> ApplyPublicSort(IQueryable<FaqEntry> query) =>
+    private static IQueryable<FaqEntry> ApplyPublicSort(
+        IQueryable<FaqEntry> query,
+        FaqLanguageCode languageCode) =>
         query
-            .OrderBy(faqEntry => faqEntry.Question)
+            .OrderBy(faqEntry => faqEntry.Translations
+                .Where(translation => translation.LanguageCode == languageCode)
+                .Select(translation => translation.Question)
+                .FirstOrDefault())
             .ThenBy(faqEntry => faqEntry.CreatedAtUtc)
             .ThenBy(faqEntry => faqEntry.Id);
 

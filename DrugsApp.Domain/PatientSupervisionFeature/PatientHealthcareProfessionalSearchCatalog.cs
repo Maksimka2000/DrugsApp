@@ -24,10 +24,24 @@ public static class PatientHealthcareProfessionalSearchCatalog
         "display_name"
     ];
 
+    /// <summary>
+    /// Returns canonical relationship status tokens usable in patient list filters.
+    /// </summary>
+    /// <returns>Allowed status tokens in normalized form.</returns>
     public static IReadOnlyCollection<string> GetRelationshipStatusTokens() => RelationshipStatusTokens;
 
+    /// <summary>
+    /// Returns canonical sort field tokens usable in patient list ordering.
+    /// </summary>
+    /// <returns>Allowed sort tokens in normalized form.</returns>
     public static IReadOnlyCollection<string> GetSortFieldTokens() => SortFieldTokens;
 
+    /// <summary>
+    /// Attempts to parse a relationship status token to the corresponding enum value.
+    /// </summary>
+    /// <param name="token">Normalized or raw status token.</param>
+    /// <param name="status">Parsed relationship status when successful.</param>
+    /// <returns><c>true</c> when parsed; otherwise <c>false</c>.</returns>
     public static bool TryParseRelationshipStatus(string? token, out PatientHealthcareProfessionalRelationshipStatus status)
     {
         status = default;
@@ -48,6 +62,12 @@ public static class PatientHealthcareProfessionalSearchCatalog
         };
     }
 
+    /// <summary>
+    /// Attempts to parse a sort token to the corresponding sort field enum value.
+    /// </summary>
+    /// <param name="token">Normalized or raw sort token.</param>
+    /// <param name="sortField">Parsed sort field when successful.</param>
+    /// <returns><c>true</c> when parsed or when token is empty; otherwise <c>false</c>.</returns>
     public static bool TryParseSortField(string? token, out PatientHealthcareProfessionalSortField sortField)
     {
         sortField = PatientHealthcareProfessionalSortField.Status;
@@ -72,6 +92,11 @@ public static class PatientHealthcareProfessionalSearchCatalog
         return true;
     }
 
+    /// <summary>
+    /// Maps a relationship state name to the normalized enum representation.
+    /// </summary>
+    /// <param name="relationshipState">Relationship state string to map.</param>
+    /// <returns>Corresponding relationship status enum value.</returns>
     public static PatientHealthcareProfessionalRelationshipStatus MapRelationshipState(string relationshipState)
     {
         return relationshipState switch

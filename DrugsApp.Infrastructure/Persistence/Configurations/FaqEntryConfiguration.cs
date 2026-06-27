@@ -1,4 +1,6 @@
+using DrugsApp.Domain.SupportFeature;
 using DrugsApp.Domain.SupportFeature.Entities;
+using DrugsApp.Domain.SupportFeature.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,24 +14,11 @@ public sealed class FaqEntryConfiguration : BaseEntityConfiguration<FaqEntry>
 
         builder.ToTable("FaqEntries");
 
-        builder.Property(faqEntry => faqEntry.Question)
-            .IsRequired()
-            .HasMaxLength(300);
-
-        builder.Property(faqEntry => faqEntry.NormalizedQuestion)
-            .IsRequired()
-            .HasMaxLength(300);
-
-        builder.Property(faqEntry => faqEntry.Answer)
-            .IsRequired()
-            .HasColumnType("text");
-
-        builder.HasIndex(faqEntry => faqEntry.NormalizedQuestion, "Index_FaqEntries_NormalizedQuestion")
-            .IsUnique();
-
-        builder.HasIndex(faqEntry => faqEntry.NormalizedQuestion, "Index_FaqEntries_NormalizedQuestion_trgm")
-            .HasMethod("GIN")
-            .HasOperators("gin_trgm_ops");
+        builder
+            .HasMany(faqEntry => faqEntry.Translations)
+            .WithOne(translation => translation.FaqEntry)
+            .HasForeignKey(translation => translation.FaqEntryId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(
             faqEntry => new
@@ -39,14 +28,5 @@ public sealed class FaqEntryConfiguration : BaseEntityConfiguration<FaqEntry>
                 faqEntry.Id
             },
             "Index_FaqEntries_UpdatedAtUtc_CreatedAtUtc_Id");
-
-        builder.HasIndex(
-            faqEntry => new
-            {
-                faqEntry.Question,
-                faqEntry.CreatedAtUtc,
-                faqEntry.Id
-            },
-            "Index_FaqEntries_Question_CreatedAtUtc_Id");
     }
 }

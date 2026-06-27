@@ -10,15 +10,49 @@ namespace DrugsApp.Domain.PatientSupervisionFeature.Entities;
 public sealed class SupervisionRequest : BaseEntity
 {
     // Attributes
+    /// <summary>
+    /// Patient user identifier.
+    /// </summary>
     public Guid PatientUserId { get; private set; }
+
+    /// <summary>
+    /// Healthcare professional user identifier.
+    /// </summary>
     public Guid HealthcareProfessionalUserId { get; private set; }
+
+    /// <summary>
+    /// Current state of the supervision request.
+    /// </summary>
     public SupervisionRequestState RequestState { get; private set; }
+
+    /// <summary>
+    /// UTC timestamp when the request expires.
+    /// </summary>
     public DateTime ExpiresAtUtc { get; private set; }
+
+    /// <summary>
+    /// UTC timestamp when the request was created.
+    /// </summary>
     public DateTime RequestedAtUtc { get; private set; }
+
+    /// <summary>
+    /// UTC timestamp when the request was resolved, if any.
+    /// </summary>
     public DateTime? ResolvedAtUtc { get; private set; }
+
+    /// <summary>
+    /// User identifier that resolved the request, if any.
+    /// </summary>
     public Guid? ResolvedByUserId { get; private set; }
 
     // Factory
+    /// <summary>
+    /// Creates a new supervision request between a patient and healthcare professional.
+    /// </summary>
+    /// <param name="patientUserId">Patient user identifier.</param>
+    /// <param name="healthcareProfessionalUserId">Healthcare professional user identifier.</param>
+    /// <param name="requestedAtUtc">Creation timestamp in UTC.</param>
+    /// <returns>Created request or validation errors.</returns>
     public static ErrorOr<SupervisionRequest> Create(Guid patientUserId, Guid healthcareProfessionalUserId, DateTime requestedAtUtc)
     {
         if (patientUserId == Guid.Empty || healthcareProfessionalUserId == Guid.Empty || patientUserId == healthcareProfessionalUserId)
@@ -45,6 +79,12 @@ public sealed class SupervisionRequest : BaseEntity
     }
 
     // Behavior
+    /// <summary>
+    /// Approves the request.
+    /// </summary>
+    /// <param name="resolvedAtUtc">Resolution timestamp in UTC.</param>
+    /// <param name="resolvedByPatientUserId">Patient user who approved.</param>
+    /// <returns>Success or relevant error.</returns>
     public ErrorOr<Success> Approve(DateTime resolvedAtUtc, Guid resolvedByPatientUserId)
     {
         ErrorOr<Success> guard = GuardPendingBefore(resolvedAtUtc);
@@ -59,6 +99,12 @@ public sealed class SupervisionRequest : BaseEntity
         return Result.Success;
     }
 
+    /// <summary>
+    /// Rejects the request.
+    /// </summary>
+    /// <param name="resolvedAtUtc">Resolution timestamp in UTC.</param>
+    /// <param name="resolvedByPatientUserId">Patient user who rejected.</param>
+    /// <returns>Success or relevant error.</returns>
     public ErrorOr<Success> Reject(DateTime resolvedAtUtc, Guid resolvedByPatientUserId)
     {
         ErrorOr<Success> guard = GuardPending(resolvedAtUtc);
@@ -73,6 +119,12 @@ public sealed class SupervisionRequest : BaseEntity
         return Result.Success;
     }
 
+    /// <summary>
+    /// Cancels the request by the provider.
+    /// </summary>
+    /// <param name="resolvedAtUtc">Resolution timestamp in UTC.</param>
+    /// <param name="resolvedByProviderUserId">Provider user who cancelled.</param>
+    /// <returns>Success or relevant error.</returns>
     public ErrorOr<Success> Cancel(DateTime resolvedAtUtc, Guid resolvedByProviderUserId)
     {
         ErrorOr<Success> guard = GuardPending(resolvedAtUtc);
@@ -87,6 +139,11 @@ public sealed class SupervisionRequest : BaseEntity
         return Result.Success;
     }
 
+    /// <summary>
+    /// Expires the request when its expiry window has passed.
+    /// </summary>
+    /// <param name="resolvedAtUtc">Resolution timestamp in UTC.</param>
+    /// <returns>Success or relevant error.</returns>
     public ErrorOr<Success> Expire(DateTime resolvedAtUtc)
     {
         if (RequestState != SupervisionRequestState.Pending)

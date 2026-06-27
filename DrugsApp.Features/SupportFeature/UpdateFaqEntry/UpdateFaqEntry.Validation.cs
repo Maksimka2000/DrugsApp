@@ -10,6 +10,35 @@ public sealed class UpdateFaqEntryRequestValidator : AbstractValidator<UpdateFaq
     public UpdateFaqEntryRequestValidator()
     {
         When(
+            request => request.En is not null,
+            () =>
+            {
+                RuleFor(request => request.En!)
+                    .SetValidator(new UpdateFaqTranslationRequestValidator());
+            });
+
+        When(
+            request => request.Pl is not null,
+            () =>
+            {
+                RuleFor(request => request.Pl!)
+                    .SetValidator(new UpdateFaqTranslationRequestValidator());
+            });
+
+        RuleFor(request => request)
+            .Must(request => request.En is not null || request.Pl is not null)
+            .WithMessage("At least one translation must be provided.");
+    }
+}
+
+/// <summary>
+/// Validator for a partial localized FAQ translation update.
+/// </summary>
+public sealed class UpdateFaqTranslationRequestValidator : AbstractValidator<UpdateFaqTranslationRequest>
+{
+    public UpdateFaqTranslationRequestValidator()
+    {
+        When(
             request => request.Question is not null,
             () =>
             {
@@ -31,6 +60,6 @@ public sealed class UpdateFaqEntryRequestValidator : AbstractValidator<UpdateFaq
 
         RuleFor(request => request)
             .Must(request => request.Question is not null || request.Answer is not null)
-            .WithMessage("At least one field must be provided.");
+            .WithMessage("At least one field must be provided for the translation.");
     }
 }
