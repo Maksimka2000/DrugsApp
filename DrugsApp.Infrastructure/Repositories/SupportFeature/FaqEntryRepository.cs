@@ -91,17 +91,13 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
             return null;
         }
 
-        FaqEntryTranslation? translation = await _context.FaqEntryTranslations
+        return await _context.FaqEntries
             .AsNoTracking()
-            .Include(entryTranslation => entryTranslation.FaqEntry)
-                .ThenInclude(faqEntry => faqEntry.Translations)
-            .FirstOrDefaultAsync(
-                entryTranslation =>
-                    entryTranslation.LanguageCode == languageCode &&
-                    entryTranslation.NormalizedQuestion == normalizedQuestion,
-                cancellationToken);
-
-        return translation?.FaqEntry;
+            .Where(faqEntry =>
+                faqEntry.Translations.Any(translation =>
+                    translation.LanguageCode == languageCode &&
+                    translation.NormalizedQuestion == normalizedQuestion))
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task AddAsync(FaqEntry faqEntry, CancellationToken cancellationToken)
@@ -131,7 +127,10 @@ public sealed class FaqEntryRepository : IFaqEntryRepository
     {
         IQueryable<FaqEntry> query = _context.FaqEntries
             .AsNoTracking()
-            .Include(faqEntry => faqEntry.Translations);
+            .Include(faqEntry => faqEntry.Translations)
+            .Where(faqEntry =>
+                faqEntry.Translations.Any(translation => translation.LanguageCode == FaqLanguageCode.En) &&
+                faqEntry.Translations.Any(translation => translation.LanguageCode == FaqLanguageCode.Pl));
 
         return ApplyAnyTranslationQuestionFilter(query, questionQuery);
     }
