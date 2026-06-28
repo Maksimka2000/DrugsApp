@@ -82,4 +82,25 @@ public interface IFoodRepository
     /// </summary>
     /// <param name="food">Food to remove.</param>
     void Remove(Food food);
+
+    /// <summary>
+    /// Lists food group identifiers that contain the specified food.
+    /// </summary>
+    Task<IReadOnlyCollection<Guid>> GetFoodGroupIdsContainingAsync(
+        Guid foodId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the food groups that contain the specified food.
+    /// </summary>
+    Task<List<FoodGroup>> ListGroupsByFoodIdAsync(
+        Guid foodId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lists interaction identifiers where the food participates (party or expanded rows).
+    /// </summary>
+    Task<IReadOnlyCollection<Guid>> GetInteractionIdsReferencingAsync(
+        Guid foodId,
+        CancellationToken cancellationToken);
 }

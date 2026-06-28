@@ -10,6 +10,9 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace DrugsApp.Infrastructure.Services.AuthFeature;
 
+/// <summary>
+/// Cached decorator over <see cref="IUserPermissionService"/> for permission lookups.
+/// </summary>
 public sealed class UserPermissionServiceCached(
     IUserPermissionService _decorated,
     IDistributedCache _distributedCache) : IUserPermissionService
@@ -19,6 +22,7 @@ public sealed class UserPermissionServiceCached(
         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
     };
 
+    /// <inheritdoc />
     public async Task<IReadOnlyCollection<string>> GetPermissionNamesAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -47,6 +51,7 @@ public sealed class UserPermissionServiceCached(
         return permissionNamesFromDatabase;
     }
 
+    /// <inheritdoc />
     public async Task<bool> HasPermissionAsync(
         Guid userId,
         Permission permission,
@@ -56,11 +61,13 @@ public sealed class UserPermissionServiceCached(
         return permissionNames.Contains(permission.ToString(), StringComparer.Ordinal);
     }
 
+    /// <inheritdoc />
     public async Task WarmAsync(Guid userId, CancellationToken cancellationToken)
     {
         _ = await GetPermissionNamesAsync(userId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task InvalidateAsync(Guid userId, CancellationToken cancellationToken)
     {
         await _distributedCache.RemoveAsync(GetCacheKey(userId), cancellationToken);

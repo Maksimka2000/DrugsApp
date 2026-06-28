@@ -218,5 +218,8 @@ if (regularSupplementExpirationSettings.Enabled)
 
 await app.RunAsync();
 
+/// <summary>
+/// Application entry point marker for the DrugsApp host.
+/// </summary>
 public partial class Program;
 

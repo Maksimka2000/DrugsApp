@@ -126,9 +126,7 @@ public sealed class InteractionRepository : IInteractionRepository
     {
         return await _context.InteractionParties
             .AsNoTracking()
-            .AnyAsync(
-                party => party.PartyType == groupPartyType && GetPartyId(party, groupPartyType) == groupId,
-                cancellationToken);
+            .AnyAsync(BuildGroupPartyPredicate(groupPartyType, groupId), cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<Guid>> GetInteractionIdsByGroupPartyAsync(
@@ -138,7 +136,7 @@ public sealed class InteractionRepository : IInteractionRepository
     {
         List<Guid> ids = await _context.InteractionParties
             .AsNoTracking()
-            .Where(party => party.PartyType == groupPartyType && GetPartyId(party, groupPartyType) == groupId)
+            .Where(BuildGroupPartyPredicate(groupPartyType, groupId))
             .Select(party => party.InteractionId)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -324,19 +322,19 @@ public sealed class InteractionRepository : IInteractionRepository
             ));
     }
 
-    private static Guid? GetPartyId(InteractionParty party, InteractionType partyType)
-    {
-        return partyType switch
+    private static Expression<Func<InteractionParty, bool>> BuildGroupPartyPredicate(
+        InteractionType groupPartyType,
+        Guid groupId) =>
+        groupPartyType switch
         {
-            InteractionType.Substance => party.ActiveSubstanceId,
-            InteractionType.SubstanceGroup => party.ActiveSubstanceGroupId,
-            InteractionType.Food => party.FoodId,
-            InteractionType.FoodGroup => party.FoodGroupId,
-            InteractionType.Supplement => party.SupplementId,
-            InteractionType.SupplementGroup => party.SupplementGroupId,
-            _ => null
+            InteractionType.SubstanceGroup => party =>
+                party.PartyType == InteractionType.SubstanceGroup && party.ActiveSubstanceGroupId == groupId,
+            InteractionType.FoodGroup => party =>
+                party.PartyType == InteractionType.FoodGroup && party.FoodGroupId == groupId,
+            InteractionType.SupplementGroup => party =>
+                party.PartyType == InteractionType.SupplementGroup && party.SupplementGroupId == groupId,
+            _ => party => false
         };
-    }
 
     private static Expression<Func<InteractionExpanded, bool>> BuildAtomicPairsPredicate(
         Guid interactionId,
@@ -515,4 +513,34 @@ public sealed class InteractionRepository : IInteractionRepository
             .ThenBy(row => row.LeftPartyId)
             .ThenBy(row => row.RightPartyId)
             .ToList();
+
+    public async Task<List<Interaction>> ListByActiveSubstanceIdAsync(
+        Guid activeSubstanceId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Interactions
+            .AsNoTracking()
+            .Include(interaction => interaction.InteractionSeverity)
+            .Include(interaction => interaction.Parties)
+            .Where(interaction => interaction.Parties.Any(party =>
+                party.PartyType == InteractionType.Substance &&
+                party.ActiveSubstanceId == activeSubstanceId))
+            .OrderBy(interaction => interaction.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Interaction>> ListBySupplementIdAsync(
+        Guid supplementId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Interactions
+            .AsNoTracking()
+            .Include(interaction => interaction.InteractionSeverity)
+            .Include(interaction => interaction.Parties)
+            .Where(interaction => interaction.Parties.Any(party =>
+                party.PartyType == InteractionType.Supplement &&
+                party.SupplementId == supplementId))
+            .OrderBy(interaction => interaction.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

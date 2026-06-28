@@ -4,6 +4,8 @@ internal static class TestCredentials
 {
     internal static readonly Guid Client1Id = Guid.Parse("b1010000-0000-4000-8000-000000000001");
 
+    internal static readonly Guid Provider1Id = Guid.Parse("b2010000-0000-4000-8000-000000000001");
+
     internal const string Client1Email = "seed.client1@drugsapp.local";
     internal const string Client1Password = "Client1Seed123!";
 

@@ -25,6 +25,7 @@ public sealed class IdentityUserManagementService(
     IUserPermissionService _userPermissionService,
     ISuperAdminGuard _superAdminGuard) : IIdentityUserManagementService
 {
+    /// <inheritdoc />
     public async Task<ErrorOr<CreateAdminUserResult>> CreateAdminUserAsync(
         string fullName,
         string email,
@@ -82,6 +83,7 @@ public sealed class IdentityUserManagementService(
             Password: generatedPassword);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<AdminUserMutationResult>> ReplaceAdminRoleAsync(
         Guid adminUserId,
         string adminRole,
@@ -134,6 +136,7 @@ public sealed class IdentityUserManagementService(
         return await BuildAdminMutationResultAsync(user, adminRole, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> SetAdminPasswordAsync(
         Guid adminUserId,
         string newPassword,
@@ -152,6 +155,8 @@ public sealed class IdentityUserManagementService(
             {
                 return MapIdentityFailure(removeResult);
             }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         IdentityResult addResult = await _userManager.AddPasswordAsync(user, newPassword);
@@ -165,6 +170,7 @@ public sealed class IdentityUserManagementService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<AdminUserMutationResult>> ChangeAdminLoginEmailAsync(
         Guid adminUserId,
         string email,
@@ -198,18 +204,18 @@ public sealed class IdentityUserManagementService(
             return MapIdentityFailure(emailResult);
         }
 
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
         IdentityResult usernameResult = await _userManager.SetUserNameAsync(user, normalizedEmail);
         if (!usernameResult.Succeeded)
         {
             return MapIdentityFailure(usernameResult);
         }
 
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
         user.EmailConfirmed = true;
-        IdentityResult updateResult = await _userManager.UpdateAsync(user);
-        if (!updateResult.Succeeded)
-        {
-            return MapIdentityFailure(updateResult);
-        }
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         await _refreshTokenRepository.DeleteByUserIdAsync(user.Id, cancellationToken);
 
@@ -217,6 +223,7 @@ public sealed class IdentityUserManagementService(
         return await BuildAdminMutationResultAsync(user, adminRole, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> RemoveAdminUserAsync(
         Guid adminUserId,
         Guid callerUserId,
@@ -254,6 +261,7 @@ public sealed class IdentityUserManagementService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<UserSuspensionResult>> SetAdminSuspensionAsync(
         Guid adminUserId,
         bool isSuspended,
@@ -293,6 +301,7 @@ public sealed class IdentityUserManagementService(
         return suspensionResult;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<UserSuspensionResult>> SetClientSuspensionAsync(
         Guid clientUserId,
         bool isSuspended,

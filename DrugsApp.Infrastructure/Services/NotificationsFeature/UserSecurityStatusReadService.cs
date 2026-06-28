@@ -8,9 +8,13 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DrugsApp.Infrastructure.Services.NotificationsFeature;
 
+/// <summary>
+/// Reads user security status flags from Identity.
+/// </summary>
 public sealed class UserSecurityStatusReadService(UserManager<ApplicationUser> _userManager)
     : IUserSecurityStatusReadService
 {
+    /// <inheritdoc />
     public async Task<ErrorOr<UserSecurityStatusSnapshot>> GetStatusAsync(
         Guid userId,
         CancellationToken cancellationToken)

@@ -10,10 +10,20 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DrugsApp.Host.Auth.Jwt;
 
+/// <summary>
+/// Issues JWT access tokens using configured signing settings.
+/// </summary>
 public sealed class JwtTokenProvider(IOptions<JwtSettings> jwtOptions) : IJwtTokenProvider
 {
     private readonly JwtSettings _jwtSettings = jwtOptions.Value;
 
+    /// <summary>
+    /// Generates an access token for the given user and roles.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="email">User email.</param>
+    /// <param name="roles">Roles to embed.</param>
+    /// <returns>Serialized JWT string.</returns>
     public string GenerateAccessToken(
         Guid userId,
         string email,
@@ -41,7 +51,13 @@ public sealed class JwtTokenProvider(IOptions<JwtSettings> jwtOptions) : IJwtTok
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    /// <summary>
+    /// Returns access token lifetime in seconds.
+    /// </summary>
     public int GetAccessTokenLifetimeSeconds() => _jwtSettings.AccessTokenMinutes * 60;
 
+    /// <summary>
+    /// Returns refresh token lifetime in days.
+    /// </summary>
     public int GetRefreshTokenLifetimeDays() => _jwtSettings.RefreshTokenDays;
 }

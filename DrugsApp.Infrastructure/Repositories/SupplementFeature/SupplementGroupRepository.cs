@@ -127,10 +127,12 @@ public sealed class SupplementGroupRepository(DrugsAppDbContext context) : ISupp
         Guid supplementGroupId,
         CancellationToken cancellationToken)
     {
-        // Placeholder for future interaction checks; current implementation is a simple existence guard.
-        return await context.SupplementGroups
+        return await context.InteractionParties
             .AsNoTracking()
-            .AnyAsync(group => group.Id == supplementGroupId, cancellationToken);
+            .AnyAsync(
+                party => party.PartyType == Domain.InteractionFeature.Enums.InteractionType.SupplementGroup &&
+                         party.SupplementGroupId == supplementGroupId,
+                cancellationToken);
     }
 
     public async Task<List<SupplementGroup>> GetByIdsAsync(

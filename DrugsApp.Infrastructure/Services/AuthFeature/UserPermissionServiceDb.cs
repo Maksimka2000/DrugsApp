@@ -12,10 +12,14 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DrugsApp.Infrastructure.Services.AuthFeature;
 
+/// <summary>
+/// Database-backed permission resolver for users.
+/// </summary>
 public sealed class UserPermissionServiceDb(
     UserManager<ApplicationUser> _userManager,
     RoleManager<ApplicationRole> _roleManager) : IUserPermissionService
 {
+    /// <inheritdoc />
     public async Task<IReadOnlyCollection<string>> GetPermissionNamesAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -54,6 +58,7 @@ public sealed class UserPermissionServiceDb(
         return permissionNames.ToArray();
     }
 
+    /// <inheritdoc />
     public async Task<bool> HasPermissionAsync(
         Guid userId,
         Permission permission,
@@ -63,10 +68,12 @@ public sealed class UserPermissionServiceDb(
         return permissionNames.Contains(permission.ToString(), StringComparer.Ordinal);
     }
 
+    /// <inheritdoc />
     public async Task WarmAsync(Guid userId, CancellationToken cancellationToken)
     {
         _ = await GetPermissionNamesAsync(userId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task InvalidateAsync(Guid userId, CancellationToken cancellationToken) => Task.CompletedTask;
 }

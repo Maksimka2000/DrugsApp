@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.FoodFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Repositories;
+using DrugsApp.Domain.InteractionFeature.Enums;
 using DrugsApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -80,11 +81,10 @@ public sealed class FoodRepository : IFoodRepository
 
     public async Task<bool> IsReferencedAsync(Guid foodId, CancellationToken cancellationToken)
     {
-        bool referencedByGroup = await _context.FoodGroups
-            .AsNoTracking()
-            .AnyAsync(group => group.Foods.Any(food => food.Id == foodId), cancellationToken);
+        IReadOnlyCollection<Guid> groupIds = await GetFoodGroupIdsContainingAsync(foodId, cancellationToken);
+        IReadOnlyCollection<Guid> interactionIds = await GetInteractionIdsReferencingAsync(foodId, cancellationToken);
 
-        return referencedByGroup;
+        return groupIds.Count > 0 || interactionIds.Count > 0;
     }
 
     public async Task AddAsync(Food food, CancellationToken cancellationToken)
@@ -95,6 +95,72 @@ public sealed class FoodRepository : IFoodRepository
     public void Remove(Food food)
     {
         _context.Foods.Remove(food);
+    }
+
+    public async Task<IReadOnlyCollection<Guid>> GetFoodGroupIdsContainingAsync(
+        Guid foodId,
+        CancellationToken cancellationToken)
+    {
+        if (foodId == Guid.Empty)
+        {
+            return Array.Empty<Guid>();
+        }
+
+        List<Guid> groupIds = await _context.FoodGroups
+            .AsNoTracking()
+            .Where(group => group.Foods.Any(food => food.Id == foodId))
+            .Select(group => group.Id)
+            .ToListAsync(cancellationToken);
+
+        return groupIds;
+    }
+
+    public async Task<List<FoodGroup>> ListGroupsByFoodIdAsync(
+        Guid foodId,
+        CancellationToken cancellationToken)
+    {
+        if (foodId == Guid.Empty)
+        {
+            return [];
+        }
+
+        return await _context.FoodGroups
+            .AsNoTracking()
+            .Where(group => group.Foods.Any(food => food.Id == foodId))
+            .OrderBy(group => group.Name)
+            .ThenBy(group => group.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<Guid>> GetInteractionIdsReferencingAsync(
+        Guid foodId,
+        CancellationToken cancellationToken)
+    {
+        if (foodId == Guid.Empty)
+        {
+            return Array.Empty<Guid>();
+        }
+
+        List<Guid> interactionIdsFromParties = await _context.InteractionParties
+            .AsNoTracking()
+            .Where(party =>
+                party.PartyType == InteractionType.Food &&
+                party.FoodId == foodId)
+            .Select(party => party.InteractionId)
+            .ToListAsync(cancellationToken);
+
+        List<Guid> interactionIdsFromExpanded = await _context.InteractionExpandedRows
+            .AsNoTracking()
+            .Where(row =>
+                row.PartyTypeA == ShortInteractionType.Food && row.PartyIdA == foodId ||
+                row.PartyTypeB == ShortInteractionType.Food && row.PartyIdB == foodId)
+            .Select(row => row.InteractionId)
+            .ToListAsync(cancellationToken);
+
+        return interactionIdsFromParties
+            .Concat(interactionIdsFromExpanded)
+            .Distinct()
+            .ToList();
     }
 
     private static IQueryable<Food> ApplySearchFilter(

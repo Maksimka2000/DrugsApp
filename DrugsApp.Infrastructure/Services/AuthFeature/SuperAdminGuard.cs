@@ -14,6 +14,11 @@ public sealed class SuperAdminGuard(IOptions<SuperAdminSettings> superAdminOptio
 {
     private readonly SuperAdminSettings _superAdminSettings = superAdminOptions.Value;
 
+    /// <summary>
+    /// Checks whether the provided email matches the protected super-admin account.
+    /// </summary>
+    /// <param name="email">Email to compare.</param>
+    /// <returns><c>true</c> when the email is protected.</returns>
     public bool IsProtectedEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(_superAdminSettings.Email))
@@ -27,6 +32,12 @@ public sealed class SuperAdminGuard(IOptions<SuperAdminSettings> superAdminOptio
             StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Ensures the target email is not protected; returns forbidden error if it is.
+    /// </summary>
+    /// <param name="email">Email to validate.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success or forbidden error.</returns>
     public Task<ErrorOr<Success>> EnsureMutableAsync(
         string email,
         CancellationToken cancellationToken)

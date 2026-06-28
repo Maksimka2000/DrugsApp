@@ -15,6 +15,10 @@ namespace DrugsApp.Host.Hangfire.RegularSupplementsFeature;
 /// </summary>
 public sealed class RegularSupplementExpirationHangfireJob(IServiceScopeFactory _serviceScopeFactory)
 {
+    /// <summary>
+    /// Expires ended regular supplement rows in batches and projects notifications.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel processing.</param>
     [Queue(HangfireQueues.RegularIntakes)]
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
