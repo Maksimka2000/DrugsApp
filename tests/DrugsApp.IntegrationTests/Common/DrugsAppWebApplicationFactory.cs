@@ -1,5 +1,7 @@
+using System.Net.Http.Headers;
 using System.Text;
 using DrugsApp.Domain.AuthFeature.Interfaces;
+using DrugsApp.Domain.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -71,6 +73,14 @@ public sealed class DrugsAppWebApplicationFactory : WebApplicationFactory<Progra
             services.RemoveAll<IEmailVerificationSender>();
             services.AddSingleton(EmailSender);
             services.AddSingleton<IEmailVerificationSender>(sp => sp.GetRequiredService<CapturingEmailVerificationSender>());
+
+            services.RemoveAll<IBlobService>();
+            services.AddSingleton<InMemoryBlobService>();
+            services.AddSingleton<IBlobService>(sp => sp.GetRequiredService<InMemoryBlobService>());
+
+            services.AddHttpClient("ImportDownload")
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                    new TempDrugImportDownloadHandler(TempDrugTestExcel.CreateSampleWorkbookBytes()));
         });
     }
 }

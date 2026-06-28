@@ -4,8 +4,14 @@ using System.Collections.Generic;
 
 namespace DrugsApp.Host.Auth.Swagger;
 
+/// <summary>
+/// Swagger extensions to register JWT bearer security definitions.
+/// </summary>
 public static class SwaggerJwtConfigurationExtensions
 {
+    /// <summary>
+    /// Adds JWT bearer security definition and requirement to Swagger.
+    /// </summary>
     public static IServiceCollection AddSwaggerJwt(this IServiceCollection services)
     {
         services.AddSwaggerGen(options =>

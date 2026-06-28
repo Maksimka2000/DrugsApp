@@ -22,6 +22,10 @@ namespace DrugsApp.Host.Hangfire.NotificationsFeature;
 /// </summary>
 public sealed class WeeklyHealthDataReminderHangfireJob(IServiceScopeFactory _serviceScopeFactory)
 {
+    /// <summary>
+    /// Projects weekly health reminder notifications on even ISO weeks.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel processing.</param>
     [Queue(HangfireQueues.Notifications)]
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {

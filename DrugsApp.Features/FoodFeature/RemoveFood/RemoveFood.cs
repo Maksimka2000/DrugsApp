@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Linq;
 using DrugsApp.Domain.FoodFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Repositories;
 using DrugsApp.Features.FoodFeature.Shared;
@@ -14,18 +13,9 @@ namespace DrugsApp.Features.FoodFeature.RemoveFood;
 /// <summary>
 /// Handles deletion of foods with reference checks.
 /// </summary>
-public sealed class RemoveFoodHandler : IRequestHandler<RemoveFoodCommand, ErrorOr<DeletedFoodResponse>>
+public sealed class RemoveFoodHandler(IFoodRepository _foodRepository)
+    : IRequestHandler<RemoveFoodCommand, ErrorOr<DeletedFoodResponse>>
 {
-    private readonly IFoodRepository _foodRepository;
-
-    /// <summary>
-    /// Handles the process of removing a food item from the system.
-    /// </summary>
-    public RemoveFoodHandler(IFoodRepository foodRepository)
-    {
-        _foodRepository = foodRepository;
-    }
-
     /// <summary>
     /// Handles the removal of a food item.
     /// </summary>
@@ -40,7 +30,7 @@ public sealed class RemoveFoodHandler : IRequestHandler<RemoveFoodCommand, Error
         if (food is null)
         {
             return Error.NotFound(
-                description: "Food was not found.",
+                description: "Food not found.",
                 metadata: new Dictionary<string, object>
                 {
                     ["resourceType"] = "Food",
@@ -48,16 +38,36 @@ public sealed class RemoveFoodHandler : IRequestHandler<RemoveFoodCommand, Error
                 });
         }
 
-        // bool isReferenced = await _foodRepository.IsReferencedAsync(food.Id, cancellationToken);
-        // if (isReferenced)
-        // {
-        //     return Error.Conflict(
-        //         description: "Food cannot be removed because it is referenced by other resources.",
-        //         metadata: new Dictionary<string, object>
-        //         {
-        //             ["resourceId"] = food.Id.ToString()
-        //         });
-        // }
+        List<FoodGroup> foodGroups = await _foodRepository.ListGroupsByFoodIdAsync(
+            food.Id,
+            cancellationToken);
+
+        if (foodGroups.Count > 0)
+        {
+            return Error.Conflict(
+                description: "Food cannot be removed because it is a member of food groups.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["resourceId"] = food.Id.ToString(),
+                    ["groupIds"] = foodGroups.Select(group => group.Id.ToString()).ToList(),
+                    ["groupNames"] = foodGroups.Select(group => group.Name).ToList()
+                });
+        }
+
+        IReadOnlyCollection<Guid> interactionIds = await _foodRepository.GetInteractionIdsReferencingAsync(
+            food.Id,
+            cancellationToken);
+
+        if (interactionIds.Count > 0)
+        {
+            return Error.Conflict(
+                description: "Food cannot be removed because it participates in interactions.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["resourceId"] = food.Id.ToString(),
+                    ["interactionIds"] = interactionIds.Select(interactionId => interactionId.ToString()).ToList()
+                });
+        }
 
         _foodRepository.Remove(food);
 

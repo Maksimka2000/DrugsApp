@@ -42,4 +42,11 @@ public interface ISupplementRepository
     Task<bool> IsInAnyGroupAsync(
         Guid supplementId,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the supplement groups that contain the specified supplement.
+    /// </summary>
+    Task<List<SupplementGroup>> ListGroupsBySupplementIdAsync(
+        Guid supplementId,
+        CancellationToken cancellationToken);
 }

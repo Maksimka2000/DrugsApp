@@ -36,6 +36,11 @@ public interface IActiveSubstanceRepository
     Task<IReadOnlyCollection<ActiveSubstance>> GetByIdsForLinkingAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Removes an active substance aggregate from the repository.
+    /// </summary>
+    void Remove(ActiveSubstance activeSubstance);
 }
 
 

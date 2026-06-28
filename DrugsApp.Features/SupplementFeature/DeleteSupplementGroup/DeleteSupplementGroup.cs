@@ -1,3 +1,7 @@
+using System;
+using System.Linq;
+using DrugsApp.Domain.InteractionFeature.Enums;
+using DrugsApp.Domain.InteractionFeature.Repositories;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Repositories;
 using ErrorOr;
@@ -8,9 +12,12 @@ namespace DrugsApp.Features.SupplementFeature.DeleteSupplementGroup;
 
 
 /// <summary>
-/// Handles deletion of supplement groups with reference guard placeholder.
+/// Handles deletion of supplement groups with reference guards.
 /// </summary>
-public sealed class DeleteSupplementGroupHandler(ISupplementGroupRepository _supplementGroupRepository) : IRequestHandler<DeleteSupplementGroupCommand, ErrorOr<DeleteSupplementGroupResponse>>
+public sealed class DeleteSupplementGroupHandler(
+    ISupplementGroupRepository _supplementGroupRepository,
+    IInteractionRepository _interactionRepository)
+    : IRequestHandler<DeleteSupplementGroupCommand, ErrorOr<DeleteSupplementGroupResponse>>
 {
     /// <summary>
     /// Handles the request to delete a supplement group.
@@ -37,6 +44,21 @@ public sealed class DeleteSupplementGroupHandler(ISupplementGroupRepository _sup
                 });
         }
 
+        IReadOnlyCollection<Guid> interactionIds = await _interactionRepository.GetInteractionIdsByGroupPartyAsync(
+            InteractionType.SupplementGroup,
+            command.SupplementGroupId,
+            cancellationToken);
+
+        if (interactionIds.Count > 0)
+        {
+            return Error.Conflict(
+                description: "Supplement group cannot be deleted because it participates in interactions.",
+                metadata: new()
+                {
+                    ["supplementGroupId"] = command.SupplementGroupId.ToString(),
+                    ["interactionIds"] = interactionIds.Select(id => id.ToString()).ToList()
+                });
+        }
 
         _supplementGroupRepository.Remove(group);
 

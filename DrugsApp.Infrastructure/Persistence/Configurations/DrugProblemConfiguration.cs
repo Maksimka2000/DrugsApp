@@ -62,8 +62,8 @@ public sealed class DrugProblemConfiguration : BaseEntityConfiguration<DrugProbl
             .IsUnique()
             .HasFilter("\"CustomDrugName\" IS NOT NULL");
 
-        builder.HasCheckConstraint(
+        builder.ToTable(t => t.HasCheckConstraint(
             "CK_DrugProblems_SourceXor",
-            "(CASE WHEN \"DrugFormId\" IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN \"CustomDrugName\" IS NOT NULL THEN 1 ELSE 0 END) = 1");
+            "(CASE WHEN \"DrugFormId\" IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN \"CustomDrugName\" IS NOT NULL THEN 1 ELSE 0 END) = 1"));
     }
 }

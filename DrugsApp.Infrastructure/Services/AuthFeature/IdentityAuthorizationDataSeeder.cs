@@ -13,6 +13,9 @@ using Microsoft.Extensions.Options;
 
 namespace DrugsApp.Infrastructure.Services.AuthFeature;
 
+/// <summary>
+/// Seeds roles, permission claims, and super admin user for identity stores.
+/// </summary>
 public sealed class IdentityAuthorizationDataSeeder(
     RoleManager<ApplicationRole> _roleManager,
     UserManager<ApplicationUser> _userManager,
@@ -21,6 +24,10 @@ public sealed class IdentityAuthorizationDataSeeder(
 {
     private readonly SuperAdminSettings _superAdminSettings = superAdminOptions.Value;
 
+    /// <summary>
+    /// Seeds roles, permission claims, and super admin account.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel seeding.</param>
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
         // Identity stores use AutoSaveChanges = false. Each role must be persisted before
@@ -131,7 +138,8 @@ public sealed class IdentityAuthorizationDataSeeder(
 
         foreach (IdentityRoleClaim<Guid> existingClaim in existingClaims)
         {
-            if (targetPermissionNames.Contains(existingClaim.ClaimValue))
+            if (existingClaim.ClaimValue is not null &&
+                targetPermissionNames.Contains(existingClaim.ClaimValue))
             {
                 continue;
             }
@@ -139,9 +147,10 @@ public sealed class IdentityAuthorizationDataSeeder(
             _dbContext.RoleClaims.Remove(existingClaim);
         }
 
-        HashSet<string> existingPermissionNames = existingClaims
-            .Where(claim => targetPermissionNames.Contains(claim.ClaimValue))
-            .Select(claim => claim.ClaimValue)
+        var existingPermissionNames = existingClaims
+            .Where(claim => claim.ClaimValue is not null &&
+                            targetPermissionNames.Contains(claim.ClaimValue))
+            .Select(claim => claim.ClaimValue!)
             .ToHashSet(StringComparer.Ordinal);
 
         foreach (string targetPermissionName in targetPermissionNames)

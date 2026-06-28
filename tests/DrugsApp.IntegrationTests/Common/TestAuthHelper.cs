@@ -54,9 +54,22 @@ public static class TestAuthHelper
         HttpClient client,
         CancellationToken cancellationToken)
     {
+        return await LoginAdminAsync(
+            client,
+            TestCredentials.AdminEmail,
+            TestCredentials.AdminPassword,
+            cancellationToken);
+    }
+
+    public static async Task<LoginAdminResponse> LoginAdminAsync(
+        HttpClient client,
+        string email,
+        string password,
+        CancellationToken cancellationToken)
+    {
         HttpResponseMessage response = await client.PostAsJsonAsync(
             "/api/auth/admin/login",
-            new LoginAdminRequest(TestCredentials.AdminEmail, TestCredentials.AdminPassword),
+            new LoginAdminRequest(email, password),
             IntegrationTestJson.Options,
             cancellationToken);
 

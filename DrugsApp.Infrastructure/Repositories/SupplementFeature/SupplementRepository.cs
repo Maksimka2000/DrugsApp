@@ -139,5 +139,17 @@ public sealed class SupplementRepository(DrugsAppDbContext _context) : ISuppleme
                 cancellationToken);
     }
 
+    public async Task<List<SupplementGroup>> ListGroupsBySupplementIdAsync(
+        Guid supplementId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.SupplementGroups
+            .AsNoTracking()
+            .Where(group => group.Supplements.Any(supplement => supplement.Id == supplementId))
+            .OrderBy(group => group.Name)
+            .ThenBy(group => group.Id)
+            .ToListAsync(cancellationToken);
+    }
+
 
 }

@@ -47,10 +47,12 @@ public sealed class DeleteActiveSubstanceGroupController(
     /// <response code="200">Group deletion confirmed.</response>
     /// <response code="400">Invalid identifier.</response>
     /// <response code="404">Group not found.</response>
+    /// <response code="409">Group participates in interactions.</response>
     [HttpDelete("{id:guid}", Name = RouteName)]
     [ProducesResponseType(typeof(DeleteActiveSubstanceGroupResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DeleteActiveSubstanceGroupResponse>> Delete(
         [FromRoute] Guid id,
         CancellationToken cancellationToken = default)

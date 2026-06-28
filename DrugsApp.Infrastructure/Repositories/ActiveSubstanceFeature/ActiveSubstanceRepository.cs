@@ -175,6 +175,11 @@ public sealed class ActiveSubstanceRepository : IActiveSubstanceRepository
             a.AlcoholInteractionOverride != null);
     }
 
+    public void Remove(ActiveSubstance activeSubstance)
+    {
+        _context.ActiveSubstances.Remove(activeSubstance);
+    }
+
 }
 
 

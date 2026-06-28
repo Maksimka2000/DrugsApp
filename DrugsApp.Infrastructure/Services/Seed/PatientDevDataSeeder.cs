@@ -38,6 +38,10 @@ public sealed class PatientDevDataSeeder(
 
     private readonly DevSeedSettings _settings = devSeedOptions.Value;
 
+    /// <summary>
+    /// Executes the patient development seed script once per seed key.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel seeding.</param>
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
         if (!_settings.Enabled)
