@@ -15,6 +15,10 @@ namespace DrugsApp.Host.Hangfire.RegularFoodFeature;
 /// </summary>
 public sealed class RegularFoodExpirationHangfireJob(IServiceScopeFactory _serviceScopeFactory)
 {
+    /// <summary>
+    /// Expires ended regular food rows in batches and projects notifications.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel processing.</param>
     [Queue(HangfireQueues.RegularIntakes)]
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {

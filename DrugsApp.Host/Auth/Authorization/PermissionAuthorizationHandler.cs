@@ -7,9 +7,13 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace DrugsApp.Host.Auth.Authorization;
 
+/// <summary>
+/// Authorization handler that requires a specific permission.
+/// </summary>
 public sealed class PermissionAuthorizationHandler(
     IUserPermissionService _userPermissionService) : AuthorizationHandler<PermissionRequirement>
 {
+    /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)

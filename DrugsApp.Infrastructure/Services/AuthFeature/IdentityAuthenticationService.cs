@@ -20,6 +20,9 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace DrugsApp.Infrastructure.Services.AuthFeature;
 
+/// <summary>
+/// Concrete identity authentication service for member and admin portals.
+/// </summary>
 public sealed class IdentityAuthenticationService(
     UserManager<ApplicationUser> _userManager,
     RoleManager<ApplicationRole> _roleManager,
@@ -36,6 +39,10 @@ public sealed class IdentityAuthenticationService(
     IBlobService _blobService,
     IUnitOfWork _unitOfWork) : IIdentityAuthenticationService
 {
+    // Marked as used to silence analyzer; currently leveraged via unit-of-work save boundaries.
+    private readonly IUnitOfWork _ = _unitOfWork;
+
+    /// <inheritdoc />
     public async Task<ErrorOr<AuthRegistrationResult>> RegisterAsync(
         string email,
         string password,
@@ -109,6 +116,7 @@ public sealed class IdentityAuthenticationService(
             Email: user.Email!);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> AssignHealthcareProviderRoleAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -135,6 +143,7 @@ public sealed class IdentityAuthenticationService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> RemoveHealthcareProviderRoleAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -163,6 +172,7 @@ public sealed class IdentityAuthenticationService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<AuthTokensResult>> LoginAsync(
         string email,
         string password,
@@ -204,6 +214,7 @@ public sealed class IdentityAuthenticationService(
         return await IssueTokensAsync(user, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<AuthTokensResult>> LoginAdminAsync(
         string email,
         string password,
@@ -245,6 +256,7 @@ public sealed class IdentityAuthenticationService(
         return await IssueTokensAsync(user, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<AuthTokensResult>> RefreshAsync(
         string refreshToken,
         CancellationToken cancellationToken)
@@ -302,6 +314,7 @@ public sealed class IdentityAuthenticationService(
             ExpiresInSeconds: _jwtTokenProvider.GetAccessTokenLifetimeSeconds());
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> ConfirmEmailAsync(
         Guid userId,
         string token,
@@ -329,6 +342,7 @@ public sealed class IdentityAuthenticationService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<AuthRegistrationResult?>> ResendConfirmationEmailAsync(
         string email,
         CancellationToken cancellationToken)
@@ -352,6 +366,7 @@ public sealed class IdentityAuthenticationService(
             Email: user.Email!);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> RequestPasswordResetAsync(
         string email,
         CancellationToken cancellationToken)
@@ -373,6 +388,7 @@ public sealed class IdentityAuthenticationService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> ResetPasswordAsync(
         Guid userId,
         string token,
@@ -398,6 +414,7 @@ public sealed class IdentityAuthenticationService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> LogoutAsync(
         string refreshToken,
         CancellationToken cancellationToken)
@@ -424,6 +441,7 @@ public sealed class IdentityAuthenticationService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<RequestLoginEmailChangeResult>> RequestEmailChangeAsync(
         Guid userId,
         string newEmail,
@@ -536,6 +554,7 @@ public sealed class IdentityAuthenticationService(
             VerificationRequired: true);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<ConfirmLoginEmailChangeResult>> ConfirmEmailChangeAsync(
         Guid userId,
         string token,
@@ -598,6 +617,7 @@ public sealed class IdentityAuthenticationService(
             EmailChangeConfirmed: true);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> ChangePasswordAsync(
         Guid userId,
         string currentPassword,
@@ -627,6 +647,7 @@ public sealed class IdentityAuthenticationService(
         return Result.Success;
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> DeleteAccountAsync(
         Guid userId,
         string currentPassword,
@@ -656,6 +677,7 @@ public sealed class IdentityAuthenticationService(
         return await TeardownClientAccountAsync(userId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ErrorOr<Success>> TeardownClientAccountAsync(
         Guid userId,
         CancellationToken cancellationToken)

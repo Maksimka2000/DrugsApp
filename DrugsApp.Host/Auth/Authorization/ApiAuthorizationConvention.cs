@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace DrugsApp.Host.Auth.Authorization;
 
+/// <summary>
+/// Applies API authorization conventions by mapping controller namespaces to policies.
+/// </summary>
 // Permission groups (admin + member portal):
 //
 // SearchCatalog (Client, HealthcareProvider, Admin):
@@ -131,6 +134,7 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         "DrugsApp.Features.VetDrugFeature.UpdateVetDrug",
         "DrugsApp.Features.ActiveSubstanceFeature.AddActiveSubstance",
         "DrugsApp.Features.ActiveSubstanceFeature.UpdateActiveSubstance",
+        "DrugsApp.Features.ActiveSubstanceFeature.DeleteActiveSubstance",
         "DrugsApp.Features.ActiveSubstanceFeature.AddOralMedicationIntakeGuidelines",
         "DrugsApp.Features.ActiveSubstanceFeature.CheckActiveSubstanceNameAvailability",
         "DrugsApp.Features.ActiveSubstanceGroupFeature.AddActiveSubstanceGroup",
@@ -214,6 +218,10 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         "DrugsApp.Features.AdminUserManagementFeature.ChangeAdminUserLoginEmail",
     };
 
+    /// <summary>
+    /// Applies authorization filters to controllers based on namespace grouping.
+    /// </summary>
+    /// <param name="application">Application model to mutate.</param>
     public void Apply(ApplicationModel application)
     {
         foreach (ControllerModel controller in application.Controllers)
@@ -354,16 +362,30 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
     }
 }
 
+/// <summary>
+/// Authorize attribute requiring a single permission policy.
+/// </summary>
 public sealed class HasPermissionAttribute : AuthorizeAttribute
 {
+    /// <summary>
+    /// Initializes the attribute with the given permission policy.
+    /// </summary>
+    /// <param name="permission">Permission required.</param>
     public HasPermissionAttribute(Permission permission)
     {
         Policy = permission.ToString();
     }
 }
 
+/// <summary>
+/// Authorize attribute requiring any permission in the provided set.
+/// </summary>
 public sealed class HasAnyPermissionAttribute : AuthorizeAttribute
 {
+    /// <summary>
+    /// Initializes the attribute with an any-permission policy.
+    /// </summary>
+    /// <param name="permissions">Allowed permissions.</param>
     public HasAnyPermissionAttribute(params Permission[] permissions)
     {
         string[] orderedPermissionNames = permissions

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.FoodFeature.Entities;
 using DrugsApp.Domain.FoodFeature.Repositories;
+using DrugsApp.Domain.InteractionFeature.Enums;
 using DrugsApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -132,7 +133,32 @@ public sealed class FoodGroupRepository : IFoodGroupRepository
 
     public Task<bool> IsReferencedByInteractionsAsync(Guid foodGroupId, CancellationToken cancellationToken)
     {
-        return Task.FromResult(false);
+        return _context.InteractionParties
+            .AsNoTracking()
+            .AnyAsync(
+                party =>
+                    party.PartyType == InteractionType.FoodGroup &&
+                    party.FoodGroupId == foodGroupId,
+                cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<Guid>> GetInteractionIdsReferencingAsync(
+        Guid foodGroupId,
+        CancellationToken cancellationToken)
+    {
+        if (foodGroupId == Guid.Empty)
+        {
+            return Array.Empty<Guid>();
+        }
+
+        return await _context.InteractionParties
+            .AsNoTracking()
+            .Where(party =>
+                party.PartyType == InteractionType.FoodGroup &&
+                party.FoodGroupId == foodGroupId)
+            .Select(party => party.InteractionId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
     }
 
     private static IQueryable<FoodGroup> ApplyGroupNameSearchFilter(

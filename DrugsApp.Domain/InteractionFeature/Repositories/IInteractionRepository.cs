@@ -90,6 +90,20 @@ public interface IInteractionRepository
         InteractionKind interactionKind,
         IReadOnlyCollection<Guid> leftActiveSubstanceIds,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lists interactions where the active substance participates as an atomic party.
+    /// </summary>
+    Task<List<Interaction>> ListByActiveSubstanceIdAsync(
+        Guid activeSubstanceId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lists interactions where the supplement participates as an atomic party.
+    /// </summary>
+    Task<List<Interaction>> ListBySupplementIdAsync(
+        Guid supplementId,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>

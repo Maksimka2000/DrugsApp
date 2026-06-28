@@ -108,6 +108,13 @@ public interface IFoodGroupRepository
     Task<bool> IsReferencedByInteractionsAsync(Guid foodGroupId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Lists interaction identifiers that reference the food group (parties or expanded rows).
+    /// </summary>
+    Task<IReadOnlyCollection<Guid>> GetInteractionIdsReferencingAsync(
+        Guid foodGroupId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Bulk loads food groups by identifiers with member foods included.
     /// </summary>
     Task<List<FoodGroup>> GetByIdsAsync(

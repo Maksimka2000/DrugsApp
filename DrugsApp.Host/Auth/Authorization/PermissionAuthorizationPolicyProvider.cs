@@ -8,9 +8,17 @@ using Microsoft.Extensions.Options;
 
 namespace DrugsApp.Host.Auth.Authorization;
 
+/// <summary>
+/// Builds dynamic authorization policies for permission-based requirements.
+/// </summary>
 public sealed class PermissionAuthorizationPolicyProvider(
     IOptions<AuthorizationOptions> options) : DefaultAuthorizationPolicyProvider(options)
 {
+    /// <summary>
+    /// Resolves authorization policies for permission and composite requirements.
+    /// </summary>
+    /// <param name="policyName">Requested policy name.</param>
+    /// <returns>Authorization policy or null when not applicable.</returns>
     public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
         AuthorizationPolicy? existingPolicy = await base.GetPolicyAsync(policyName);
@@ -67,7 +75,15 @@ public sealed class PermissionAuthorizationPolicyProvider(
     }
 }
 
+/// <summary>
+/// Requirement for a specific permission.
+/// </summary>
+/// <param name="Permission">Permission to enforce.</param>
 public sealed record PermissionRequirement(Permission Permission) : IAuthorizationRequirement;
 
+/// <summary>
+/// Requirement that succeeds when any provided permission is granted.
+/// </summary>
+/// <param name="Permissions">Allowed permissions.</param>
 public sealed record AnyPermissionRequirement(IReadOnlyCollection<Permission> Permissions)
     : IAuthorizationRequirement;

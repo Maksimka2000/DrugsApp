@@ -8,9 +8,13 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace DrugsApp.Host.Auth.Authorization;
 
+/// <summary>
+/// Authorization handler that succeeds when the user has any of the required permissions.
+/// </summary>
 public sealed class AnyPermissionAuthorizationHandler(
     IUserPermissionService _userPermissionService) : AuthorizationHandler<AnyPermissionRequirement>
 {
+    /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         AnyPermissionRequirement requirement)

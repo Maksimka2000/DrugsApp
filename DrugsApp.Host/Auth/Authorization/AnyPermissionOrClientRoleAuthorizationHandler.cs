@@ -10,13 +10,20 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace DrugsApp.Host.Auth.Authorization;
 
+/// <summary>
+/// Authorization requirement satisfied by a specific client role or any listed permission.
+/// </summary>
 public sealed record AnyPermissionOrClientRoleRequirement(
     string Role,
     IReadOnlyCollection<Permission> Permissions) : IAuthorizationRequirement;
 
+/// <summary>
+/// Authorization handler that succeeds if the user has the client role or any given permission.
+/// </summary>
 public sealed class AnyPermissionOrClientRoleAuthorizationHandler(
     IUserPermissionService _userPermissionService) : AuthorizationHandler<AnyPermissionOrClientRoleRequirement>
 {
+    /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         AnyPermissionOrClientRoleRequirement requirement)

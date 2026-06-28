@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DrugsApp.Domain.FoodFeature.Entities;
@@ -38,16 +39,19 @@ public sealed class RemoveFoodGroupHandler(IFoodGroupRepository _foodGroupReposi
                 });
         }
 
-        // bool isReferenced = await _foodGroupRepository.IsReferencedByInteractionsAsync(foodGroup.Id, cancellationToken);
-        // if (isReferenced)
-        // {
-        //     return Error.Conflict(
-        //         description: "Food group is referenced and cannot be removed.",
-        //         metadata: new Dictionary<string, object>
-        //         {
-        //             ["resourceId"] = foodGroup.Id.ToString()
-        //         });
-        // }
+        IReadOnlyCollection<Guid> interactionIds = await _foodGroupRepository.GetInteractionIdsReferencingAsync(
+            foodGroup.Id,
+            cancellationToken);
+        if (interactionIds.Any())
+        {
+            return Error.Conflict(
+                description: "Food group cannot be removed because it is referenced by interactions.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["resourceId"] = foodGroup.Id.ToString(),
+                    ["blockingInteractionIds"] = interactionIds
+                });
+        }
 
         _foodGroupRepository.Remove(foodGroup);
 

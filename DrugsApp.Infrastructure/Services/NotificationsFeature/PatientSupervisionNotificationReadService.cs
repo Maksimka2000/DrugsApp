@@ -26,8 +26,9 @@ using ErrorOr;
 
 namespace DrugsApp.Infrastructure.Services.NotificationsFeature;
 
-
-
+/// <summary>
+/// Reads supervision-related notification details for patients and providers.
+/// </summary>
 public sealed class PatientSupervisionNotificationReadService(
 
     ISupervisionReadRepository supervisionReadRepository,
@@ -42,6 +43,7 @@ public sealed class PatientSupervisionNotificationReadService(
 
 {
 
+    /// <inheritdoc />
     public Task<ErrorOr<SupervisionRequestNotificationDetail>> GetRequestDetailAsync(
 
         Guid requestId,
@@ -58,6 +60,7 @@ public sealed class PatientSupervisionNotificationReadService(
 
 
 
+    /// <inheritdoc />
     public Task<ErrorOr<MedicalChangeProposalNotificationDetail>> GetProposalDetailAsync(
 
         Guid proposalId,
