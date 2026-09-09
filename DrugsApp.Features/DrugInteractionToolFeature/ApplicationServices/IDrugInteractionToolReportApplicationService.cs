@@ -28,5 +28,7 @@ public interface IDrugInteractionToolReportApplicationService
         bool showAllDrugsInteractions,
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Guid>? additionalTakenNowFoodIds = null,
+        IReadOnlyCollection<Guid>? additionalTakenNowSupplementIds = null);
 }

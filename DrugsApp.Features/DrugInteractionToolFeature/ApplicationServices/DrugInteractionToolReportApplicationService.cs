@@ -120,6 +120,8 @@ public sealed class DrugInteractionToolReportApplicationService(
     /// <param name="showOralGuidance">Whether to include oral guidance sections.</param>
     /// <param name="showAllFoodAndSupplementInteractions">Whether to include all food/supplement interactions.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <param name="additionalTakenNowFoodIds"></param>
+    /// <param name="additionalTakenNowSupplementIds"></param>
     /// <returns>Registered report read model or error collection.</returns>
     public async Task<ErrorOr<RegisteredDrugInteractionToolReportReadModel>> ComputeRegisteredReportAsync(
         Guid userId,
@@ -128,7 +130,9 @@ public sealed class DrugInteractionToolReportApplicationService(
         bool showAllDrugsInteractions,
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Guid>? additionalTakenNowFoodIds = null,
+        IReadOnlyCollection<Guid>? additionalTakenNowSupplementIds = null)
     {
         ErrorOr<IReadOnlyList<DrugFormSelection>> selectionsResult = await LoadManualSelectionsAsync(
             manualDrugFormIds,
@@ -154,6 +158,23 @@ public sealed class DrugInteractionToolReportApplicationService(
             userInfoSection = await BuildUserInfoSectionAsync(userId, cancellationToken);
             takenNowFoodIds = await LoadTakenNowFoodIdsAsync(userId, cancellationToken);
             takenNowSupplementIds = await LoadTakenNowSupplementIdsAsync(userId, cancellationToken);
+
+            if (additionalTakenNowFoodIds is { Count: > 0 })
+            {
+                foreach (Guid foodId in additionalTakenNowFoodIds)
+                {
+                    takenNowFoodIds.Add(foodId);
+                }
+            }
+
+            if (additionalTakenNowSupplementIds is { Count: > 0 })
+            {
+                foreach (Guid supplementId in additionalTakenNowSupplementIds)
+                {
+                    takenNowSupplementIds.Add(supplementId);
+                }
+            }
+
             userDrugAllergies = await LoadAllDrugAllergiesAsync(userId, cancellationToken);
             userDrugProblems = await LoadAllDrugProblemsAsync(userId, cancellationToken);
         }
