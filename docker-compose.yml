@@ -27,6 +27,7 @@ services:
   drugsapp-database:
     image: postgres:latest
     container_name: drugsapp-database
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
     environment:
       POSTGRES_DB: drugsapp
       POSTGRES_USER: postgres
