@@ -397,6 +397,30 @@ public sealed class InteractionRepository : IInteractionRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<InteractionExpanded>> SearchExpandedRowsBulkAsync(
+        IReadOnlyCollection<Guid> allSubstanceIds,
+        bool includeFood,
+        bool includeSupplement,
+        CancellationToken cancellationToken)
+    {
+        if (allSubstanceIds.Count == 0)
+        {
+            return new List<InteractionExpanded>();
+        }
+
+        return await _context.InteractionExpandedRows
+            .AsNoTracking()
+            .Where(row =>
+                row.PartyTypeA == ShortInteractionType.Substance &&
+                allSubstanceIds.Contains(row.PartyIdA) &&
+                (
+                    (row.PartyTypeB == ShortInteractionType.Substance && allSubstanceIds.Contains(row.PartyIdB)) ||
+                    (includeFood && row.PartyTypeB == ShortInteractionType.Food) ||
+                    (includeSupplement && row.PartyTypeB == ShortInteractionType.Supplement)
+                ))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Interaction>> GetByIdsAsync(
         IReadOnlyCollection<Guid> interactionIds,
         CancellationToken cancellationToken)

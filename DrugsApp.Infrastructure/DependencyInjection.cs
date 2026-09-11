@@ -134,6 +134,7 @@ public static class DependencyInjection
         services.AddScoped<ISupplementGroupRepository, SupplementGroupRepository>();
         services.AddScoped<IFaqEntryRepository, FaqEntryRepository>();
         services.AddScoped<ISystemTextRepository, SystemTextRepository>();
+        services.Decorate<ISystemTextRepository, CachedSystemTextRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
         services.AddScoped<IClientReproductiveHealthProfileRepository, ClientReproductiveHealthProfileRepository>();

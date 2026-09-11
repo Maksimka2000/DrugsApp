@@ -38,6 +38,8 @@ internal sealed class UpdateAlcoholInteractionDefaultTextHandler(
             return updateResult.Errors;
         }
 
+        await _systemTextRepository.InvalidateAsync(AlcoholInteractionDefaultTextKey, cancellationToken);
+
         return systemText.MapToDto();
     }
 }

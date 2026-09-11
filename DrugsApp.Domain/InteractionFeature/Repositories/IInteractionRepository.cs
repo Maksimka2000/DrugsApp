@@ -76,6 +76,12 @@ public interface IInteractionRepository
         IReadOnlyCollection<Guid> idsB,
         CancellationToken cancellationToken);
 
+    Task<List<InteractionExpanded>> SearchExpandedRowsBulkAsync(
+        IReadOnlyCollection<Guid> allSubstanceIds,
+        bool includeFood,
+        bool includeSupplement,
+        CancellationToken cancellationToken);
+
     /// <summary>
     /// Bulk loads parent interactions with severity and parties for report mapping.
     /// </summary>

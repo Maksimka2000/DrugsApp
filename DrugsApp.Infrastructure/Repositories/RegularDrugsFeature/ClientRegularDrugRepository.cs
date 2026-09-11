@@ -235,6 +235,10 @@ public sealed class ClientRegularDrugRepository(DrugsAppDbContext _context) : IC
             .Include(row => row.IntakeTimes)
             .Include(row => row.Drug)
                 .ThenInclude(drug => drug.ActiveSubstances)
+                    .ThenInclude(substance => substance.AlcoholInteractionOverride)
+            .Include(row => row.Drug)
+                .ThenInclude(drug => drug.ActiveSubstances)
+                    .ThenInclude(substance => substance.OralMedicationIntakeGuidelines)
             .Include(row => row.DrugForm)
                 .ThenInclude(drugForm => drugForm.PharmaceuticalForms);
 }

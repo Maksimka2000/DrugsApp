@@ -126,6 +126,9 @@ public sealed class DrugRepository : IDrugRepository
     private static IQueryable<Drug> ApplyIncludes(IQueryable<Drug> query) =>
         query
             .Include(d => d.ActiveSubstances)
+                .ThenInclude(s => s.AlcoholInteractionOverride)
+            .Include(d => d.ActiveSubstances)
+                .ThenInclude(s => s.OralMedicationIntakeGuidelines)
             .Include(d => d.DrugForms)
                 .ThenInclude(df => df.RoutesOfAdministration)
             .Include(d => d.DrugForms)
