@@ -56,7 +56,7 @@ public sealed class ActiveSubstance : BaseEntity
     public static ActiveSubstance Create(string activeSubstanceName) => new()
     {
         ActiveSubstanceName = activeSubstanceName.Trim(),
-        HasAlcoholInteraction = false
+        HasAlcoholInteraction = true
     };
 
     /// <summary>

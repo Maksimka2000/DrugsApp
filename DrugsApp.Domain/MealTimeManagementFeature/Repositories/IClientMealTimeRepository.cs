@@ -13,6 +13,8 @@ public interface IClientMealTimeRepository
 {
     Task<List<ClientMealTime>> ListByUserAsync(Guid userId, CancellationToken cancellationToken);
 
+    Task<int> CountByUserAsync(Guid userId, CancellationToken cancellationToken);
+
     Task<ClientMealTime?> GetByIdForUserAsync(
         Guid userId,
         Guid id,

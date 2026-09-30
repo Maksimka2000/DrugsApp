@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using System;
 using System.Net;
 using System.Net.Mail;
@@ -79,20 +80,27 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         // Register DbContext (NpgsqlDataSource enables jsonb deserialization for catalog aliases)
-        string postgresConnectionString = configuration.GetConnectionString("Postgres")
-            ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
+        // Connection strings are resolved from the final IConfiguration at first use so late overrides (e.g. test hosts) apply.
+        services.AddSingleton<NpgsqlDataSource>(serviceProvider =>
+        {
+            string postgresConnectionString = serviceProvider
+                .GetRequiredService<IConfiguration>()
+                .GetConnectionString("Postgres")
+                ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
 
-        services.AddSingleton<NpgsqlDataSource>(_ =>
-            new NpgsqlDataSourceBuilder(postgresConnectionString)
+            return new NpgsqlDataSourceBuilder(postgresConnectionString)
                 .EnableDynamicJson()
-                .Build());
+                .Build();
+        });
 
         services.AddDbContext<DrugsAppDbContext>((serviceProvider, options) =>
             options.UseNpgsql(serviceProvider.GetRequiredService<NpgsqlDataSource>()));
 
         // regis cache registration
-        string? redisConnection = configuration.GetConnectionString("Redis");
-        services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
+        services.AddStackExchangeRedisCache(_ => { });
+        services.AddOptions<RedisCacheOptions>()
+            .Configure<IConfiguration>((options, resolvedConfiguration) =>
+                options.Configuration = resolvedConfiguration.GetConnectionString("Redis"));
 
         // 
         services.AddIdentityCore<ApplicationUser>(options =>

@@ -106,6 +106,43 @@ public sealed class DrugTakenNowProblemOverlapBuilderTests
         rows.Should().BeEmpty();
     }
 
+    [Fact]
+    public void BuildPlanTakingSubsection_WhenPlannedDrugSharesSubstance_EmitsRowWithPlanSectionCode()
+    {
+        ActiveSubstance metformin = ActiveSubstance.Create("Metformin");
+        (Drug plannedDrug, DrugForm plannedForm) = CreateDrug("Glucophage", metformin);
+        (Drug problemDrug, DrugForm problemForm) = CreateDrug("Janumet", metformin);
+        DrugProblem problem = CreateDatabaseProblem(problemForm, "Rash");
+
+        ReportSubsectionReadModel<DrugTakenNowProblemOverlapRowReadModel> subsection =
+            DrugTakenNowProblemOverlapBuilder.BuildPlanTakingSubsection(
+                [new DrugFormIntake(plannedDrug, plannedForm)],
+                [problem]);
+
+        subsection.SectionCode.Should().Be("problematic_drugs.plan_taking_overlap");
+        subsection.HeadlineText.Should().Be(DrugInteractionToolHeadlines.ProblematicDrugsPlanTakingOverlap);
+        subsection.RecordCount.Should().Be(1);
+        DrugTakenNowProblemOverlapRowReadModel row = subsection.Rows.Single();
+        row.OverlapKind.Should().Be(DrugTakenNowAllergyOverlapKind.SharedActiveSubstance);
+        row.RegularDrugId.Should().Be(plannedDrug.Id);
+        row.ProblemDrugId.Should().Be(problemDrug.Id);
+        row.ActiveSubstanceName.Should().Be("Metformin");
+    }
+
+    [Fact]
+    public void BuildPlanTakingSubsection_WhenNoPlannedDrugs_ReturnsEmptySubsection()
+    {
+        (Drug _, DrugForm problemForm) = CreateDrug("Janumet", ActiveSubstance.Create("Metformin"));
+        DrugProblem problem = CreateDatabaseProblem(problemForm, "Rash");
+
+        ReportSubsectionReadModel<DrugTakenNowProblemOverlapRowReadModel> subsection =
+            DrugTakenNowProblemOverlapBuilder.BuildPlanTakingSubsection([], [problem]);
+
+        subsection.SectionCode.Should().Be("problematic_drugs.plan_taking_overlap");
+        subsection.RecordCount.Should().Be(0);
+        subsection.Rows.Should().BeEmpty();
+    }
+
     private static ClientRegularDrug CreateActiveRegular(Drug drug, DrugForm form)
     {
         ClientRegularDrug regular = ClientRegularDrug.Create(

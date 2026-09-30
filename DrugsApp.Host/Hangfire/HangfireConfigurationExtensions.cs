@@ -26,16 +26,17 @@ public static class HangfireConfigurationExtensions
         HangfireSettings settings = configuration.GetSection(HangfireSettings.SectionName).Get<HangfireSettings>() ?? new();
         services.AddSingleton(settings);
 
-        //Read Postgres connection string
-        string? postgresConnectionString = configuration.GetConnectionString("Postgres");
-        if (string.IsNullOrWhiteSpace(postgresConnectionString))
+        // Configure Hangfire storage; the connection string is resolved from the final configuration at first use
+        services.AddHangfire((serviceProvider, hangfireConfiguration) =>
         {
-            throw new InvalidOperationException("ConnectionStrings:Postgres must be configured for Hangfire.");
-        }
+            string? postgresConnectionString = serviceProvider
+                .GetRequiredService<IConfiguration>()
+                .GetConnectionString("Postgres");
+            if (string.IsNullOrWhiteSpace(postgresConnectionString))
+            {
+                throw new InvalidOperationException("ConnectionStrings:Postgres must be configured for Hangfire.");
+            }
 
-        // Configure Hangfire storage
-        services.AddHangfire(hangfireConfiguration =>
-        {
             hangfireConfiguration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
                 .UseSimpleAssemblyNameTypeSerializer()

@@ -19,6 +19,7 @@ using DrugsApp.Domain.InteractionFeature.Repositories;
 using DrugsApp.Domain.MealTimeManagementFeature.Entities;
 using DrugsApp.Domain.MealTimeManagementFeature.Repositories;
 using DrugsApp.Domain.RegularDrugsFeature.Entities;
+using DrugsApp.Domain.RegularDrugsFeature.Enums;
 using DrugsApp.Domain.RegularDrugsFeature.Interfaces;
 using DrugsApp.Domain.RegularDrugsFeature.Shared;
 using DrugsApp.Domain.RegularFoodFeature.Entities;

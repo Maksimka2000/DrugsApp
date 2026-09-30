@@ -21,26 +21,26 @@ ON CONFLICT ("Id") DO UPDATE SET "FormulationName"=EXCLUDED."FormulationName";
 -- Active substances (20)
 INSERT INTO "ActiveSubstances" ("Id", "ActiveSubstanceName", "HasAlcoholInteraction", "CreatedAtUtc")
 VALUES
-    ('f2000000-0000-4000-8000-000000000001'::uuid, 'Ibuprofen', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000002'::uuid, 'Paracetamol', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000003'::uuid, 'Metformin', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000004'::uuid, 'Atorvastatin', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000005'::uuid, 'Omeprazole', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000006'::uuid, 'Amoxicillin', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000007'::uuid, 'Lisinopril', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000008'::uuid, 'Levothyroxine sodium', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000009'::uuid, 'Salbutamol', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000010'::uuid, 'Sertraline', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000011'::uuid, 'Amlodipine', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000012'::uuid, 'Simvastatin', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000013'::uuid, 'Losartan', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000014'::uuid, 'Pantoprazole', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000015'::uuid, 'Cetirizine', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000016'::uuid, 'Metoprolol', FALSE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000001'::uuid, 'Ibuprofen', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000002'::uuid, 'Paracetamol', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000003'::uuid, 'Metformin', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000004'::uuid, 'Atorvastatin', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000005'::uuid, 'Omeprazole', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000006'::uuid, 'Amoxicillin', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000007'::uuid, 'Lisinopril', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000008'::uuid, 'Levothyroxine sodium', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000009'::uuid, 'Salbutamol', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000010'::uuid, 'Sertraline', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000011'::uuid, 'Amlodipine', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000012'::uuid, 'Simvastatin', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000013'::uuid, 'Losartan', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000014'::uuid, 'Pantoprazole', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000015'::uuid, 'Cetirizine', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000016'::uuid, 'Metoprolol', TRUE, (NOW() AT TIME ZONE 'utc')),
     ('f2000000-0000-4000-8000-000000000017'::uuid, 'Warfarin', TRUE, (NOW() AT TIME ZONE 'utc')),
     ('f2000000-0000-4000-8000-000000000018'::uuid, 'Diazepam', TRUE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000019'::uuid, 'Insulin glargine', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2000000-0000-4000-8000-000000000020'::uuid, 'Acetylsalicylic acid', FALSE, (NOW() AT TIME ZONE 'utc'))
+    ('f2000000-0000-4000-8000-000000000019'::uuid, 'Insulin glargine', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2000000-0000-4000-8000-000000000020'::uuid, 'Acetylsalicylic acid', TRUE, (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO UPDATE SET "ActiveSubstanceName"=EXCLUDED."ActiveSubstanceName", "HasAlcoholInteraction"=EXCLUDED."HasAlcoholInteraction";
 -- Drugs (20 original + 15 extended)
 INSERT INTO "Drugs" ("Id", "CommercialName", "TypeOfProduct", "DrugFormCounter", "TypeOfDrug", "CreatedAtUtc")
@@ -313,10 +313,10 @@ ON CONFLICT ("Id") DO UPDATE SET "HealthConditionName"=EXCLUDED."HealthCondition
 -- Drug interaction tool performance fixtures (DrugTest01..20, activeSubstanceTest1..4)
 INSERT INTO "ActiveSubstances" ("Id", "ActiveSubstanceName", "HasAlcoholInteraction", "CreatedAtUtc")
 VALUES
-    ('f2010000-0000-4000-8000-000000000001'::uuid, 'activeSubstanceTest1', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2010000-0000-4000-8000-000000000002'::uuid, 'activeSubstanceTest2', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2010000-0000-4000-8000-000000000003'::uuid, 'activeSubstanceTest3', FALSE, (NOW() AT TIME ZONE 'utc')),
-    ('f2010000-0000-4000-8000-000000000004'::uuid, 'activeSubstanceTest4', FALSE, (NOW() AT TIME ZONE 'utc'))
+    ('f2010000-0000-4000-8000-000000000001'::uuid, 'activeSubstanceTest1', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2010000-0000-4000-8000-000000000002'::uuid, 'activeSubstanceTest2', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2010000-0000-4000-8000-000000000003'::uuid, 'activeSubstanceTest3', TRUE, (NOW() AT TIME ZONE 'utc')),
+    ('f2010000-0000-4000-8000-000000000004'::uuid, 'activeSubstanceTest4', TRUE, (NOW() AT TIME ZONE 'utc'))
 ON CONFLICT ("Id") DO UPDATE SET "ActiveSubstanceName"=EXCLUDED."ActiveSubstanceName", "HasAlcoholInteraction"=EXCLUDED."HasAlcoholInteraction";
 INSERT INTO "Drugs" ("Id", "CommercialName", "TypeOfProduct", "DrugFormCounter", "TypeOfDrug", "CreatedAtUtc")
 VALUES

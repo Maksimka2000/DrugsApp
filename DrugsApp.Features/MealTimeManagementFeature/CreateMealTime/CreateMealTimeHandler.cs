@@ -4,6 +4,7 @@ using DrugsApp.Domain.MealTimeManagementFeature.Entities;
 using DrugsApp.Domain.MealTimeManagementFeature.Repositories;
 using DrugsApp.Features.MealTimeManagementFeature.ApplicationServices;
 using DrugsApp.Features.MealTimeManagementFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -21,6 +22,16 @@ internal sealed class CreateMealTimeHandler(
         CreateMealTimeCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _mealTimeRepository.CountByUserAsync(command.UserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_MEAL_TIMES,
+            "MealTime");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         TimeOnly intakeTime = command.Request.IntakeTime;
         string normalizedMealName = _normalizationService.NormalizeMealName(command.Request.MealName);
 

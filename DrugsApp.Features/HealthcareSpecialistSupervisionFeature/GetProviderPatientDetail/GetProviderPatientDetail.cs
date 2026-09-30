@@ -109,12 +109,20 @@ internal sealed class GetProviderPatientDetailHandler(
                 AccessBlockedMessage: "Access is blocked by the patient.",
                 PatientProfile: null,
                 ReproductiveHealth: null,
+                AllergySummary: null,
                 HealthConditions: null,
-                ProblematicDrugs: null,
-                Allergies: null,
+                DrugProblems: null,
+                DrugAllergies: null,
+                SupplementAllergies: null,
+                FoodAllergies: null,
+                OtherAllergies: null,
                 RegularDrugs: null,
                 RegularFoods: null,
-                RegularSupplements: null);
+                RegularSupplements: null,
+                RegularDrugHistory: null,
+                RegularFoodHistory: null,
+                RegularSupplementHistory: null,
+                MealTimes: null);
         }
 
         UserProfile? patientProfile = await userProfileRepository.GetByUserIdAsync(connection.PatientUserId, cancellationToken);
@@ -151,12 +159,20 @@ internal sealed class GetProviderPatientDetailHandler(
                 AccessBlockedMessage: null,
                 PatientProfile: patientProfileDto,
                 ReproductiveHealth: null,
+                AllergySummary: null,
                 HealthConditions: null,
-                ProblematicDrugs: null,
-                Allergies: null,
+                DrugProblems: null,
+                DrugAllergies: null,
+                SupplementAllergies: null,
+                FoodAllergies: null,
+                OtherAllergies: null,
                 RegularDrugs: null,
                 RegularFoods: null,
-                RegularSupplements: null);
+                RegularSupplements: null,
+                RegularDrugHistory: null,
+                RegularFoodHistory: null,
+                RegularSupplementHistory: null,
+                MealTimes: null);
         }
 
         ProviderPatientMedicalDetailData medicalProfile = await medicalProfileReadService.LoadAsync(
@@ -170,12 +186,20 @@ internal sealed class GetProviderPatientDetailHandler(
             AccessBlockedMessage: null,
             PatientProfile: patientProfileDto,
             ReproductiveHealth: medicalProfile.ReproductiveHealth,
+            AllergySummary: medicalProfile.AllergySummary,
             HealthConditions: medicalProfile.HealthConditions,
-            ProblematicDrugs: medicalProfile.ProblematicDrugs,
-            Allergies: medicalProfile.Allergies,
+            DrugProblems: medicalProfile.DrugProblems,
+            DrugAllergies: medicalProfile.DrugAllergies,
+            SupplementAllergies: medicalProfile.SupplementAllergies,
+            FoodAllergies: medicalProfile.FoodAllergies,
+            OtherAllergies: medicalProfile.OtherAllergies,
             RegularDrugs: medicalProfile.RegularDrugs,
             RegularFoods: medicalProfile.RegularFoods,
-            RegularSupplements: medicalProfile.RegularSupplements);
+            RegularSupplements: medicalProfile.RegularSupplements,
+            RegularDrugHistory: medicalProfile.RegularDrugHistory,
+            RegularFoodHistory: medicalProfile.RegularFoodHistory,
+            RegularSupplementHistory: medicalProfile.RegularSupplementHistory,
+            MealTimes: medicalProfile.MealTimes);
 
     }
 

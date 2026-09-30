@@ -19,6 +19,7 @@ internal static class RegularSupplementMappings
             SupplementId: regularSupplement.SupplementId,
             OwnSupplementId: regularSupplement.OwnSupplementId,
             DisplayName: ResolveDisplayName(regularSupplement),
+            Aliases: MapAliases(regularSupplement),
             Status: regularSupplement.Status,
             StartDate: regularSupplement.StartDate,
             EndDate: regularSupplement.EndDate,
@@ -35,6 +36,7 @@ internal static class RegularSupplementMappings
             SupplementId: regularSupplement.SupplementId,
             OwnSupplementId: regularSupplement.OwnSupplementId,
             DisplayName: ResolveDisplayName(regularSupplement),
+            Aliases: MapAliases(regularSupplement),
             Status: regularSupplement.Status,
             StartDate: regularSupplement.StartDate,
             EndDate: regularSupplement.EndDate,
@@ -51,6 +53,7 @@ internal static class RegularSupplementMappings
             SupplementId: regularSupplement.SupplementId,
             OwnSupplementId: regularSupplement.OwnSupplementId,
             DisplayName: ResolveDisplayName(regularSupplement),
+            Aliases: MapAliases(regularSupplement),
             Status: regularSupplement.Status,
             StartDate: regularSupplement.StartDate,
             EndDate: regularSupplement.EndDate,
@@ -97,6 +100,11 @@ internal static class RegularSupplementMappings
             RegularSupplementSource.Own => regularSupplement.OwnSupplement?.Name ?? string.Empty,
             _ => string.Empty,
         };
+
+    private static IReadOnlyCollection<string> MapAliases(ClientRegularSupplement regularSupplement) =>
+        regularSupplement.Source == RegularSupplementSource.Database && regularSupplement.Supplement is not null
+            ? regularSupplement.Supplement.Aliases.ToList()
+            : Array.Empty<string>();
 
     public static string BuildNotificationSummary(ClientRegularSupplement regularSupplement)
     {

@@ -7,6 +7,7 @@ using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Repositories;
 using DrugsApp.Features.RegularSupplementsFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -25,6 +26,20 @@ internal sealed class CreateRegularSupplementHandler(
         CreateRegularSupplementCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _clientRegularSupplementRepository.CountLiveByUserIdAsync(
+            command.UserId,
+            nameQuery: null,
+            startDate: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_REGULAR_SUPPLEMENTS,
+            "RegularSupplement");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         RegularSupplementSource? source = RegularSupplementMappings.MapSourceFromToken(command.Request.Source);
         if (source is null)
         {

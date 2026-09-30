@@ -15,6 +15,7 @@ using DrugsApp.Domain.RegularDrugsFeature.Shared;
 using DrugsApp.Features.RegularDrugsFeature.CreateRegularDrug;
 using DrugsApp.Features.RegularDrugsFeature.Shared;
 using DrugsApp.Features.RegularDrugsFeature.UpdateRegularDrug;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 
 namespace DrugsApp.Features.RegularDrugsFeature.ApplicationServices;
@@ -41,6 +42,20 @@ public sealed class RegularDrugsApplicationService(
         CreateRegularDrugRequest request,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _clientRegularDrugRepository.CountLiveByUserIdAsync(
+            userId,
+            drugNameQuery: null,
+            startDate: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_REGULAR_DRUGS,
+            "RegularDrug");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         Drug? drug = await _drugRepository.GetByIdAsync(request.DrugId, cancellationToken);
         if (drug is null)
         {

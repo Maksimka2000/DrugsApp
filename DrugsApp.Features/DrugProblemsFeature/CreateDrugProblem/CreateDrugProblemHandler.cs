@@ -7,6 +7,7 @@ using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.DrugProblemsFeature.Repositories;
 using DrugsApp.Domain.RegularDrugsFeature.Shared;
 using DrugsApp.Features.DrugProblemsFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -24,6 +25,16 @@ internal sealed class CreateDrugProblemHandler(
         CreateDrugProblemCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _drugProblemRepository.CountByUserIdAsync(command.UserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "DrugProblem");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         if (command.Request.DrugFormId is not null)
         {
             return await CreateDatabaseAsync(command, cancellationToken);

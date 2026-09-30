@@ -31,6 +31,24 @@ internal static class DrugTakenNowProblemOverlapBuilder
     }
 
     /// <summary>
+    /// Builds the plan-taking overlap subsection for manually selected drugs without additional database access.
+    /// </summary>
+    /// <param name="plannedDrugs">Manually selected, eligible drug forms the user plans to take.</param>
+    /// <param name="drugProblems">Drug drug problems rows already loaded for the user.</param>
+    /// <returns>Always-present subsection whose row count may be zero.</returns>
+    internal static ReportSubsectionReadModel<DrugTakenNowProblemOverlapRowReadModel> BuildPlanTakingSubsection(
+        IReadOnlyCollection<DrugFormIntake> plannedDrugs,
+        IReadOnlyCollection<DrugProblem> drugProblems)
+    {
+        IReadOnlyCollection<DrugTakenNowProblemOverlapRowReadModel> rows = BuildRowsForIntakes(plannedDrugs, drugProblems);
+
+        return DrugInteractionToolReportMapping.BuildSubsection(
+            "problematic_drugs.plan_taking_overlap",
+            DrugInteractionToolHeadlines.ProblematicDrugsPlanTakingOverlap,
+            rows);
+    }
+
+    /// <summary>
     /// Pairs each active eligible regular drug with each database drug problem in memory.
     /// </summary>
     /// <param name="regularDrugs">Live regular drug rows already loaded for the user.</param>
@@ -40,14 +58,28 @@ internal static class DrugTakenNowProblemOverlapBuilder
         IReadOnlyCollection<ClientRegularDrug> regularDrugs,
         IReadOnlyCollection<DrugProblem> drugProblems)
     {
-        List<ClientRegularDrug> takenNowRows = regularDrugs
+        List<DrugFormIntake> takenNowIntakes = regularDrugs
             .Where(row =>
                 row.Status == RegularDrugStatus.Active
                 && row.Drug is not null
                 && row.DrugForm is not null
                 && RegularDrugEligibility.IsEligibleDrug(row.Drug))
+            .Select(row => new DrugFormIntake(row.Drug, row.DrugForm))
             .ToList();
 
+        return BuildRowsForIntakes(takenNowIntakes, drugProblems);
+    }
+
+    /// <summary>
+    /// Pairs each intake with each database drug problem in memory.
+    /// </summary>
+    /// <param name="intakes">Drug forms taken now or planned, already loaded with active substances.</param>
+    /// <param name="drugProblems">Drug drug problems rows already loaded for the user.</param>
+    /// <returns>Deduped, sorted overlap rows.</returns>
+    internal static IReadOnlyCollection<DrugTakenNowProblemOverlapRowReadModel> BuildRowsForIntakes(
+        IReadOnlyCollection<DrugFormIntake> intakes,
+        IReadOnlyCollection<DrugProblem> drugProblems)
+    {
         List<DrugProblem> databaseProblems = drugProblems
             .Where(problem =>
                 problem.Source == DrugProblemSource.Database
@@ -58,10 +90,10 @@ internal static class DrugTakenNowProblemOverlapBuilder
         HashSet<(Guid RegularFormId, Guid ProblemFormId)> sameDrugKeys = new();
         HashSet<(Guid RegularFormId, Guid ProblemFormId, Guid SubstanceId)> sharedSubstanceKeys = new();
 
-        foreach (ClientRegularDrug regularRow in takenNowRows)
+        foreach (DrugFormIntake intake in intakes)
         {
-            Drug regularDrug = regularRow.Drug;
-            DrugForm regularForm = regularRow.DrugForm;
+            Drug regularDrug = intake.Drug;
+            DrugForm regularForm = intake.Form;
             var regularSubstanceIds = regularDrug.ActiveSubstances
                 .Select(substance => substance.Id)
                 .ToHashSet();

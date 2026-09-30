@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DrugsApp.Domain.AllergiesFeature.Entities;
 using DrugsApp.Domain.AllergiesFeature.Repositories;
 using DrugsApp.Features.AllergiesFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -15,6 +16,16 @@ internal sealed class CreateOtherAllergyHandler(IClientOtherAllergyRepository _r
         CreateOtherAllergyCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _repository.CountAsync(command.UserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "OtherAllergy");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         string normalized = AllergySharedMappings.NormalizeForLookup(command.Request.AllergyName);
         bool exists = await _repository.ExistsNameNormalizedAsync(
             command.UserId, normalized, excludeId: null, cancellationToken);
