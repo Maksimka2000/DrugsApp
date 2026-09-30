@@ -1,5 +1,7 @@
+using System.Globalization;
 using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
+using DrugsApp.Domain.RegularDrugsFeature.Entities;
 
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
 
@@ -101,7 +103,11 @@ internal static class DrugInteractionToolReportMapping
         return string.Join(", ", parts);
     }
 
-    internal static SpecificDrugDetailReadModel MapSpecificDrugDetail(Drug drug, DrugForm form) =>
+    internal static SpecificDrugDetailReadModel MapSpecificDrugDetail(
+        Drug drug,
+        DrugForm form,
+        SelectedDrugSource? source = null,
+        RegularDrugIntakeReadModel? regularIntake = null) =>
         new(
             DrugId: drug.Id,
             CommercialName: drug.CommercialName,
@@ -113,7 +119,53 @@ internal static class DrugInteractionToolReportMapping
                 .OrderBy(substance => substance.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(substance => substance.Id)
                 .Select(substance => new ActiveSubstanceRefReadModel(substance.Id, substance.ActiveSubstanceName))
-                .ToList());
+                .ToList(),
+            SelectedDrugSource: source,
+            RegularIntake: MapRegularIntake(source, regularIntake));
+
+    internal static RegularDrugIntakeReadModel? MapRegularIntake(
+        SelectedDrugSource? source,
+        ClientRegularDrug? regularDrug)
+    {
+        if (regularDrug is null)
+        {
+            return null;
+        }
+
+        return MapRegularIntake(source, MapRegularIntakeSnapshot(regularDrug));
+    }
+
+    internal static RegularDrugIntakeReadModel MapRegularIntakeSnapshot(ClientRegularDrug regularDrug)
+    {
+        List<string> times = regularDrug.IntakeTimes
+            .Select(entry => entry.IntakeTime.ToString("HH:mm", CultureInfo.InvariantCulture))
+            .OrderBy(time => time, StringComparer.Ordinal)
+            .ToList();
+
+        bool isOngoing = !regularDrug.StartDate.HasValue && !regularDrug.EndDate.HasValue;
+
+        return new RegularDrugIntakeReadModel(
+            IntakeTimes: times,
+            StartDate: FormatIsoDate(regularDrug.StartDate),
+            EndDate: FormatIsoDate(regularDrug.EndDate),
+            IsOngoing: isOngoing);
+    }
+
+    private static RegularDrugIntakeReadModel? MapRegularIntake(
+        SelectedDrugSource? source,
+        RegularDrugIntakeReadModel? snapshot)
+    {
+        if (source is not SelectedDrugSource.UserRegular
+            and not SelectedDrugSource.ManualAndUserRegular)
+        {
+            return null;
+        }
+
+        return snapshot;
+    }
+
+    private static string? FormatIsoDate(DateOnly? value) =>
+        value?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     internal static string BuildSubstancePairDisplayLine(
         string currentName,

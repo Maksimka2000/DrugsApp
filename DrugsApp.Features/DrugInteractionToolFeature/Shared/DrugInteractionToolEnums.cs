@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
 
 /// <summary>
@@ -19,21 +21,25 @@ internal enum ReportAudience
 /// <summary>
 /// Origin of a drug row in the registered report [description].
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum SelectedDrugSource
 {
     /// <summary>
     /// Manually selected form id from the request.
     /// </summary>
+    [JsonStringEnumMemberName("manual")]
     Manual = 0,
 
     /// <summary>
     /// Merged from the user's live regular drug schedule.
     /// </summary>
+    [JsonStringEnumMemberName("user_regular")]
     UserRegular = 1,
 
     /// <summary>
     /// Present both manually and as a regular drug.
     /// </summary>
+    [JsonStringEnumMemberName("manual_and_user_regular")]
     ManualAndUserRegular = 2
 }
 

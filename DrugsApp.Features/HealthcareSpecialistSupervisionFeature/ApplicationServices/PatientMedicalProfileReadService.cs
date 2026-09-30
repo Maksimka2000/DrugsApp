@@ -107,13 +107,16 @@ public sealed class PatientMedicalProfileReadService(
         return new ProviderPatientMedicalDetailData(
             ReproductiveHealth: reproductiveHealth,
             HealthConditions: PatientMedicalProfileSectionBuilders.BuildHealthConditionsGroup(healthConditions),
-            ProblematicDrugs: PatientMedicalProfileSectionBuilders.BuildProblematicDrugsGroup(drugProblems),
+            ProblematicDrugs: PatientMedicalProfileSectionBuilders.BuildProblematicDrugsGroup(
+                drugProblems,
+                regularDrugs),
             Allergies: PatientMedicalProfileSectionBuilders.BuildAllergiesGroup(
                 drugAllergies,
                 foodAllergies,
                 supplementAllergies,
                 otherAllergies,
                 allergySummary,
+                regularDrugs,
                 takenFoodIds,
                 takenSupplementIds),
             RegularDrugs: regularDrugs.Select(RegularDrugMappings.MapToListItemDto).ToList(),

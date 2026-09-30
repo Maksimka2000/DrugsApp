@@ -41,11 +41,23 @@ internal static class DrugInteractionToolHeadlines
     internal const string ProblematicDrugsCustom =
         "THIS USER/YOU HAVE ENTERED A PROBLEMATIC DRUG WHICH IS NOT IN THE DATABASE";
 
+    internal const string ProblematicDrugsTakenNowOverlap =
+        "THIS USER/YOU HAVE OVERLAP IN PROBLEMATIC DRUGS TAKEN NOW";
+
     internal const string DrugAllergiesDatabase =
         "THIS USER/YOU HAVE DRUG ALLERGIES FROM THE DATABASE";
 
     internal const string DrugAllergiesCustom =
         "THIS USER/YOU HAVE CUSTOM DRUG ALLERGIES";
+
+    internal const string DrugAllergiesTakenNowOverlap =
+        "THIS USER/YOU HAVE OVERLAP IN DRUGS TAKEN NOW";
+
+    internal const string DrugTakenNowOverlapSameDrugName =
+        "The same drug name overlap";
+
+    internal const string DrugTakenNowOverlapSharedActiveSubstance =
+        "The same active substance name overlap";
 
     internal const string SupplementAllergiesDatabase =
         "THIS USER/YOU HAVE SUPPLEMENT ALLERGIES FROM THE DATABASE";

@@ -7,6 +7,7 @@ using DrugsApp.Domain.DrugProblemsFeature.Enums;
 using DrugsApp.Domain.DrugProblemsFeature.Repositories;
 using DrugsApp.Domain.HealthConditionFeature.Entities;
 using DrugsApp.Domain.HealthConditionFeature.Repositories;
+using DrugsApp.Domain.RegularDrugsFeature.Entities;
 using DrugsApp.Features.DrugInteractionToolFeature.Shared;
 
 namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ApplicationServices;
@@ -45,7 +46,8 @@ internal static class PatientMedicalProfileSectionBuilders
     }
 
     public static ProblematicDrugsGroupReadModel BuildProblematicDrugsGroup(
-        IReadOnlyCollection<DrugProblem> problems)
+        IReadOnlyCollection<DrugProblem> problems,
+        IReadOnlyCollection<ClientRegularDrug> regularDrugs)
     {
         var databaseRows = problems
             .Where(problem => problem.Source == DrugProblemSource.Database && problem.DrugForm?.Drug is not null)
@@ -94,7 +96,8 @@ internal static class PatientMedicalProfileSectionBuilders
             Custom: DrugInteractionToolReportMapping.BuildSubsection(
                 "problematic_drugs.custom",
                 DrugInteractionToolHeadlines.ProblematicDrugsCustom,
-                customRows));
+                customRows),
+            TakenNowOverlap: DrugTakenNowProblemOverlapBuilder.BuildSubsection(regularDrugs, problems));
     }
 
     public static AllergiesGroupReadModel BuildAllergiesGroup(
@@ -103,16 +106,18 @@ internal static class PatientMedicalProfileSectionBuilders
         IReadOnlyCollection<ClientSupplementAllergy> supplementAllergies,
         IReadOnlyCollection<ClientOtherAllergy> otherAllergies,
         ClientAllergySummary? summary,
+        IReadOnlyCollection<ClientRegularDrug> regularDrugs,
         HashSet<Guid> takenFoodIds,
         HashSet<Guid> takenSupplementIds) =>
         new(
-            DrugAllergies: BuildDrugAllergySubgroup(drugAllergies),
+            DrugAllergies: BuildDrugAllergySubgroup(drugAllergies, regularDrugs),
             SupplementAllergies: BuildSupplementAllergySubgroup(supplementAllergies, takenSupplementIds),
             FoodAllergies: BuildFoodAllergySubgroup(foodAllergies, takenFoodIds),
             OtherAllergies: BuildOtherAllergySubgroup(summary, otherAllergies));
 
     private static AllergyDrugSubgroupReadModel BuildDrugAllergySubgroup(
-        IReadOnlyCollection<ClientDrugAllergy> allergies)
+        IReadOnlyCollection<ClientDrugAllergy> allergies,
+        IReadOnlyCollection<ClientRegularDrug> regularDrugs)
     {
         var databaseRows = allergies
             .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.DrugForm?.Drug is not null)
@@ -161,7 +166,8 @@ internal static class PatientMedicalProfileSectionBuilders
             Custom: DrugInteractionToolReportMapping.BuildSubsection(
                 "allergies.drug.custom",
                 DrugInteractionToolHeadlines.DrugAllergiesCustom,
-                customRows));
+                customRows),
+            TakenNowOverlap: DrugTakenNowAllergyOverlapBuilder.BuildSubsection(regularDrugs, allergies));
     }
 
     private static AllergyFoodSubgroupReadModel BuildFoodAllergySubgroup(

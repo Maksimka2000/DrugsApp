@@ -71,7 +71,8 @@ public sealed class DrugInteractionToolReportApplicationService(
     private sealed record DrugFormSelection(
         Drug Drug,
         DrugForm Form,
-        SelectedDrugSource? Source);
+        SelectedDrugSource? Source,
+        RegularDrugIntakeReadModel? RegularIntake = null);
 
     private sealed record CrossDrugPairKey(Guid LeftFormId, Guid RightFormId);
 
@@ -227,7 +228,11 @@ public sealed class DrugInteractionToolReportApplicationService(
 
             UserMedicalBundle bundle = await LoadUserMedicalBundleAsync(userId, cancellationToken);
             allergyIndexes = BuildAllergyIndexes(bundle.DrugAllergies, bundle.DrugProblems);
-            userInfoSection = BuildUserInfoSection(bundle, takenNowFoodIds, takenNowSupplementIds);
+            userInfoSection = BuildUserInfoSection(
+                bundle,
+                regularDrugs,
+                takenNowFoodIds,
+                takenNowSupplementIds);
         }
 
         return await BuildRegisteredReportAsync(
@@ -330,7 +335,8 @@ public sealed class DrugInteractionToolReportApplicationService(
             {
                 byFormId[regularRow.DrugFormId] = existing with
                 {
-                    Source = SelectedDrugSource.ManualAndUserRegular
+                    Source = SelectedDrugSource.ManualAndUserRegular,
+                    RegularIntake = DrugInteractionToolReportMapping.MapRegularIntakeSnapshot(regularRow)
                 };
                 continue;
             }
@@ -338,7 +344,8 @@ public sealed class DrugInteractionToolReportApplicationService(
             byFormId[regularRow.DrugFormId] = new DrugFormSelection(
                 regularRow.Drug,
                 regularRow.DrugForm,
-                SelectedDrugSource.UserRegular);
+                SelectedDrugSource.UserRegular,
+                DrugInteractionToolReportMapping.MapRegularIntakeSnapshot(regularRow));
         }
 
         return byFormId.Values
@@ -569,7 +576,9 @@ public sealed class DrugInteractionToolReportApplicationService(
                 selection.Form);
             drugDetailsByFormId[selection.Form.Id] = DrugInteractionToolReportMapping.MapSpecificDrugDetail(
                 selection.Drug,
-                selection.Form);
+                selection.Form,
+                selection.Source,
+                selection.RegularIntake);
         }
 
         var substanceNameById = activeSubstanceById.ToDictionary(
@@ -1505,13 +1514,20 @@ public sealed class DrugInteractionToolReportApplicationService(
 
     private static UserInfoSectionReadModel BuildUserInfoSection(
         UserMedicalBundle bundle,
+        IReadOnlyCollection<ClientRegularDrug> regularDrugs,
         HashSet<Guid> takenNowFoodIds,
         HashSet<Guid> takenNowSupplementIds)
     {
         List<MainWarningReadModel> mainWarnings = BuildMainWarnings(bundle.ReproductiveHealth);
         HealthConditionsGroupReadModel healthConditions = BuildHealthConditionsGroup(bundle.HealthConditions);
-        ProblematicDrugsGroupReadModel problematicDrugs = BuildProblematicDrugsGroup(bundle.DrugProblems);
-        AllergiesGroupReadModel allergies = BuildAllergiesGroup(bundle, takenNowFoodIds, takenNowSupplementIds);
+        ProblematicDrugsGroupReadModel problematicDrugs = BuildProblematicDrugsGroup(
+            bundle.DrugProblems,
+            regularDrugs);
+        AllergiesGroupReadModel allergies = BuildAllergiesGroup(
+            bundle,
+            regularDrugs,
+            takenNowFoodIds,
+            takenNowSupplementIds);
 
         return new UserInfoSectionReadModel(
             MainWarnings: mainWarnings,
@@ -1576,7 +1592,9 @@ public sealed class DrugInteractionToolReportApplicationService(
                 customRows));
     }
 
-    private static ProblematicDrugsGroupReadModel BuildProblematicDrugsGroup(List<DrugProblem> problems)
+    private static ProblematicDrugsGroupReadModel BuildProblematicDrugsGroup(
+        List<DrugProblem> problems,
+        IReadOnlyCollection<ClientRegularDrug> regularDrugs)
     {
         var databaseRows = problems
             .Where(problem => problem.Source == DrugProblemSource.Database && problem.DrugForm?.Drug is not null)
@@ -1625,22 +1643,26 @@ public sealed class DrugInteractionToolReportApplicationService(
             Custom: DrugInteractionToolReportMapping.BuildSubsection(
                 "problematic_drugs.custom",
                 DrugInteractionToolHeadlines.ProblematicDrugsCustom,
-                customRows));
+                customRows),
+            TakenNowOverlap: DrugTakenNowProblemOverlapBuilder.BuildSubsection(regularDrugs, problems));
     }
 
     private static AllergiesGroupReadModel BuildAllergiesGroup(
         UserMedicalBundle bundle,
+        IReadOnlyCollection<ClientRegularDrug> regularDrugs,
         HashSet<Guid> takenFoodIds,
         HashSet<Guid> takenSupplementIds)
     {
         return new AllergiesGroupReadModel(
-            DrugAllergies: BuildDrugAllergySubgroup(bundle.DrugAllergies),
+            DrugAllergies: BuildDrugAllergySubgroup(bundle.DrugAllergies, regularDrugs),
             SupplementAllergies: BuildSupplementAllergySubgroup(bundle.SupplementAllergies, takenSupplementIds),
             FoodAllergies: BuildFoodAllergySubgroup(bundle.FoodAllergies, takenFoodIds),
             OtherAllergies: BuildOtherAllergySubgroup(bundle.AllergySummary, bundle.OtherAllergies));
     }
 
-    private static AllergyDrugSubgroupReadModel BuildDrugAllergySubgroup(IReadOnlyCollection<ClientDrugAllergy> allergies)
+    private static AllergyDrugSubgroupReadModel BuildDrugAllergySubgroup(
+        IReadOnlyCollection<ClientDrugAllergy> allergies,
+        IReadOnlyCollection<ClientRegularDrug> regularDrugs)
     {
         var databaseRows = allergies
             .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.DrugForm?.Drug is not null)
@@ -1689,7 +1711,8 @@ public sealed class DrugInteractionToolReportApplicationService(
             Custom: DrugInteractionToolReportMapping.BuildSubsection(
                 "allergies.drug.custom",
                 DrugInteractionToolHeadlines.DrugAllergiesCustom,
-                customRows));
+                customRows),
+            TakenNowOverlap: DrugTakenNowAllergyOverlapBuilder.BuildSubsection(regularDrugs, allergies));
     }
 
     private static AllergyFoodSubgroupReadModel BuildFoodAllergySubgroup(

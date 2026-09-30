@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DrugsApp.Domain.DrugFeature.Entities;
 
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
@@ -68,6 +69,19 @@ public sealed record DuplicationDrugSummaryReadModel(
     bool IsOral);
 
 /// <summary>
+/// Regular-medication schedule attached when a specific-drug row comes from the user's live intake [description].
+/// </summary>
+/// <param name="IntakeTimes">Daily clock times in HH:mm.</param>
+/// <param name="StartDate">ISO date when the course starts, or null when ongoing.</param>
+/// <param name="EndDate">ISO date when the course ends, or null when open-ended.</param>
+/// <param name="IsOngoing">True when both dates are absent.</param>
+public sealed record RegularDrugIntakeReadModel(
+    IReadOnlyCollection<string> IntakeTimes,
+    string? StartDate,
+    string? EndDate,
+    bool IsOngoing);
+
+/// <summary>
 /// Expanded per-drug header for specific drug report blocks [description].
 /// </summary>
 /// <param name="DrugId">Identifier of the drug.</param>
@@ -77,6 +91,8 @@ public sealed record DuplicationDrugSummaryReadModel(
 /// <param name="SelectedDrugFormId">Identifier of the selected form.</param>
 /// <param name="SelectedDrugFormSummary">Summary of the selected form.</param>
 /// <param name="ActiveSubstances">Active substances included.</param>
+/// <param name="SelectedDrugSource">How the form entered the report; null on public reports.</param>
+/// <param name="RegularIntake">Schedule copied from the matching live regular-drug row.</param>
 public sealed record SpecificDrugDetailReadModel(
     Guid DrugId,
     string CommercialName,
@@ -84,7 +100,11 @@ public sealed record SpecificDrugDetailReadModel(
     DrugType TypeOfDrug,
     Guid SelectedDrugFormId,
     SelectedDrugFormSummaryReadModel SelectedDrugFormSummary,
-    IReadOnlyCollection<ActiveSubstanceRefReadModel> ActiveSubstances);
+    IReadOnlyCollection<ActiveSubstanceRefReadModel> ActiveSubstances,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    SelectedDrugSource? SelectedDrugSource = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    RegularDrugIntakeReadModel? RegularIntake = null);
 
 /// <summary>
 /// Public tool settings snapshot (CASE TWO) [description].
@@ -552,13 +572,44 @@ public sealed record CustomProblematicDrugRowReadModel(
     string DisplayLine);
 
 /// <summary>
+/// Taken-now drug overlap with a database drug problem [description].
+/// </summary>
+/// <param name="OverlapKind">0 = same catalog drug; 1 = shared active substance.</param>
+/// <param name="RegularDrugId">Catalog drug identifier of the regular intake.</param>
+/// <param name="RegularDrugFormId">Catalog drug form identifier of the regular intake.</param>
+/// <param name="RegularDrugSummaryText">Regular intake drug summary text.</param>
+/// <param name="ProblemDrugId">Catalog drug identifier of the problem record.</param>
+/// <param name="ProblemDrugFormId">Catalog drug form identifier of the problem record.</param>
+/// <param name="ProblemDrugSummaryText">Problem drug summary text.</param>
+/// <param name="UserNote">Optional problem note.</param>
+/// <param name="Title">Fixed title for the overlap kind.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="ActiveSubstanceId">Shared substance identifier when kind is 1.</param>
+/// <param name="ActiveSubstanceName">Shared substance name when kind is 1.</param>
+public sealed record DrugTakenNowProblemOverlapRowReadModel(
+    DrugTakenNowAllergyOverlapKind OverlapKind,
+    Guid RegularDrugId,
+    Guid RegularDrugFormId,
+    string RegularDrugSummaryText,
+    Guid ProblemDrugId,
+    Guid ProblemDrugFormId,
+    string ProblemDrugSummaryText,
+    string? UserNote,
+    string Title,
+    string DisplayLine,
+    Guid? ActiveSubstanceId,
+    string? ActiveSubstanceName);
+
+/// <summary>
 /// Problematic drugs user-info group [description].
 /// </summary>
 /// <param name="FromDatabase">Problematic drugs from database.</param>
 /// <param name="Custom">Custom problematic drugs.</param>
+/// <param name="TakenNowOverlap">Taken-now overlap subsection.</param>
 public sealed record ProblematicDrugsGroupReadModel(
     ReportSubsectionReadModel<ProblematicDrugRowReadModel> FromDatabase,
-    ReportSubsectionReadModel<CustomProblematicDrugRowReadModel> Custom);
+    ReportSubsectionReadModel<CustomProblematicDrugRowReadModel> Custom,
+    ReportSubsectionReadModel<DrugTakenNowProblemOverlapRowReadModel> TakenNowOverlap);
 
 /// <summary>
 /// Drug allergy database row [description].
@@ -671,13 +722,60 @@ public sealed record FoodTakenNowAllergyOverlapRowReadModel(
     string DisplayLine);
 
 /// <summary>
+/// Taken-now overlap between a regular catalog drug and a database drug allergy [description].
+/// </summary>
+public enum DrugTakenNowAllergyOverlapKind
+{
+    /// <summary>
+    /// Same catalog drug; selected forms may differ.
+    /// </summary>
+    SameDrugName = 0,
+
+    /// <summary>
+    /// Different catalog drugs that share at least one active substance.
+    /// </summary>
+    SharedActiveSubstance = 1
+}
+
+/// <summary>
+/// Taken-now drug overlap with allergy row [description].
+/// </summary>
+/// <param name="OverlapKind">0 = same catalog drug; 1 = shared active substance.</param>
+/// <param name="RegularDrugId">Catalog drug identifier of the regular intake.</param>
+/// <param name="RegularDrugFormId">Catalog drug form identifier of the regular intake.</param>
+/// <param name="RegularDrugSummaryText">Regular intake drug summary text.</param>
+/// <param name="AllergyDrugId">Catalog drug identifier of the allergy record.</param>
+/// <param name="AllergyDrugFormId">Catalog drug form identifier of the allergy record.</param>
+/// <param name="AllergyDrugSummaryText">Allergy drug summary text.</param>
+/// <param name="UserNote">Optional allergy note.</param>
+/// <param name="Title">Fixed title for the overlap kind.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="ActiveSubstanceId">Shared substance identifier when kind is 1.</param>
+/// <param name="ActiveSubstanceName">Shared substance name when kind is 1.</param>
+public sealed record DrugTakenNowAllergyOverlapRowReadModel(
+    DrugTakenNowAllergyOverlapKind OverlapKind,
+    Guid RegularDrugId,
+    Guid RegularDrugFormId,
+    string RegularDrugSummaryText,
+    Guid AllergyDrugId,
+    Guid AllergyDrugFormId,
+    string AllergyDrugSummaryText,
+    string? UserNote,
+    string Title,
+    string DisplayLine,
+    Guid? ActiveSubstanceId,
+    string? ActiveSubstanceName);
+
+/// <summary>
 /// Drug allergy subgroup [description].
 /// </summary>
 /// <param name="FromDatabase">Drug allergy database subsection.</param>
 /// <param name="Custom">Custom drug allergy subsection.</param>
+/// <param name="TakenNowOverlap">Taken-now overlap subsection.</param>
 public sealed record AllergyDrugSubgroupReadModel(
     ReportSubsectionReadModel<DrugAllergyRowReadModel> FromDatabase,
-    ReportSubsectionReadModel<CustomDrugAllergyRowReadModel> Custom);
+    ReportSubsectionReadModel<CustomDrugAllergyRowReadModel> Custom,
+    ReportSubsectionReadModel<DrugTakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
 
 /// <summary>
 /// Supplement allergy subgroup [description].
