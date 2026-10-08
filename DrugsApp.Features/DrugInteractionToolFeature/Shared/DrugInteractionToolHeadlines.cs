@@ -95,6 +95,12 @@ internal static class DrugInteractionToolHeadlines
     internal const string GroupDuplication =
         "ACTIVE SUBSTANCE GROUP DUPLICATIONS BETWEEN SELECTED DRUGS";
 
+    internal const string DrugDuplication =
+        "THE SAME DRUG IS SELECTED OR TAKEN IN MORE THAN ONE FORM";
+
+    internal const string DrugFormDuplication =
+        "SELECTED DRUG FORM IS ALREADY TAKEN REGULARLY";
+
     internal const string MainWarningCurrentlyPregnant =
         "The user is currently pregnant. Consult a healthcare professional before taking any medication.";
 

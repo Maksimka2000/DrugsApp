@@ -61,11 +61,13 @@ public sealed record ActiveSubstanceRefReadModel(
 /// Duplication-friendly drug summary without form id, listing each affected drug form [description].
 /// </summary>
 /// <param name="DrugId">Identifier of the drug.</param>
+/// <param name="DrugFormId">Identifier of the affected drug form.</param>
 /// <param name="OnlyDrugSummaryText">Drug summary as `Name (substances) | form | dosage`.</param>
 /// <param name="IsOral">Indicates whether the form is oral.</param>
 /// <param name="Source">Whether the drug is taken now or selected for this report.</param>
 public sealed record DuplicationDrugSummaryReadModel(
     Guid DrugId,
+    Guid DrugFormId,
     string OnlyDrugSummaryText,
     bool IsOral,
     DuplicationDrugSource Source);
@@ -499,15 +501,51 @@ public sealed record GroupDuplicationRowReadModel(
     DuplicationKind DuplicationKind);
 
 /// <summary>
+/// Same-drug duplication row: several forms of one drug are selected or taken together [description].
+/// </summary>
+/// <param name="DrugId">Identifier of the duplicated drug.</param>
+/// <param name="DrugName">Commercial name of the duplicated drug.</param>
+/// <param name="AffectedDrugs">Every affected drug form with its role (taking now or selected).</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="DuplicationKind">Duplication classification.</param>
+public sealed record DrugDuplicationRowReadModel(
+    Guid DrugId,
+    string DrugName,
+    IReadOnlyCollection<DuplicationDrugSummaryReadModel> AffectedDrugs,
+    string DisplayLine,
+    DuplicationKind DuplicationKind);
+
+/// <summary>
+/// Same-drug-form duplication row: a selected form is already on the user's regular intake list [description].
+/// </summary>
+/// <param name="DrugId">Identifier of the duplicated drug.</param>
+/// <param name="DrugFormId">Identifier of the duplicated drug form.</param>
+/// <param name="DrugSummaryText">Drug summary as `Name (substances) | form | dosage`.</param>
+/// <param name="AffectedDrugs">The form in both of its roles (taking now and selected).</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="DuplicationKind">Duplication classification.</param>
+public sealed record DrugFormDuplicationRowReadModel(
+    Guid DrugId,
+    Guid DrugFormId,
+    string DrugSummaryText,
+    IReadOnlyCollection<DuplicationDrugSummaryReadModel> AffectedDrugs,
+    string DisplayLine,
+    DuplicationKind DuplicationKind);
+
+/// <summary>
 /// Drug duplication warnings section [description].
 /// </summary>
 /// <param name="SectionCode">Section code identifier.</param>
-/// <param name="ExactActiveSubstanceDuplicates">Exact duplication subsection.</param>
-/// <param name="ActiveSubstanceGroupDuplicates">Group duplication subsection.</param>
+/// <param name="ExactActiveSubstanceDuplicates">Active substances shared by different drugs.</param>
+/// <param name="ActiveSubstanceGroupDuplicates">Active substance groups shared by different drugs.</param>
+/// <param name="DrugDuplicates">Drugs selected or taken in more than one form.</param>
+/// <param name="DrugFormDuplicates">Selected drug forms that are already taken regularly.</param>
 public sealed record DrugDuplicationSectionReadModel(
     string SectionCode,
     ReportSubsectionReadModel<ExactDuplicationRowReadModel> ExactActiveSubstanceDuplicates,
-    ReportSubsectionReadModel<GroupDuplicationRowReadModel> ActiveSubstanceGroupDuplicates);
+    ReportSubsectionReadModel<GroupDuplicationRowReadModel> ActiveSubstanceGroupDuplicates,
+    ReportSubsectionReadModel<DrugDuplicationRowReadModel> DrugDuplicates,
+    ReportSubsectionReadModel<DrugFormDuplicationRowReadModel> DrugFormDuplicates);
 
 /// <summary>
 /// Pregnancy-related main warning row [description].

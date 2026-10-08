@@ -76,10 +76,21 @@ public interface IInteractionRepository
         IReadOnlyCollection<Guid> idsB,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Bulk loads expanded rows starting at the given substances in one query: substance pairs plus scoped food and supplement hits.
+    /// </summary>
+    /// <param name="allSubstanceIds">Every active substance of the report; both sides of a substance pair must be in this set.</param>
+    /// <param name="includeAllFood">When true every food hit is returned, otherwise only foods listed in takenNowFoodIds.</param>
+    /// <param name="takenNowFoodIds">Food identifiers to return when includeAllFood is false; null or empty means none.</param>
+    /// <param name="includeAllSupplements">When true every supplement hit is returned, otherwise only supplements listed in takenNowSupplementIds.</param>
+    /// <param name="takenNowSupplementIds">Supplement identifiers to return when includeAllSupplements is false; null or empty means none.</param>
+    /// <param name="cancellationToken">Token to cancel the query.</param>
     Task<List<InteractionExpanded>> SearchExpandedRowsBulkAsync(
         IReadOnlyCollection<Guid> allSubstanceIds,
-        bool includeFood,
-        bool includeSupplement,
+        bool includeAllFood,
+        IReadOnlyCollection<Guid>? takenNowFoodIds,
+        bool includeAllSupplements,
+        IReadOnlyCollection<Guid>? takenNowSupplementIds,
         CancellationToken cancellationToken);
 
     /// <summary>

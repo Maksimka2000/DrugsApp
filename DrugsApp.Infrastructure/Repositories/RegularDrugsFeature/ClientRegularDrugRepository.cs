@@ -36,6 +36,21 @@ public sealed class ClientRegularDrugRepository(DrugsAppDbContext _context) : IC
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<ClientRegularDrug>> ListActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<ClientRegularDrug> query = _context.Set<ClientRegularDrug>()
+            .Where(row => row.UserId == userId && row.Status == RegularDrugStatus.Active);
+
+        return await ApplyIncludes(query)
+            .OrderBy(row => row.Drug.CommercialName.ToLower())
+            .ThenBy(row => row.StartDate ?? DateOnly.MinValue)
+            .ThenBy(row => row.Id)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountLiveByUserIdAsync(
         Guid userId,
         string? drugNameQuery,
@@ -240,5 +255,8 @@ public sealed class ClientRegularDrugRepository(DrugsAppDbContext _context) : IC
                 .ThenInclude(drug => drug.ActiveSubstances)
                     .ThenInclude(substance => substance.OralMedicationIntakeGuidelines)
             .Include(row => row.DrugForm)
-                .ThenInclude(drugForm => drugForm.PharmaceuticalForms);
+                .ThenInclude(drugForm => drugForm.PharmaceuticalForms)
+            .Include(row => row.DrugForm)
+                .ThenInclude(drugForm => drugForm.RoutesOfAdministration)
+            .AsSplitQuery();
 }

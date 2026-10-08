@@ -17,6 +17,8 @@ public interface IClientSupplementAllergyRepository
         int take,
         CancellationToken cancellationToken);
 
+    Task<List<ClientSupplementAllergy>> ListAllByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+
     Task<int> CountAsync(Guid userId, CancellationToken cancellationToken);
 
     Task<ClientSupplementAllergy?> GetByIdForUserAsync(

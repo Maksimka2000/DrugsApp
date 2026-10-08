@@ -75,7 +75,17 @@ public enum DuplicationKind
     /// <summary>
     /// Two or more drugs share membership in an active substance group.
     /// </summary>
-    ActiveSubstanceGroup = 1
+    ActiveSubstanceGroup = 1,
+
+    /// <summary>
+    /// Two or more forms of the same drug are selected or taken together.
+    /// </summary>
+    Drug = 2,
+
+    /// <summary>
+    /// A selected drug form is already on the user's live regular intake list.
+    /// </summary>
+    DrugForm = 3
 }
 
 /// <summary>

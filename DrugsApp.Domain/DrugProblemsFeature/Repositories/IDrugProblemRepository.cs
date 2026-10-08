@@ -17,6 +17,8 @@ public interface IDrugProblemRepository
         int take,
         CancellationToken cancellationToken);
 
+    Task<List<DrugProblem>> ListAllByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+
     Task<int> CountByUserIdAsync(Guid userId, CancellationToken cancellationToken);
 
     Task<DrugProblem?> GetByIdForUserAsync(

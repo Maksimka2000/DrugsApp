@@ -6,11 +6,11 @@ namespace DrugsApp.Features.DrugInteractionToolFeature.ExecutePublicDrugInteract
 public static class ExecutePublicDrugInteractionToolReportMapping
 {
   /// <summary>
-  /// Builds the command for executing a public drug interaction tool report.
+  /// Builds the query for executing a public drug interaction tool report.
   /// </summary>
   /// <param name="request">Incoming request payload with manual selections and flags.</param>
-  /// <returns>Command carrying the request.</returns>
-  public static ExecutePublicDrugInteractionToolReportCommand MapToCommand(
+  /// <returns>Query carrying the request.</returns>
+  public static ExecutePublicDrugInteractionToolReportQuery MapToQuery(
     this ExecutePublicDrugInteractionToolReportRequest request) =>
     new(Request: request);
 }

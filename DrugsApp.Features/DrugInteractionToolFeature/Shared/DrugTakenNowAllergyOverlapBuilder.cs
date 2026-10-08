@@ -86,6 +86,12 @@ internal static class DrugTakenNowAllergyOverlapBuilder
                 && allergy.DrugForm?.Drug is not null)
             .ToList();
 
+        string[] allergySummaryTexts = databaseAllergies
+            .Select(allergy => DrugInteractionToolReportMapping.BuildDrugSummaryText(
+                allergy.DrugForm!.Drug,
+                allergy.DrugForm))
+            .ToArray();
+
         List<DrugTakenNowAllergyOverlapRowReadModel> rows = new();
         HashSet<(Guid RegularFormId, Guid AllergyFormId)> sameDrugKeys = new();
         HashSet<(Guid RegularFormId, Guid AllergyFormId, Guid SubstanceId)> sharedSubstanceKeys = new();
@@ -101,13 +107,12 @@ internal static class DrugTakenNowAllergyOverlapBuilder
                 regularDrug,
                 regularForm);
 
-            foreach (ClientDrugAllergy allergy in databaseAllergies)
+            for (int allergyIndex = 0; allergyIndex < databaseAllergies.Count; allergyIndex++)
             {
+                ClientDrugAllergy allergy = databaseAllergies[allergyIndex];
                 DrugForm allergyForm = allergy.DrugForm!;
                 Drug allergyDrug = allergyForm.Drug;
-                string allergySummaryText = DrugInteractionToolReportMapping.BuildDrugSummaryText(
-                    allergyDrug,
-                    allergyForm);
+                string allergySummaryText = allergySummaryTexts[allergyIndex];
 
                 if (regularDrug.Id == allergyDrug.Id)
                 {

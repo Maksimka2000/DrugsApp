@@ -30,6 +30,16 @@ public interface IClientRegularFoodRepository
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves the catalog food identifiers of every regular food whose status is Active.
+    /// </summary>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the query.</param>
+    /// <returns>Distinct food identifiers without loading intake schedules.</returns>
+    Task<List<Guid>> ListActiveFoodIdsByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Counts active regular foods for a user respecting the same filters as the live search.
     /// </summary>
     /// <param name="userId">Owner user identifier.</param>

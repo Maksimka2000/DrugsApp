@@ -33,10 +33,10 @@ public sealed record ExecutePublicDrugInteractionToolReportResponse(
   PublicDrugInteractionToolReportReadModel Report);
 
 /// <summary>
-/// MediatR command for the public drug interaction tool report.
+/// MediatR query for the public drug interaction tool report.
 /// </summary>
 /// <param name="Request">Request payload for execution.</param>
-public sealed record ExecutePublicDrugInteractionToolReportCommand(
+public sealed record ExecutePublicDrugInteractionToolReportQuery(
   ExecutePublicDrugInteractionToolReportRequest Request) : IRequest<ErrorOr<ExecutePublicDrugInteractionToolReportResponse>>;
 
 [ApiController]
@@ -67,8 +67,8 @@ public sealed class ExecutePublicDrugInteractionToolReportController(
       return validationResult.MapToProblem(HttpContext);
     }
 
-    ExecutePublicDrugInteractionToolReportCommand command = request.MapToCommand();
-    ErrorOr<ExecutePublicDrugInteractionToolReportResponse> result = await mediator.Send(command, cancellationToken);
+    ExecutePublicDrugInteractionToolReportQuery query = request.MapToQuery();
+    ErrorOr<ExecutePublicDrugInteractionToolReportResponse> result = await mediator.Send(query, cancellationToken);
 
     return result.Match(
       response => Ok(response),

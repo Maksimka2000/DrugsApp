@@ -266,7 +266,17 @@ public sealed class DrugRepository : IDrugRepository
             return new List<Drug>();
         }
 
-        return await ApplyIncludes(_context.Drugs.AsNoTracking())
+        return await _context.Drugs
+            .AsNoTracking()
+            .Include(drug => drug.ActiveSubstances)
+                .ThenInclude(substance => substance.AlcoholInteractionOverride)
+            .Include(drug => drug.ActiveSubstances)
+                .ThenInclude(substance => substance.OralMedicationIntakeGuidelines)
+            .Include(drug => drug.DrugForms.Where(form => drugFormIds.Contains(form.Id)))
+                .ThenInclude(form => form.RoutesOfAdministration)
+            .Include(drug => drug.DrugForms.Where(form => drugFormIds.Contains(form.Id)))
+                .ThenInclude(form => form.PharmaceuticalForms)
+            .AsSplitQuery()
             .Where(drug => drug.DrugForms.Any(form => drugFormIds.Contains(form.Id)))
             .OrderBy(drug => drug.CommercialName)
             .ThenBy(drug => drug.Id)

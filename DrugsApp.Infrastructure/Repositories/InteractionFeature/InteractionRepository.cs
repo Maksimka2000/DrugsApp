@@ -399,14 +399,21 @@ public sealed class InteractionRepository : IInteractionRepository
 
     public async Task<List<InteractionExpanded>> SearchExpandedRowsBulkAsync(
         IReadOnlyCollection<Guid> allSubstanceIds,
-        bool includeFood,
-        bool includeSupplement,
+        bool includeAllFood,
+        IReadOnlyCollection<Guid>? takenNowFoodIds,
+        bool includeAllSupplements,
+        IReadOnlyCollection<Guid>? takenNowSupplementIds,
         CancellationToken cancellationToken)
     {
         if (allSubstanceIds.Count == 0)
         {
             return new List<InteractionExpanded>();
         }
+
+        List<Guid> scopedFoodIds = takenNowFoodIds?.ToList() ?? new List<Guid>();
+        List<Guid> scopedSupplementIds = takenNowSupplementIds?.ToList() ?? new List<Guid>();
+        bool includeFood = includeAllFood || scopedFoodIds.Count > 0;
+        bool includeSupplement = includeAllSupplements || scopedSupplementIds.Count > 0;
 
         return await _context.InteractionExpandedRows
             .AsNoTracking()
@@ -415,8 +422,10 @@ public sealed class InteractionRepository : IInteractionRepository
                 allSubstanceIds.Contains(row.PartyIdA) &&
                 (
                     (row.PartyTypeB == ShortInteractionType.Substance && allSubstanceIds.Contains(row.PartyIdB)) ||
-                    (includeFood && row.PartyTypeB == ShortInteractionType.Food) ||
-                    (includeSupplement && row.PartyTypeB == ShortInteractionType.Supplement)
+                    (includeFood && row.PartyTypeB == ShortInteractionType.Food &&
+                        (includeAllFood || scopedFoodIds.Contains(row.PartyIdB))) ||
+                    (includeSupplement && row.PartyTypeB == ShortInteractionType.Supplement &&
+                        (includeAllSupplements || scopedSupplementIds.Contains(row.PartyIdB)))
                 ))
             .ToListAsync(cancellationToken);
     }

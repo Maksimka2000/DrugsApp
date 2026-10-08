@@ -86,6 +86,12 @@ internal static class DrugTakenNowProblemOverlapBuilder
                 && problem.DrugForm?.Drug is not null)
             .ToList();
 
+        string[] problemSummaryTexts = databaseProblems
+            .Select(problem => DrugInteractionToolReportMapping.BuildDrugSummaryText(
+                problem.DrugForm!.Drug,
+                problem.DrugForm))
+            .ToArray();
+
         List<DrugTakenNowProblemOverlapRowReadModel> rows = new();
         HashSet<(Guid RegularFormId, Guid ProblemFormId)> sameDrugKeys = new();
         HashSet<(Guid RegularFormId, Guid ProblemFormId, Guid SubstanceId)> sharedSubstanceKeys = new();
@@ -101,13 +107,12 @@ internal static class DrugTakenNowProblemOverlapBuilder
                 regularDrug,
                 regularForm);
 
-            foreach (DrugProblem problem in databaseProblems)
+            for (int problemIndex = 0; problemIndex < databaseProblems.Count; problemIndex++)
             {
+                DrugProblem problem = databaseProblems[problemIndex];
                 DrugForm problemForm = problem.DrugForm!;
                 Drug problemDrug = problemForm.Drug;
-                string problemSummaryText = DrugInteractionToolReportMapping.BuildDrugSummaryText(
-                    problemDrug,
-                    problemForm);
+                string problemSummaryText = problemSummaryTexts[problemIndex];
 
                 if (regularDrug.Id == problemDrug.Id)
                 {

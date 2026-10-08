@@ -32,12 +32,18 @@ public sealed class RegisteredDrugInteractionToolReportTests : IntegrationTestBa
         FindSection(report, "allergies.drug.taken_now_overlap")
             .GetProperty("recordCount").GetInt32().Should().BeGreaterThan(0);
 
-        JsonElement exactDuplicates = FindSection(report, "drug_duplication.exact_active_substance");
-        JsonElement ibuprofen = exactDuplicates.GetProperty("rows").EnumerateArray()
-            .Single(row => row.GetProperty("activeSubstanceName").GetString() == "Ibuprofen");
-        JsonElement[] affectedDrugs = ibuprofen.GetProperty("affectedDrugs").EnumerateArray().ToArray();
+        FindSection(report, "drug_duplication.exact_active_substance")
+            .GetProperty("rows").EnumerateArray()
+            .Should().NotContain(row => row.GetProperty("activeSubstanceName").GetString() == "Ibuprofen");
+
+        JsonElement drugDuplicate = FindSection(report, "drug_duplication.drug")
+            .GetProperty("rows").EnumerateArray()
+            .Single(row => row.GetProperty("drugName").GetString() == "Nurofen");
+        JsonElement[] affectedDrugs = drugDuplicate.GetProperty("affectedDrugs").EnumerateArray().ToArray();
 
         affectedDrugs.Should().HaveCount(2);
+        affectedDrugs.Select(drug => drug.GetProperty("drugFormId").GetGuid())
+            .Should().BeEquivalentTo(new[] { NurofenForm200, NurofenForm400 });
         affectedDrugs.Select(drug => drug.GetProperty("source").GetString())
             .Should().BeEquivalentTo("takingNow", "selected");
         affectedDrugs.Should().OnlyContain(drug =>
@@ -52,10 +58,16 @@ public sealed class RegisteredDrugInteractionToolReportTests : IntegrationTestBa
     {
         JsonElement report = await GetReportAsync([NurofenForm200], showAllFoodAndSupplementInteractions: false);
 
-        JsonElement ibuprofen = FindSection(report, "drug_duplication.exact_active_substance")
+        FindSection(report, "drug_duplication.exact_active_substance")
             .GetProperty("rows").EnumerateArray()
-            .Single(row => row.GetProperty("activeSubstanceName").GetString() == "Ibuprofen");
-        JsonElement[] affectedDrugs = ibuprofen.GetProperty("affectedDrugs").EnumerateArray().ToArray();
+            .Should().NotContain(row => row.GetProperty("activeSubstanceName").GetString() == "Ibuprofen");
+        FindSection(report, "drug_duplication.drug")
+            .GetProperty("recordCount").GetInt32().Should().Be(0);
+
+        JsonElement formDuplicate = FindSection(report, "drug_duplication.drug_form")
+            .GetProperty("rows").EnumerateArray()
+            .Single(row => row.GetProperty("drugFormId").GetGuid() == NurofenForm200);
+        JsonElement[] affectedDrugs = formDuplicate.GetProperty("affectedDrugs").EnumerateArray().ToArray();
 
         affectedDrugs.Select(drug => drug.GetProperty("source").GetString())
             .Should().BeEquivalentTo("takingNow", "selected");

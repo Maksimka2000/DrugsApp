@@ -37,11 +37,11 @@ public sealed record ExecuteRegisteredDrugInteractionToolReportResponse(
   RegisteredDrugInteractionToolReportReadModel Report);
 
 /// <summary>
-/// MediatR command for the registered drug interaction tool report.
+/// MediatR query for the registered drug interaction tool report.
 /// </summary>
 /// <param name="UserId">Authenticated user identifier.</param>
 /// <param name="Request">Request payload for execution.</param>
-public sealed record ExecuteRegisteredDrugInteractionToolReportCommand(
+public sealed record ExecuteRegisteredDrugInteractionToolReportQuery(
   Guid UserId,
   ExecuteRegisteredDrugInteractionToolReportRequest Request)
   : IRequest<ErrorOr<ExecuteRegisteredDrugInteractionToolReportResponse>>;
@@ -81,9 +81,9 @@ public sealed class ExecuteRegisteredDrugInteractionToolReportController(
       return Unauthorized();
     }
 
-    ExecuteRegisteredDrugInteractionToolReportCommand command = request.MapToCommand(userId);
+    ExecuteRegisteredDrugInteractionToolReportQuery query = request.MapToQuery(userId);
     ErrorOr<ExecuteRegisteredDrugInteractionToolReportResponse> result =
-      await mediator.Send(command, cancellationToken);
+      await mediator.Send(query, cancellationToken);
 
     return result.Match(
       response => Ok(response),

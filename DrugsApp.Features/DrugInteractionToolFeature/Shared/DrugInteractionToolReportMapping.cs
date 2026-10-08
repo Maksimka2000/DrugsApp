@@ -131,6 +131,7 @@ internal static class DrugInteractionToolReportMapping
         DuplicationDrugSource source) =>
         new(
             DrugId: drug.Id,
+            DrugFormId: form.Id,
             OnlyDrugSummaryText: BuildDuplicationSummaryText(drug, form),
             IsOral: form.IsOral,
             Source: source);
