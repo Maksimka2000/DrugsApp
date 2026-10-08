@@ -58,15 +58,17 @@ public sealed record ActiveSubstanceRefReadModel(
     string Name);
 
 /// <summary>
-/// Duplication-friendly drug summary without form id [description].
+/// Duplication-friendly drug summary without form id, listing each affected drug form [description].
 /// </summary>
 /// <param name="DrugId">Identifier of the drug.</param>
-/// <param name="OnlyDrugSummaryText">Summary without form.</param>
+/// <param name="OnlyDrugSummaryText">Drug summary as `Name (substances) | form | dosage`.</param>
 /// <param name="IsOral">Indicates whether the form is oral.</param>
+/// <param name="Source">Whether the drug is taken now or selected for this report.</param>
 public sealed record DuplicationDrugSummaryReadModel(
     Guid DrugId,
     string OnlyDrugSummaryText,
-    bool IsOral);
+    bool IsOral,
+    DuplicationDrugSource Source);
 
 /// <summary>
 /// Regular-medication schedule attached when a specific-drug row comes from the user's live intake [description].
@@ -210,6 +212,7 @@ public sealed record AlcoholInteractionSectionReadModel(
 /// <param name="ActiveSubstanceName">Active substance name.</param>
 /// <param name="FoodId">Food identifier.</param>
 /// <param name="FoodName">Food name.</param>
+/// <param name="AliasNames">Alternative food names; empty for food groups.</param>
 /// <param name="InteractionId">Interaction identifier.</param>
 /// <param name="DefaultText">Default interaction text.</param>
 /// <param name="StomachText">Optional stomach-related text.</param>
@@ -221,6 +224,7 @@ public sealed record FoodInteractionRowReadModel(
     string ActiveSubstanceName,
     Guid FoodId,
     string FoodName,
+    IReadOnlyCollection<string> AliasNames,
     Guid InteractionId,
     string DefaultText,
     string? StomachText,
@@ -235,6 +239,7 @@ public sealed record FoodInteractionRowReadModel(
 /// <param name="ActiveSubstanceName">Active substance name.</param>
 /// <param name="SupplementId">Supplement identifier.</param>
 /// <param name="SupplementName">Supplement name.</param>
+/// <param name="AliasNames">Alternative supplement names; empty for supplement groups.</param>
 /// <param name="InteractionId">Interaction identifier.</param>
 /// <param name="DefaultText">Default interaction text.</param>
 /// <param name="StomachText">Optional stomach-related text.</param>
@@ -246,6 +251,7 @@ public sealed record SupplementInteractionRowReadModel(
     string ActiveSubstanceName,
     Guid SupplementId,
     string SupplementName,
+    IReadOnlyCollection<string> AliasNames,
     Guid InteractionId,
     string DefaultText,
     string? StomachText,
@@ -276,10 +282,12 @@ public sealed record PublicSupplementInteractionSectionReadModel(
 /// </summary>
 /// <param name="HeadlineText">Headline for the oral guidance block.</param>
 /// <param name="MealIntakeSummary">Summary text for meal intake guidance.</param>
+/// <param name="DrugIntakeTime">Daily clock times (HH:mm, comma-separated) the user takes this drug, or null when it is not on the regular list.</param>
 /// <param name="ActiveSubstanceGuidanceRows">Guidance rows per active substance.</param>
 public sealed record OralGuidanceSubsectionReadModel(
     string HeadlineText,
     string MealIntakeSummary,
+    string? DrugIntakeTime,
     IReadOnlyCollection<ActiveSubstanceOralGuidanceRowReadModel> ActiveSubstanceGuidanceRows);
 
 /// <summary>
@@ -606,10 +614,12 @@ public sealed record DrugTakenNowProblemOverlapRowReadModel(
 /// <param name="FromDatabase">Problematic drugs from database.</param>
 /// <param name="Custom">Custom problematic drugs.</param>
 /// <param name="TakenNowOverlap">Taken-now overlap subsection.</param>
+/// <param name="PlanTakingOverlap">Overlap subsection for manually selected drugs the user plans to take.</param>
 public sealed record ProblematicDrugsGroupReadModel(
     ReportSubsectionReadModel<ProblematicDrugRowReadModel> FromDatabase,
     ReportSubsectionReadModel<CustomProblematicDrugRowReadModel> Custom,
-    ReportSubsectionReadModel<DrugTakenNowProblemOverlapRowReadModel> TakenNowOverlap);
+    ReportSubsectionReadModel<DrugTakenNowProblemOverlapRowReadModel> TakenNowOverlap,
+    ReportSubsectionReadModel<DrugTakenNowProblemOverlapRowReadModel>? PlanTakingOverlap = null);
 
 /// <summary>
 /// Drug allergy database row [description].
@@ -772,10 +782,12 @@ public sealed record DrugTakenNowAllergyOverlapRowReadModel(
 /// <param name="FromDatabase">Drug allergy database subsection.</param>
 /// <param name="Custom">Custom drug allergy subsection.</param>
 /// <param name="TakenNowOverlap">Taken-now overlap subsection.</param>
+/// <param name="PlanTakingOverlap">Overlap subsection for manually selected drugs the user plans to take.</param>
 public sealed record AllergyDrugSubgroupReadModel(
     ReportSubsectionReadModel<DrugAllergyRowReadModel> FromDatabase,
     ReportSubsectionReadModel<CustomDrugAllergyRowReadModel> Custom,
-    ReportSubsectionReadModel<DrugTakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
+    ReportSubsectionReadModel<DrugTakenNowAllergyOverlapRowReadModel> TakenNowOverlap,
+    ReportSubsectionReadModel<DrugTakenNowAllergyOverlapRowReadModel>? PlanTakingOverlap = null);
 
 /// <summary>
 /// Supplement allergy subgroup [description].

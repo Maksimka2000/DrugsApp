@@ -100,7 +100,8 @@ public sealed class UpdateFoodGroupHandler(
                             InteractionType.FoodGroup,
                             foodGroup.Id,
                             addedMembers,
-                            removedMembers),
+                            removedMembers,
+                            requestedMemberIds),
                         cancellationToken);
 
                 if (syncResult.IsError)

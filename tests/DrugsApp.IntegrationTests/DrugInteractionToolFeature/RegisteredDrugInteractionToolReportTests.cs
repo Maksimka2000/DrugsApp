@@ -48,6 +48,33 @@ public sealed class RegisteredDrugInteractionToolReportTests : IntegrationTestBa
     }
 
     [Fact]
+    public async Task Report_WhenSelectedFormIsAlsoTakenRegularly_FlagsItAsDuplicateWithBothSources()
+    {
+        JsonElement report = await GetReportAsync([NurofenForm200], showAllFoodAndSupplementInteractions: false);
+
+        JsonElement ibuprofen = FindSection(report, "drug_duplication.exact_active_substance")
+            .GetProperty("rows").EnumerateArray()
+            .Single(row => row.GetProperty("activeSubstanceName").GetString() == "Ibuprofen");
+        JsonElement[] affectedDrugs = ibuprofen.GetProperty("affectedDrugs").EnumerateArray().ToArray();
+
+        affectedDrugs.Select(drug => drug.GetProperty("source").GetString())
+            .Should().BeEquivalentTo("takingNow", "selected");
+        affectedDrugs.Select(drug => drug.GetProperty("drugId").GetGuid()).Distinct().Should().HaveCount(1);
+        affectedDrugs.Should().OnlyContain(drug =>
+            drug.GetProperty("onlyDrugSummaryText").GetString()!.StartsWith("Nurofen (Ibuprofen)"));
+    }
+
+    [Fact]
+    public async Task Report_WhenSelectedDrugIsNotTakenAndSharesNothing_IsNotFlaggedAsDuplicate()
+    {
+        JsonElement report = await GetReportAsync([AmotaksForm], showAllFoodAndSupplementInteractions: false);
+
+        FindSection(report, "drug_duplication.exact_active_substance")
+            .GetProperty("rows").EnumerateArray()
+            .Should().NotContain(row => row.GetProperty("activeSubstanceName").GetString() == "Amoxicillin");
+    }
+
+    [Fact]
     public async Task Report_WhenPlannedFormIsAlreadyTakenNow_ExcludesItFromPlanTakingOverlap()
     {
         JsonElement report = await GetReportAsync([NurofenForm200], showAllFoodAndSupplementInteractions: false);

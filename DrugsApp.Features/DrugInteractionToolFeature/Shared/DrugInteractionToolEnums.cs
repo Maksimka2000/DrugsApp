@@ -44,6 +44,25 @@ public enum SelectedDrugSource
 }
 
 /// <summary>
+/// Role a drug plays in a duplication warning [description].
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum DuplicationDrugSource
+{
+    /// <summary>
+    /// The drug is on the user's live regular intake list.
+    /// </summary>
+    [JsonStringEnumMemberName("takingNow")]
+    TakingNow = 0,
+
+    /// <summary>
+    /// The drug was selected for this report.
+    /// </summary>
+    [JsonStringEnumMemberName("selected")]
+    Selected = 1
+}
+
+/// <summary>
 /// Duplication warning classification [description].
 /// </summary>
 public enum DuplicationKind

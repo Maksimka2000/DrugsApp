@@ -44,6 +44,9 @@ internal static class DrugInteractionToolHeadlines
     internal const string ProblematicDrugsTakenNowOverlap =
         "THIS USER/YOU HAVE OVERLAP IN PROBLEMATIC DRUGS TAKEN NOW";
 
+    internal const string ProblematicDrugsPlanTakingOverlap =
+        "THIS USER/YOU HAVE OVERLAP IN PROBLEMATIC DRUGS YOU PLAN TO TAKE";
+
     internal const string DrugAllergiesDatabase =
         "THIS USER/YOU HAVE DRUG ALLERGIES FROM THE DATABASE";
 
@@ -52,6 +55,9 @@ internal static class DrugInteractionToolHeadlines
 
     internal const string DrugAllergiesTakenNowOverlap =
         "THIS USER/YOU HAVE OVERLAP IN DRUGS TAKEN NOW";
+
+    internal const string DrugAllergiesPlanTakingOverlap =
+        "THIS USER/YOU HAVE OVERLAP IN DRUGS YOU PLAN TO TAKE";
 
     internal const string DrugTakenNowOverlapSameDrugName =
         "The same drug name overlap";
