@@ -39,6 +39,20 @@ public sealed class ClientRegularSupplementRepository(DrugsAppDbContext _context
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<ClientRegularSupplement>> ListActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<ClientRegularSupplement> query = _context.ClientRegularSupplements
+            .Where(row => row.UserId == userId && row.Status == RegularSupplementStatus.Active);
+
+        return await ApplyIncludes(query)
+            .OrderBy(row => row.Id)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Guid>> ListActiveDatabaseSupplementIdsByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken)

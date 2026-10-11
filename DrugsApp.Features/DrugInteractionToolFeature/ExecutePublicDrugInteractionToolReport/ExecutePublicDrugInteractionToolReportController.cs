@@ -19,11 +19,19 @@ namespace DrugsApp.Features.DrugInteractionToolFeature.ExecutePublicDrugInteract
 /// <param name="ShowAllDrugsInteractions">Flag to include all drug interactions.</param>
 /// <param name="ShowOralGuidance">Flag to include oral guidance.</param>
 /// <param name="ShowAllFoodAndSupplementInteractions">Flag to include all food and supplement interactions.</param>
+/// <param name="SelectedSupplementIds">Catalog supplements selected for the analysis (up to 5).</param>
+/// <param name="SelectedFoodIds">Catalog foods selected for the analysis (up to 5).</param>
+/// <param name="ShowPossibleInteractions">
+/// Whether catalog foods and supplements that are not selected are analysed ("possible" interactions); defaults to true.
+/// </param>
 public sealed record ExecutePublicDrugInteractionToolReportRequest(
   IReadOnlyCollection<Guid>? ManualDrugFormIds,
   bool ShowAllDrugsInteractions,
   bool ShowOralGuidance,
-  bool ShowAllFoodAndSupplementInteractions);
+  bool ShowAllFoodAndSupplementInteractions,
+  IReadOnlyCollection<Guid>? SelectedSupplementIds = null,
+  IReadOnlyCollection<Guid>? SelectedFoodIds = null,
+  bool ShowPossibleInteractions = true);
 
 /// <summary>
 /// Response envelope for the public drug interaction tool report.

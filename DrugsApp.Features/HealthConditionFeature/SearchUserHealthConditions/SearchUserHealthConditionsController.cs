@@ -45,7 +45,7 @@ public sealed record SearchUserHealthConditionsQuery(
 /// Controller for searching user health conditions.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("User Health Conditions")]
 [Route("api/user-health-conditions")]
 public sealed class SearchUserHealthConditionsController(

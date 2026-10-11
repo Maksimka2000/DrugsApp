@@ -41,6 +41,12 @@ public static class PermissionCatalog
             Permission.ManageImports,
             Permission.ManageReviews
         },
+        [AuthRoles.Teacher] = ClientPortalSearchPermissions
+            .Append(Permission.ManageStudyMode)
+            .Append(Permission.ManageInteractions)
+            .ToArray(),
+        [AuthRoles.StudyDoctor] = ClientPortalSearchPermissions,
+        [AuthRoles.StudyPatient] = ClientPortalSearchPermissions,
         [AuthRoles.Admin] = new[]
         {
             Permission.SearchCatalog,
@@ -54,6 +60,7 @@ public static class PermissionCatalog
             Permission.ManageReviews,
             Permission.ManageOther,
             Permission.ManageWebsiteContent,
+            Permission.ManageStudyMode,
             Permission.ManageClientUsers,
             Permission.ManageAdminUsers,
             Permission.ManageRoles

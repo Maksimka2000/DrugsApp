@@ -20,6 +20,11 @@ public interface ISupervisionConnectionRepository
 
     Task<bool> ExistsActiveForPairAsync(Guid patientUserId, Guid providerUserId, CancellationToken cancellationToken);
 
+    Task<List<SupervisionConnection>> ListForPartiesAsync(
+        IReadOnlyCollection<Guid> providerUserIds,
+        IReadOnlyCollection<Guid> patientUserIds,
+        CancellationToken cancellationToken);
+
     Task AddAsync(SupervisionConnection connection, CancellationToken cancellationToken);
 
     void Delete(SupervisionConnection connection);

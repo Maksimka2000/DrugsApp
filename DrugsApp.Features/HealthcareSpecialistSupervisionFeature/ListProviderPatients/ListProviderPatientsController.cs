@@ -22,7 +22,7 @@ public sealed class ListProviderPatientsController(
     public const string RouteName = "ListProviderPatients";
 
     [HttpGet(Name = RouteName)]
-    [Authorize(Roles = AuthRoles.HealthcareProvider)]
+    [Authorize(Roles = AuthRoles.ProviderReadRoles)]
     public async Task<ActionResult<ProviderPatientListResponse>> List(
         [FromQuery] SearchProviderPatientsRequest request,
         CancellationToken cancellationToken)

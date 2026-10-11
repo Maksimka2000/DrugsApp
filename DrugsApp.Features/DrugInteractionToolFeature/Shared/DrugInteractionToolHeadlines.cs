@@ -26,6 +26,57 @@ internal static class DrugInteractionToolHeadlines
     internal const string SupplementAllOtherRegistered =
         "THIS DRUG IS INTERACTED WITH SOME SUPPLEMENTS WHICH USER DONT TAKE";
 
+    internal const string SupplementOwnSupplement =
+        "THIS DRUG IS INTERACTED WITH SOME SUPPLEMENTS WHICH ARE INSIDE YOUR OWN (CUSTOM) SUPPLEMENTS";
+
+    internal const string InfoDrugsTakenNow =
+        "DRUGS YOU ARE TAKING RIGHT NOW";
+
+    internal const string InfoDrugsSelected =
+        "DRUGS SELECTED FOR THIS REPORT";
+
+    internal const string InfoDrugsSelectedTwice =
+        "DRUGS SELECTED TWICE";
+
+    internal const string InfoSupplementsTakenNow =
+        "SUPPLEMENTS YOU ARE TAKING RIGHT NOW";
+
+    internal const string InfoOwnSupplementsTakenNow =
+        "OWN (CUSTOM) SUPPLEMENTS YOU ARE TAKING RIGHT NOW";
+
+    internal const string InfoDrugsSelectedPrescription =
+        "DRUGS SELECTED FOR PRESCRIPTION";
+
+    internal const string InfoSupplementsSelected =
+        "SUPPLEMENTS SELECTED FOR THIS REPORT";
+
+    internal const string InfoSupplementsSelectedPrescription =
+        "SUPPLEMENTS SELECTED FOR PRESCRIPTION";
+
+    internal const string InfoSupplementsSelectedTwice =
+        "SUPPLEMENTS SELECTED TWICE";
+
+    internal const string InfoFoodsSelected =
+        "FOODS SELECTED FOR THIS REPORT";
+
+    internal const string InfoFoodsSelectedPrescription =
+        "FOODS SELECTED FOR PRESCRIPTION";
+
+    internal const string FoodSelected =
+        "THIS DRUG IS INTERACTED WITH SOME FOOD YOU SELECTED FOR THIS REPORT";
+
+    internal const string FoodSelectedPrescription =
+        "THIS DRUG IS INTERACTED WITH SOME FOOD SELECTED FOR PRESCRIPTION";
+
+    internal const string SupplementSelected =
+        "THIS DRUG IS INTERACTED WITH SOME SUPPLEMENTS YOU SELECTED FOR THIS REPORT";
+
+    internal const string SupplementSelectedPrescription =
+        "THIS DRUG IS INTERACTED WITH SOME SUPPLEMENTS SELECTED FOR PRESCRIPTION";
+
+    internal const string InfoFoodsTakenNow =
+        "FOODS YOU ARE TAKING RIGHT NOW";
+
     internal const string OralGuidanceMealBlock =
         "RECOMENDATIONS ON THE INTAKE TIME OF THE DRUG IN RELATION TO MEALS";
 
@@ -74,6 +125,12 @@ internal static class DrugInteractionToolHeadlines
     internal const string SupplementAllergiesTakenNowOverlap =
         "SUPPLEMENTS YOU TAKE NOW OVERLAP WITH YOUR SUPPLEMENT ALLERGIES";
 
+    internal const string SupplementAllergiesPlanTakingOverlap =
+        "THIS USER/YOU HAVE OVERLAP IN SUPPLEMENTS YOU PLAN TO TAKE";
+
+    internal const string SupplementAllergiesOwnSupplementOverlap =
+        "OWN (CUSTOM) SUPPLEMENTS YOU TAKE NOW CONTAIN SUPPLEMENTS YOU ARE ALLERGIC TO";
+
     internal const string FoodAllergiesDatabase =
         "THIS USER/YOU HAVE FOOD ALLERGIES FROM THE DATABASE";
 
@@ -82,6 +139,9 @@ internal static class DrugInteractionToolHeadlines
 
     internal const string FoodAllergiesTakenNowOverlap =
         "FOODS YOU TAKE NOW OVERLAP WITH YOUR FOOD ALLERGIES";
+
+    internal const string FoodAllergiesPlanTakingOverlap =
+        "THIS USER/YOU HAVE OVERLAP IN FOODS YOU PLAN TO TAKE";
 
     internal const string OtherAllergiesDatabase =
         "THIS USER/YOU HAVE OTHER ALLERGIES FROM THE DATABASE";
@@ -100,6 +160,9 @@ internal static class DrugInteractionToolHeadlines
 
     internal const string DrugFormDuplication =
         "SELECTED DRUG FORM IS ALREADY TAKEN REGULARLY";
+
+    internal const string SupplementDuplication =
+        "SELECTED SUPPLEMENT IS ALREADY TAKEN REGULARLY";
 
     internal const string MainWarningCurrentlyPregnant =
         "The user is currently pregnant. Consult a healthcare professional before taking any medication.";

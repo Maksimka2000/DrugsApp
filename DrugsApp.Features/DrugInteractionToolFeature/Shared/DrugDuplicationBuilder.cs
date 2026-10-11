@@ -1,6 +1,8 @@
 using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.ActiveSubstanceGroupFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
+using DrugsApp.Domain.RegularSupplementsFeature.Entities;
+using DrugsApp.Domain.SupplementFeature.Entities;
 
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
 
@@ -38,12 +40,23 @@ internal static class DrugDuplicationBuilder
     /// <param name="selections">Selected drug forms in report order.</param>
     /// <param name="substanceNameById">Active substance names keyed by identifier.</param>
     /// <param name="groups">Active substance groups that contain at least one selected substance.</param>
-    /// <returns>Section with exact, group, drug and drug form subsections, each possibly empty.</returns>
+    /// <param name="regularSupplements">
+    /// Active regular supplements with catalog supplement and own supplement members loaded; null or empty without user data.
+    /// </param>
+    /// <param name="selectedSupplements">Catalog supplements selected for the report; null or empty when none.</param>
+    /// <param name="includeSupplementDuplication">False when food and supplement interactions are off; the subsection is then omitted.</param>
+    /// <returns>Section with exact, group, drug, drug form and supplement subsections, each possibly empty.</returns>
     internal static DrugDuplicationSectionReadModel Build(
         IReadOnlyList<DuplicationSelection> selections,
         IReadOnlyDictionary<Guid, string> substanceNameById,
-        IReadOnlyCollection<ActiveSubstanceGroup> groups)
+        IReadOnlyCollection<ActiveSubstanceGroup> groups,
+        IReadOnlyCollection<ClientRegularSupplement>? regularSupplements = null,
+        IReadOnlyCollection<Supplement>? selectedSupplements = null,
+        bool includeSupplementDuplication = true)
     {
+        List<SupplementDuplicationRowReadModel> supplementRows = SupplementDuplicationBuilder.BuildRows(
+            regularSupplements ?? [],
+            selectedSupplements);
         List<ExactDuplicationRowReadModel> exactRows = BuildExactRows(selections, substanceNameById);
         List<GroupDuplicationRowReadModel> groupRows = BuildGroupRows(selections, exactRows, groups);
         List<DrugDuplicationRowReadModel> drugRows = BuildDrugRows(selections);
@@ -66,7 +79,13 @@ internal static class DrugDuplicationBuilder
             DrugFormDuplicates: DrugInteractionToolReportMapping.BuildSubsection(
                 "drug_duplication.drug_form",
                 DrugInteractionToolHeadlines.DrugFormDuplication,
-                drugFormRows));
+                drugFormRows),
+            SupplementDuplication: includeSupplementDuplication
+                ? DrugInteractionToolReportMapping.BuildSubsection(
+                    "supplement_duplication.supplement",
+                    DrugInteractionToolHeadlines.SupplementDuplication,
+                    supplementRows)
+                : null);
     }
 
     private static List<DrugFormDuplicationRowReadModel> BuildDrugFormRows(

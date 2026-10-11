@@ -36,6 +36,19 @@ public sealed class ClientRegularFoodRepository(DrugsAppDbContext _context) : IC
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<ClientRegularFood>> ListActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<ClientRegularFood> query = _context.Set<ClientRegularFood>()
+            .Where(row => row.UserId == userId && row.Status == RegularFoodStatus.Active);
+
+        return await ApplyIncludes(query)
+            .OrderBy(row => row.Id)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Guid>> ListActiveFoodIdsByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken)

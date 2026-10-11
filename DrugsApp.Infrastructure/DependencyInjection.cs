@@ -32,6 +32,11 @@ using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
 using DrugsApp.Domain.RegularFoodFeature.Interfaces;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 using DrugsApp.Domain.PatientSupervisionFeature.Interfaces;
+using DrugsApp.Domain.StudyModeFeature.Interfaces;
+using DrugsApp.Domain.StudyModeFeature.Repositories;
+using DrugsApp.Infrastructure.ExternalServices.DataProtection;
+using DrugsApp.Infrastructure.Repositories.StudyModeFeature;
+using Microsoft.AspNetCore.DataProtection;
 using DrugsApp.Infrastructure.Repositories.PatientSupervisionFeature;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
@@ -173,6 +178,15 @@ public static class DependencyInjection
         services.AddScoped<IMedicalChangeProposalRepository, MedicalChangeProposalRepository>();
         services.AddScoped<ISupervisionReadRepository, SupervisionReadRepository>();
         services.AddScoped<IUserRoleReadService, UserRoleReadService>();
+
+        // Study Mode
+        services.AddScoped<IStudyClinicRepository, StudyClinicRepository>();
+        services.AddScoped<IStudyClinicReadRepository, StudyClinicReadRepository>();
+        services.AddScoped<IStudyRandomCatalogReadRepository, StudyRandomCatalogReadRepository>();
+        services.AddDataProtection()
+            .SetApplicationName("DrugsApp")
+            .PersistKeysToDbContext<DrugsAppDbContext>();
+        services.AddSingleton<IStudyCredentialProtector, StudyCredentialProtector>();
 
 
         // Register Email External services here

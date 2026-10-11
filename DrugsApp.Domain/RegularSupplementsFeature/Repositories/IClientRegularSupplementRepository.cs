@@ -21,6 +21,16 @@ public interface IClientRegularSupplementRepository
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves every Active regular supplement row (catalog and own) with its catalog supplement, own supplement members, and intake times.
+    /// </summary>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the query.</param>
+    /// <returns>Active rows only; Scheduled and Expired rows are excluded.</returns>
+    Task<List<ClientRegularSupplement>> ListActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Retrieves the catalog supplement identifiers of every Active regular supplement sourced from the database.
     /// </summary>
     /// <param name="userId">Owner user identifier.</param>

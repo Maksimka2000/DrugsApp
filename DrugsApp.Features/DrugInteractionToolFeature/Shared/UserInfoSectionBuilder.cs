@@ -5,6 +5,7 @@ using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.DrugProblemsFeature.Enums;
 using DrugsApp.Domain.HealthConditionFeature.Entities;
 using DrugsApp.Domain.RegularDrugsFeature.Entities;
+using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
@@ -32,7 +33,11 @@ internal static class UserInfoSectionBuilder
         IReadOnlyCollection<ClientRegularDrug> regularDrugs,
         IReadOnlyCollection<DrugFormIntake> plannedDrugs,
         HashSet<Guid> takenNowFoodIds,
-        HashSet<Guid> takenNowSupplementIds)
+        HashSet<Guid> takenNowSupplementIds,
+        IReadOnlyDictionary<Guid, IReadOnlyList<OwnSupplementSource>> ownSupplementSourcesBySupplementId,
+        IReadOnlySet<Guid>? selectedFoodIds = null,
+        IReadOnlySet<Guid>? selectedSupplementIds = null,
+        bool includeFoodAndSupplementAllergies = true)
     {
         List<MainWarningReadModel> mainWarnings = BuildMainWarnings(bundle.ReproductiveHealth);
         HealthConditionsGroupReadModel healthConditions = BuildHealthConditionsGroup(bundle.HealthConditions);
@@ -45,7 +50,11 @@ internal static class UserInfoSectionBuilder
             regularDrugs,
             plannedDrugs,
             takenNowFoodIds,
-            takenNowSupplementIds);
+            takenNowSupplementIds,
+            ownSupplementSourcesBySupplementId,
+            selectedFoodIds ?? new HashSet<Guid>(),
+            selectedSupplementIds ?? new HashSet<Guid>(),
+            includeFoodAndSupplementAllergies);
 
         return new UserInfoSectionReadModel(
             MainWarnings: mainWarnings,
@@ -172,12 +181,24 @@ internal static class UserInfoSectionBuilder
         IReadOnlyCollection<ClientRegularDrug> regularDrugs,
         IReadOnlyCollection<DrugFormIntake> plannedDrugs,
         HashSet<Guid> takenFoodIds,
-        HashSet<Guid> takenSupplementIds)
+        HashSet<Guid> takenSupplementIds,
+        IReadOnlyDictionary<Guid, IReadOnlyList<OwnSupplementSource>> ownSupplementSources,
+        IReadOnlySet<Guid> selectedFoodIds,
+        IReadOnlySet<Guid> selectedSupplementIds,
+        bool includeFoodAndSupplementAllergies)
     {
         return new AllergiesGroupReadModel(
             DrugAllergies: BuildDrugAllergySubgroup(bundle.DrugAllergies, regularDrugs, plannedDrugs),
-            SupplementAllergies: BuildSupplementAllergySubgroup(bundle.SupplementAllergies, takenSupplementIds),
-            FoodAllergies: BuildFoodAllergySubgroup(bundle.FoodAllergies, takenFoodIds),
+            SupplementAllergies: includeFoodAndSupplementAllergies
+                ? BuildSupplementAllergySubgroup(
+                    bundle.SupplementAllergies,
+                    takenSupplementIds,
+                    ownSupplementSources,
+                    selectedSupplementIds)
+                : null,
+            FoodAllergies: includeFoodAndSupplementAllergies
+                ? BuildFoodAllergySubgroup(bundle.FoodAllergies, takenFoodIds, selectedFoodIds)
+                : null,
             OtherAllergies: BuildOtherAllergySubgroup(bundle.AllergySummary, bundle.OtherAllergies));
     }
 
@@ -240,7 +261,8 @@ internal static class UserInfoSectionBuilder
 
     private static AllergyFoodSubgroupReadModel BuildFoodAllergySubgroup(
         IReadOnlyCollection<ClientFoodAllergy> allergies,
-        HashSet<Guid> takenFoodIds)
+        HashSet<Guid> takenFoodIds,
+        IReadOnlySet<Guid> selectedFoodIds)
     {
         var databaseRows = allergies
             .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.Food is not null)
@@ -272,6 +294,19 @@ internal static class UserInfoSectionBuilder
                 DisplayLine: $"{allergy.Food.Name} | {allergy.Note}"))
             .ToList();
 
+        var planRows = allergies
+            .Where(allergy => allergy.Source == AllergyRecordSource.Database
+                && allergy.FoodId.HasValue
+                && allergy.Food is not null
+                && selectedFoodIds.Contains(allergy.FoodId.Value))
+            .Select(allergy => new FoodTakenNowAllergyOverlapRowReadModel(
+                RegularFoodId: allergy.FoodId!.Value,
+                RegularIntakeName: allergy.Food!.Name,
+                AliasNames: allergy.Food.Aliases.ToList(),
+                AllergyNote: allergy.Note,
+                DisplayLine: $"{allergy.Food.Name} | {allergy.Note}"))
+            .ToList();
+
         return new AllergyFoodSubgroupReadModel(
             FromDatabase: DrugInteractionToolReportMapping.BuildSubsection(
                 "allergies.food.from_database",
@@ -284,12 +319,18 @@ internal static class UserInfoSectionBuilder
             TakenNowOverlap: DrugInteractionToolReportMapping.BuildSubsection(
                 "allergies.food.taken_now_overlap",
                 DrugInteractionToolHeadlines.FoodAllergiesTakenNowOverlap,
-                overlapRows));
+                overlapRows),
+            PlanTakingOverlap: DrugInteractionToolReportMapping.BuildSubsection(
+                "allergies.food.plan_taking_overlap",
+                DrugInteractionToolHeadlines.FoodAllergiesPlanTakingOverlap,
+                planRows));
     }
 
     private static AllergySupplementSubgroupReadModel BuildSupplementAllergySubgroup(
         IReadOnlyCollection<ClientSupplementAllergy> allergies,
-        HashSet<Guid> takenSupplementIds)
+        HashSet<Guid> takenSupplementIds,
+        IReadOnlyDictionary<Guid, IReadOnlyList<OwnSupplementSource>> ownSupplementSources,
+        IReadOnlySet<Guid> selectedSupplementIds)
     {
         var databaseRows = allergies
             .Where(allergy => allergy.Source == AllergyRecordSource.Database && allergy.Supplement is not null)
@@ -309,17 +350,50 @@ internal static class UserInfoSectionBuilder
                 DisplayLine: $"{allergy.CustomSupplementName} | {allergy.Note}"))
             .ToList();
 
-        var overlapRows = allergies
-            .Where(allergy => allergy.Source == AllergyRecordSource.Database
-                && allergy.SupplementId.HasValue
-                && takenSupplementIds.Contains(allergy.SupplementId.Value))
-            .Select(allergy => new SupplementTakenNowAllergyOverlapRowReadModel(
-                RegularSupplementId: allergy.SupplementId!.Value,
-                RegularIntakeName: allergy.Supplement!.Name,
-                AliasNames: allergy.Supplement.Aliases.ToList(),
+        List<SupplementTakenNowAllergyOverlapRowReadModel> overlapRows = new();
+        List<SupplementTakenNowAllergyOverlapRowReadModel> planRows = new();
+        List<SupplementTakenNowAllergyOverlapRowReadModel> ownOverlapRows = new();
+
+        foreach (ClientSupplementAllergy allergy in allergies.Where(allergy =>
+                     allergy.Source == AllergyRecordSource.Database && allergy.Supplement is not null))
+        {
+            Guid supplementId = allergy.SupplementId!.Value;
+            Supplement supplement = allergy.Supplement!;
+
+            if (takenSupplementIds.Contains(supplementId))
+            {
+                overlapRows.Add(new SupplementTakenNowAllergyOverlapRowReadModel(
+                    RegularSupplementId: supplementId,
+                    RegularIntakeName: supplement.Name,
+                    AliasNames: supplement.Aliases.ToList(),
+                    AllergyNote: allergy.Note,
+                    DisplayLine: $"{supplement.Name} | {allergy.Note}"));
+            }
+
+            if (selectedSupplementIds.Contains(supplementId))
+            {
+                planRows.Add(new SupplementTakenNowAllergyOverlapRowReadModel(
+                    RegularSupplementId: supplementId,
+                    RegularIntakeName: supplement.Name,
+                    AliasNames: supplement.Aliases.ToList(),
+                    AllergyNote: allergy.Note,
+                    DisplayLine: $"{supplement.Name} | {allergy.Note}"));
+            }
+
+            if (!ownSupplementSources.TryGetValue(supplementId, out IReadOnlyList<OwnSupplementSource>? sources))
+            {
+                continue;
+            }
+
+            ownOverlapRows.AddRange(sources.Select(source => new SupplementTakenNowAllergyOverlapRowReadModel(
+                RegularSupplementId: supplementId,
+                RegularIntakeName: supplement.Name,
+                AliasNames: supplement.Aliases.ToList(),
                 AllergyNote: allergy.Note,
-                DisplayLine: $"{allergy.Supplement.Name} | {allergy.Note}"))
-            .ToList();
+                DisplayLine: $"{supplement.Name} in own supplement ({source.OwnSupplementName}) | {allergy.Note}",
+                OwnSupplementId: source.OwnSupplementId,
+                OwnSupplementName: source.OwnSupplementName)));
+        }
 
         return new AllergySupplementSubgroupReadModel(
             FromDatabase: DrugInteractionToolReportMapping.BuildSubsection(
@@ -333,7 +407,15 @@ internal static class UserInfoSectionBuilder
             TakenNowOverlap: DrugInteractionToolReportMapping.BuildSubsection(
                 "allergies.supplement.taken_now_overlap",
                 DrugInteractionToolHeadlines.SupplementAllergiesTakenNowOverlap,
-                overlapRows));
+                overlapRows),
+            PlanTakingOverlap: DrugInteractionToolReportMapping.BuildSubsection(
+                "allergies.supplement.plan_taking_overlap",
+                DrugInteractionToolHeadlines.SupplementAllergiesPlanTakingOverlap,
+                planRows),
+            OwnSupplementOverlap: DrugInteractionToolReportMapping.BuildSubsection(
+                "allergies.supplement.own_supplement_overlap",
+                DrugInteractionToolHeadlines.SupplementAllergiesOwnSupplementOverlap,
+                ownOverlapRows));
     }
 
     private static AllergyOtherSubgroupReadModel BuildOtherAllergySubgroup(

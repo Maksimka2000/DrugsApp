@@ -50,7 +50,7 @@ public sealed record SearchDrugProblemsResponse(
 /// Controller for searching user drug problems.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Drug Problems")]
 [Route("api/drug-problems")]
 public sealed class SearchDrugProblemsController(

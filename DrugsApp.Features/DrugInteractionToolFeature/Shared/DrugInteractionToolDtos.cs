@@ -23,11 +23,17 @@ public sealed record ReportSubsectionReadModel<TRow>(
 /// <param name="DrugFormId">Identifier of the drug form.</param>
 /// <param name="DrugSummaryText">Readable summary of the drug.</param>
 /// <param name="IsOral">Indicates whether the form is oral.</param>
+/// <param name="Source">
+/// Whether the drug was selected for the report, is taken regularly, or both; omitted in public reports,
+/// where every drug is selected.
+/// </param>
 public sealed record DrugTargetSummaryReadModel(
     Guid DrugId,
     Guid DrugFormId,
     string DrugSummaryText,
-    bool IsOral);
+    bool IsOral,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    SelectedDrugSource? Source = null);
 
 /// <summary>
 /// Selected form summary embedded in per-drug report headers [description].
@@ -73,7 +79,7 @@ public sealed record DuplicationDrugSummaryReadModel(
     DuplicationDrugSource Source);
 
 /// <summary>
-/// Regular-medication schedule attached when a specific-drug row comes from the user's live intake [description].
+/// Regular intake schedule copied from the user's live regular drug, supplement, or food row [description].
 /// </summary>
 /// <param name="IntakeTimes">Daily clock times in HH:mm.</param>
 /// <param name="StartDate">ISO date when the course starts, or null when ongoing.</param>
@@ -117,11 +123,19 @@ public sealed record SpecificDrugDetailReadModel(
 /// <param name="ShowOralGuidance">Flag to include oral guidance.</param>
 /// <param name="ShowAllFoodAndSupplementInteractions">Flag to include all food/supplement interactions.</param>
 /// <param name="ManualDrugLimit">Maximum manual drug selection count.</param>
+/// <param name="SelectedSupplementCount">Number of supplements selected for the report.</param>
+/// <param name="SelectedFoodCount">Number of foods selected for the report.</param>
+/// <param name="Audience">Report audience.</param>
+/// <param name="ShowPossibleInteractions">Whether catalog foods and supplements that are neither taken nor selected are analysed.</param>
 public sealed record PublicDrugInteractionToolSettingsSnapshotReadModel(
     bool ShowAllDrugsInteractions,
     bool ShowOralGuidance,
     bool ShowAllFoodAndSupplementInteractions,
-    int ManualDrugLimit);
+    int ManualDrugLimit,
+    int SelectedSupplementCount = 0,
+    int SelectedFoodCount = 0,
+    ReportAudience Audience = ReportAudience.Public,
+    bool ShowPossibleInteractions = true);
 
 /// <summary>
 /// Registered tool settings snapshot (CASE ONE) [description].
@@ -131,12 +145,20 @@ public sealed record PublicDrugInteractionToolSettingsSnapshotReadModel(
 /// <param name="ShowOralGuidance">Flag to include oral guidance.</param>
 /// <param name="ShowAllFoodAndSupplementInteractions">Flag to include all food/supplement interactions.</param>
 /// <param name="ManualDrugLimit">Maximum manual drug selection count.</param>
+/// <param name="SelectedSupplementCount">Number of supplements selected for the report.</param>
+/// <param name="SelectedFoodCount">Number of foods selected for the report.</param>
+/// <param name="Audience">Report audience: registered client or healthcare provider.</param>
+/// <param name="ShowPossibleInteractions">Whether catalog foods and supplements that are neither taken nor selected are analysed.</param>
 public sealed record RegisteredDrugInteractionToolSettingsSnapshotReadModel(
     bool IncludeUserData,
     bool ShowAllDrugsInteractions,
     bool ShowOralGuidance,
     bool ShowAllFoodAndSupplementInteractions,
-    int ManualDrugLimit);
+    int ManualDrugLimit,
+    int SelectedSupplementCount = 0,
+    int SelectedFoodCount = 0,
+    ReportAudience Audience = ReportAudience.Registered,
+    bool ShowPossibleInteractions = true);
 
 /// <summary>
 /// Substance pair interaction row reused across per-drug and global sections [description].
@@ -221,6 +243,9 @@ public sealed record AlcoholInteractionSectionReadModel(
 /// <param name="Severity">Interaction severity.</param>
 /// <param name="IsTakenNow">Whether the food is taken now.</param>
 /// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="Source">
+/// <c>takingNow</c> in the taken-now subsection, <c>selected</c> in the selected subsection; omitted in the all-other subsection.
+/// </param>
 public sealed record FoodInteractionRowReadModel(
     Guid ActiveSubstanceId,
     string ActiveSubstanceName,
@@ -232,7 +257,9 @@ public sealed record FoodInteractionRowReadModel(
     string? StomachText,
     string Severity,
     bool IsTakenNow,
-    string DisplayLine);
+    string DisplayLine,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    DuplicationDrugSource? Source = null);
 
 /// <summary>
 /// Supplement interaction row [description].
@@ -248,6 +275,9 @@ public sealed record FoodInteractionRowReadModel(
 /// <param name="Severity">Interaction severity.</param>
 /// <param name="IsTakenNow">Whether the supplement is taken now.</param>
 /// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="Source">
+/// <c>takingNow</c> in the taken-now subsection, <c>selected</c> in the selected subsection; omitted in the all-other subsection.
+/// </param>
 public sealed record SupplementInteractionRowReadModel(
     Guid ActiveSubstanceId,
     string ActiveSubstanceName,
@@ -259,25 +289,65 @@ public sealed record SupplementInteractionRowReadModel(
     string? StomachText,
     string Severity,
     bool IsTakenNow,
-    string DisplayLine);
+    string DisplayLine,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    DuplicationDrugSource? Source = null);
 
 /// <summary>
-/// Public per-drug food section (catalog allOther only) [description].
+/// Supplement interaction row reached through a catalog supplement that is a member of the user's own (custom) supplement [description].
+/// </summary>
+/// <param name="ActiveSubstanceId">Active substance identifier.</param>
+/// <param name="ActiveSubstanceName">Active substance name.</param>
+/// <param name="OwnSupplementId">Identifier of the own supplement that contains the interacting supplement.</param>
+/// <param name="OwnSupplementName">Name of the own supplement that contains the interacting supplement.</param>
+/// <param name="SupplementId">Identifier of the interacting catalog supplement inside the own supplement.</param>
+/// <param name="SupplementName">Name of the interacting catalog supplement inside the own supplement.</param>
+/// <param name="AliasNames">Alternative names of the interacting catalog supplement.</param>
+/// <param name="InteractionId">Interaction identifier.</param>
+/// <param name="DefaultText">Default interaction text.</param>
+/// <param name="StomachText">Optional stomach-related text.</param>
+/// <param name="Severity">Interaction severity.</param>
+/// <param name="IsTakenNow">Always true, because the own supplement is on the user's Active regular list.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="Source">Always <c>takingNow</c>, because the own supplement is on the user's regular list.</param>
+public sealed record OwnSupplementInteractionRowReadModel(
+    Guid ActiveSubstanceId,
+    string ActiveSubstanceName,
+    Guid OwnSupplementId,
+    string OwnSupplementName,
+    Guid SupplementId,
+    string SupplementName,
+    IReadOnlyCollection<string> AliasNames,
+    Guid InteractionId,
+    string DefaultText,
+    string? StomachText,
+    string Severity,
+    bool IsTakenNow,
+    string DisplayLine,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    DuplicationDrugSource? Source = null);
+
+/// <summary>
+/// Public per-drug food section (catalog allOther and selected foods) [description].
 /// </summary>
 /// <param name="SectionCode">Section code identifier.</param>
-/// <param name="AllOther">Subsection for all other interactions.</param>
+/// <param name="AllOther">Subsection for all other interactions; null when all interactions are not requested.</param>
+/// <param name="Selected">Interactions with the foods selected for the report; null when no food is selected.</param>
 public sealed record PublicFoodInteractionSectionReadModel(
     string SectionCode,
-    ReportSubsectionReadModel<FoodInteractionRowReadModel> AllOther);
+    ReportSubsectionReadModel<FoodInteractionRowReadModel>? AllOther,
+    ReportSubsectionReadModel<FoodInteractionRowReadModel>? Selected = null);
 
 /// <summary>
-/// Public per-drug supplement section (catalog allOther only) [description].
+/// Public per-drug supplement section (catalog allOther and selected supplements) [description].
 /// </summary>
 /// <param name="SectionCode">Section code identifier.</param>
-/// <param name="AllOther">Subsection for all other interactions.</param>
+/// <param name="AllOther">Subsection for all other interactions; null when all interactions are not requested.</param>
+/// <param name="Selected">Interactions with the supplements selected for the report; null when no supplement is selected.</param>
 public sealed record PublicSupplementInteractionSectionReadModel(
     string SectionCode,
-    ReportSubsectionReadModel<SupplementInteractionRowReadModel> AllOther);
+    ReportSubsectionReadModel<SupplementInteractionRowReadModel>? AllOther,
+    ReportSubsectionReadModel<SupplementInteractionRowReadModel>? Selected = null);
 
 /// <summary>
 /// Meal-time oral guidance subsection for registered reports [description].
@@ -312,11 +382,13 @@ public sealed record ActiveSubstanceOralGuidanceRowReadModel(
 /// <param name="OralGuidance">Optional oral guidance subsection.</param>
 /// <param name="TakenNow">Optional taken-now subsection.</param>
 /// <param name="AllOther">Optional all-other subsection.</param>
+/// <param name="Selected">Interactions with the foods selected for the report; null when no food is selected.</param>
 public sealed record RegisteredFoodInteractionSectionReadModel(
     string SectionCode,
     OralGuidanceSubsectionReadModel? OralGuidance,
     ReportSubsectionReadModel<FoodInteractionRowReadModel>? TakenNow,
-    ReportSubsectionReadModel<FoodInteractionRowReadModel>? AllOther);
+    ReportSubsectionReadModel<FoodInteractionRowReadModel>? AllOther,
+    ReportSubsectionReadModel<FoodInteractionRowReadModel>? Selected = null);
 
 /// <summary>
 /// Registered per-drug supplement section [description].
@@ -324,10 +396,14 @@ public sealed record RegisteredFoodInteractionSectionReadModel(
 /// <param name="SectionCode">Section code identifier.</param>
 /// <param name="TakenNow">Optional taken-now subsection.</param>
 /// <param name="AllOther">Optional all-other subsection.</param>
+/// <param name="OwnSupplement">Optional subsection for supplements inside the user's own supplements; present with user data.</param>
+/// <param name="Selected">Interactions with the supplements selected for the report; null when no supplement is selected.</param>
 public sealed record RegisteredSupplementInteractionSectionReadModel(
     string SectionCode,
     ReportSubsectionReadModel<SupplementInteractionRowReadModel>? TakenNow,
-    ReportSubsectionReadModel<SupplementInteractionRowReadModel>? AllOther);
+    ReportSubsectionReadModel<SupplementInteractionRowReadModel>? AllOther,
+    ReportSubsectionReadModel<OwnSupplementInteractionRowReadModel>? OwnSupplement,
+    ReportSubsectionReadModel<SupplementInteractionRowReadModel>? Selected = null);
 
 /// <summary>
 /// Per-drug problematic drug row [description].
@@ -540,12 +616,58 @@ public sealed record DrugFormDuplicationRowReadModel(
 /// <param name="ActiveSubstanceGroupDuplicates">Active substance groups shared by different drugs.</param>
 /// <param name="DrugDuplicates">Drugs selected or taken in more than one form.</param>
 /// <param name="DrugFormDuplicates">Selected drug forms that are already taken regularly.</param>
+/// <param name="SupplementDuplication">
+/// Catalog supplements reaching the user from more than one source (selected, taken directly, inside own supplements);
+/// omitted when food and supplement interactions are off.
+/// </param>
 public sealed record DrugDuplicationSectionReadModel(
     string SectionCode,
     ReportSubsectionReadModel<ExactDuplicationRowReadModel> ExactActiveSubstanceDuplicates,
     ReportSubsectionReadModel<GroupDuplicationRowReadModel> ActiveSubstanceGroupDuplicates,
     ReportSubsectionReadModel<DrugDuplicationRowReadModel> DrugDuplicates,
-    ReportSubsectionReadModel<DrugFormDuplicationRowReadModel> DrugFormDuplicates);
+    ReportSubsectionReadModel<DrugFormDuplicationRowReadModel> DrugFormDuplicates,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    ReportSubsectionReadModel<SupplementDuplicationRowReadModel>? SupplementDuplication);
+
+/// <summary>
+/// Catalog supplement taken regularly on its own, as one source of a supplement duplication [description].
+/// </summary>
+/// <param name="SupplementId">Catalog supplement identifier.</param>
+/// <param name="SupplementSummaryText">Supplement name with aliases.</param>
+/// <param name="Source">Role of the supplement (always taking now).</param>
+public sealed record DuplicationSupplementSummaryReadModel(
+    Guid SupplementId,
+    string SupplementSummaryText,
+    DuplicationDrugSource Source);
+
+/// <summary>
+/// Own supplement containing the duplicated catalog supplement, as one source of a supplement duplication [description].
+/// </summary>
+/// <param name="OwnSupplementId">Own supplement identifier.</param>
+/// <param name="SupplementSummaryText">Own supplement as `Name | Contains: A, B`.</param>
+/// <param name="Source">Role of the own supplement (always taking now).</param>
+public sealed record DuplicationOwnSupplementSummaryReadModel(
+    Guid OwnSupplementId,
+    string SupplementSummaryText,
+    DuplicationDrugSource Source);
+
+/// <summary>
+/// Supplement duplication row: one catalog supplement reaches the user through more than one regular source,
+/// e.g. taken directly and inside an own supplement, or inside two own supplements [description].
+/// </summary>
+/// <param name="SupplementId">Duplicated catalog supplement identifier.</param>
+/// <param name="SupplementSummaryText">Supplement name with aliases.</param>
+/// <param name="AffectedSupplements">The supplement when it is taken regularly on its own; otherwise empty.</param>
+/// <param name="AffectedOwnSupplements">Every regular own supplement containing the supplement.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="DuplicationKind">Duplication classification.</param>
+public sealed record SupplementDuplicationRowReadModel(
+    Guid SupplementId,
+    string SupplementSummaryText,
+    IReadOnlyCollection<DuplicationSupplementSummaryReadModel> AffectedSupplements,
+    IReadOnlyCollection<DuplicationOwnSupplementSummaryReadModel> AffectedOwnSupplements,
+    string DisplayLine,
+    DuplicationKind DuplicationKind);
 
 /// <summary>
 /// Pregnancy-related main warning row [description].
@@ -747,12 +869,16 @@ public sealed record CustomFoodAllergyRowReadModel(
 /// <param name="AliasNames">Alias names.</param>
 /// <param name="AllergyNote">Optional allergy note.</param>
 /// <param name="DisplayLine">Display-friendly line.</param>
+/// <param name="OwnSupplementId">Own supplement the allergen is taken through; null when taken directly.</param>
+/// <param name="OwnSupplementName">Own supplement display name; null when taken directly.</param>
 public sealed record SupplementTakenNowAllergyOverlapRowReadModel(
     Guid RegularSupplementId,
     string RegularIntakeName,
     IReadOnlyCollection<string> AliasNames,
     string? AllergyNote,
-    string DisplayLine);
+    string DisplayLine,
+    Guid? OwnSupplementId = null,
+    string? OwnSupplementName = null);
 
 /// <summary>
 /// Taken-now food overlap with allergy row [description].
@@ -832,11 +958,15 @@ public sealed record AllergyDrugSubgroupReadModel(
 /// </summary>
 /// <param name="FromDatabase">Supplement allergy database subsection.</param>
 /// <param name="Custom">Custom supplement allergy subsection.</param>
-/// <param name="TakenNowOverlap">Taken-now overlap subsection.</param>
+/// <param name="TakenNowOverlap">Overlap with supplements taken directly from the regular list.</param>
+/// <param name="PlanTakingOverlap">Overlap with the supplements selected for the report (the user plans to take them).</param>
+/// <param name="OwnSupplementOverlap">Overlap with supplements inside the user's regular own (custom) supplements.</param>
 public sealed record AllergySupplementSubgroupReadModel(
     ReportSubsectionReadModel<SupplementCatalogAllergyRowReadModel> FromDatabase,
     ReportSubsectionReadModel<CustomSupplementAllergyRowReadModel> Custom,
-    ReportSubsectionReadModel<SupplementTakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
+    ReportSubsectionReadModel<SupplementTakenNowAllergyOverlapRowReadModel> TakenNowOverlap,
+    ReportSubsectionReadModel<SupplementTakenNowAllergyOverlapRowReadModel>? PlanTakingOverlap = null,
+    ReportSubsectionReadModel<SupplementTakenNowAllergyOverlapRowReadModel>? OwnSupplementOverlap = null);
 
 /// <summary>
 /// Food allergy subgroup [description].
@@ -844,10 +974,12 @@ public sealed record AllergySupplementSubgroupReadModel(
 /// <param name="FromDatabase">Food allergy database subsection.</param>
 /// <param name="Custom">Custom food allergy subsection.</param>
 /// <param name="TakenNowOverlap">Taken-now overlap subsection.</param>
+/// <param name="PlanTakingOverlap">Overlap with the foods selected for the report (the user plans to take them).</param>
 public sealed record AllergyFoodSubgroupReadModel(
     ReportSubsectionReadModel<FoodCatalogAllergyRowReadModel> FromDatabase,
     ReportSubsectionReadModel<CustomFoodAllergyRowReadModel> Custom,
-    ReportSubsectionReadModel<FoodTakenNowAllergyOverlapRowReadModel> TakenNowOverlap);
+    ReportSubsectionReadModel<FoodTakenNowAllergyOverlapRowReadModel> TakenNowOverlap,
+    ReportSubsectionReadModel<FoodTakenNowAllergyOverlapRowReadModel>? PlanTakingOverlap = null);
 
 /// <summary>
 /// Other allergy catalog row [description].
@@ -884,13 +1016,15 @@ public sealed record AllergyOtherSubgroupReadModel(
 /// Allergies user-info group [description].
 /// </summary>
 /// <param name="DrugAllergies">Drug allergy subgroup.</param>
-/// <param name="SupplementAllergies">Supplement allergy subgroup.</param>
-/// <param name="FoodAllergies">Food allergy subgroup.</param>
+/// <param name="SupplementAllergies">Supplement allergy subgroup; omitted when food and supplement interactions are off.</param>
+/// <param name="FoodAllergies">Food allergy subgroup; omitted when food and supplement interactions are off.</param>
 /// <param name="OtherAllergies">Other allergy subgroup.</param>
 public sealed record AllergiesGroupReadModel(
     AllergyDrugSubgroupReadModel DrugAllergies,
-    AllergySupplementSubgroupReadModel SupplementAllergies,
-    AllergyFoodSubgroupReadModel FoodAllergies,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    AllergySupplementSubgroupReadModel? SupplementAllergies,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    AllergyFoodSubgroupReadModel? FoodAllergies,
     AllergyOtherSubgroupReadModel OtherAllergies);
 
 /// <summary>
@@ -907,16 +1041,198 @@ public sealed record UserInfoSectionReadModel(
     AllergiesGroupReadModel Allergies);
 
 /// <summary>
+/// Drug listed in the report info section, either taken now or selected for this report [description].
+/// </summary>
+/// <param name="DrugId">Identifier of the drug.</param>
+/// <param name="DrugFormId">Identifier of the drug form.</param>
+/// <param name="CommercialName">Commercial name of the drug.</param>
+/// <param name="DrugSummaryText">Readable summary of the drug.</param>
+/// <param name="FormulationName">Pharmaceutical formulation name of the form.</param>
+/// <param name="Dosage">Dosage of the form.</param>
+/// <param name="IsOral">Indicates whether the form is oral.</param>
+/// <param name="ActiveSubstances">Active substances of the drug.</param>
+/// <param name="RegularIntake">Schedule from the live regular-drug row; omitted for drugs that are only selected.</param>
+public sealed record InfoDrugRowReadModel(
+    Guid DrugId,
+    Guid DrugFormId,
+    string CommercialName,
+    string DrugSummaryText,
+    string FormulationName,
+    string Dosage,
+    bool IsOral,
+    IReadOnlyCollection<ActiveSubstanceRefReadModel> ActiveSubstances,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    RegularDrugIntakeReadModel? RegularIntake);
+
+/// <summary>
+/// Catalog supplement the user takes now, listed in the report info section [description].
+/// </summary>
+/// <param name="SupplementId">Identifier of the catalog supplement.</param>
+/// <param name="SupplementName">Name of the catalog supplement.</param>
+/// <param name="AliasNames">Alternative names of the catalog supplement.</param>
+/// <param name="RegularIntake">Schedule from the live regular-supplement row.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+public sealed record InfoSupplementRowReadModel(
+    Guid SupplementId,
+    string SupplementName,
+    IReadOnlyCollection<string> AliasNames,
+    RegularDrugIntakeReadModel RegularIntake,
+    string DisplayLine);
+
+/// <summary>
+/// Catalog supplement contained in an own supplement listed in the report info section [description].
+/// </summary>
+/// <param name="SupplementId">Identifier of the catalog supplement.</param>
+/// <param name="SupplementName">Name of the catalog supplement.</param>
+/// <param name="AliasNames">Alternative names of the catalog supplement.</param>
+public sealed record InfoOwnSupplementMemberReadModel(
+    Guid SupplementId,
+    string SupplementName,
+    IReadOnlyCollection<string> AliasNames);
+
+/// <summary>
+/// Own (custom) supplement the user takes now, listed with its catalog supplements in the report info section [description].
+/// </summary>
+/// <param name="OwnSupplementId">Identifier of the own supplement.</param>
+/// <param name="OwnSupplementName">Name of the own supplement.</param>
+/// <param name="MemberSupplements">Catalog supplements inside the own supplement, in label order.</param>
+/// <param name="RegularIntake">Schedule from the live regular-supplement row.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+public sealed record InfoOwnSupplementRowReadModel(
+    Guid OwnSupplementId,
+    string OwnSupplementName,
+    IReadOnlyCollection<InfoOwnSupplementMemberReadModel> MemberSupplements,
+    RegularDrugIntakeReadModel RegularIntake,
+    string DisplayLine);
+
+/// <summary>
+/// Catalog food the user takes now, listed in the report info section [description].
+/// </summary>
+/// <param name="FoodId">Identifier of the catalog food.</param>
+/// <param name="FoodName">Name of the catalog food.</param>
+/// <param name="AliasNames">Alternative names of the catalog food.</param>
+/// <param name="RegularIntake">Schedule from the live regular-food row.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+public sealed record InfoFoodRowReadModel(
+    Guid FoodId,
+    string FoodName,
+    IReadOnlyCollection<string> AliasNames,
+    RegularDrugIntakeReadModel RegularIntake,
+    string DisplayLine);
+
+/// <summary>
+/// Catalog supplement or food selected for this report (for a provider: selected for prescription) [description].
+/// </summary>
+/// <param name="Id">Identifier of the catalog supplement or food.</param>
+/// <param name="Name">Name of the catalog supplement or food.</param>
+/// <param name="AliasNames">Alternative names.</param>
+/// <param name="IsAlsoTakenNow">
+/// True when the user already takes it regularly; null without user data.
+/// </param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+public sealed record InfoSelectedItemRowReadModel(
+    Guid Id,
+    string Name,
+    IReadOnlyCollection<string> AliasNames,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    bool? IsAlsoTakenNow,
+    string DisplayLine);
+
+/// <summary>
+/// Own (custom) supplement reference [description].
+/// </summary>
+/// <param name="OwnSupplementId">Own supplement identifier.</param>
+/// <param name="OwnSupplementName">Own supplement name.</param>
+public sealed record InfoOwnSupplementRefReadModel(
+    Guid OwnSupplementId,
+    string OwnSupplementName);
+
+/// <summary>
+/// Supplement that is selected for the report and already taken regularly, directly and/or inside own supplements [description].
+/// </summary>
+/// <param name="SupplementId">Catalog supplement identifier.</param>
+/// <param name="SupplementName">Catalog supplement name.</param>
+/// <param name="AliasNames">Alternative names.</param>
+/// <param name="IsTakenDirectly">True when the supplement is on the regular list on its own.</param>
+/// <param name="OwnSupplements">Regular own supplements that contain the supplement.</param>
+/// <param name="RegularIntake">Schedule of the direct regular intake; null when it is taken only inside own supplements.</param>
+/// <param name="DisplayLine">Display-friendly line.</param>
+public sealed record InfoSupplementSelectedTwiceRowReadModel(
+    Guid SupplementId,
+    string SupplementName,
+    IReadOnlyCollection<string> AliasNames,
+    bool IsTakenDirectly,
+    IReadOnlyCollection<InfoOwnSupplementRefReadModel> OwnSupplements,
+    RegularDrugIntakeReadModel? RegularIntake,
+    string DisplayLine);
+
+/// <summary>
+/// Drugs part of the report info section [description].
+/// </summary>
+/// <param name="SectionCode">Section code identifier.</param>
+/// <param name="TakenNow">Active regular drugs merged into the report; null without user data.</param>
+/// <param name="Selected">Drugs selected manually for this report.</param>
+/// <param name="SelectedTwice">
+/// Drugs both selected manually and already taken regularly, with their regular intake; null without user data.
+/// </param>
+public sealed record InfoDrugsSectionReadModel(
+    string SectionCode,
+    ReportSubsectionReadModel<InfoDrugRowReadModel>? TakenNow,
+    ReportSubsectionReadModel<InfoDrugRowReadModel> Selected,
+    ReportSubsectionReadModel<InfoDrugRowReadModel>? SelectedTwice);
+
+/// <summary>
+/// Supplements part of the report info section [description].
+/// </summary>
+/// <param name="SectionCode">Section code identifier.</param>
+/// <param name="TakenNow">Active regular catalog supplements; null without user data.</param>
+/// <param name="OwnSupplements">Active regular own supplements with their members; null without user data.</param>
+/// <param name="Selected">Catalog supplements selected for this report.</param>
+/// <param name="SelectedTwice">
+/// Selected supplements that are also taken regularly (directly or inside own supplements); null without user data.
+/// </param>
+public sealed record InfoSupplementsSectionReadModel(
+    string SectionCode,
+    ReportSubsectionReadModel<InfoSupplementRowReadModel>? TakenNow,
+    ReportSubsectionReadModel<InfoOwnSupplementRowReadModel>? OwnSupplements,
+    ReportSubsectionReadModel<InfoSelectedItemRowReadModel> Selected,
+    ReportSubsectionReadModel<InfoSupplementSelectedTwiceRowReadModel>? SelectedTwice);
+
+/// <summary>
+/// Foods part of the report info section [description].
+/// </summary>
+/// <param name="SectionCode">Section code identifier.</param>
+/// <param name="TakenNow">Active regular foods; null without user data.</param>
+/// <param name="Selected">Catalog foods selected for this report.</param>
+public sealed record InfoFoodsSectionReadModel(
+    string SectionCode,
+    ReportSubsectionReadModel<InfoFoodRowReadModel>? TakenNow,
+    ReportSubsectionReadModel<InfoSelectedItemRowReadModel> Selected);
+
+/// <summary>
+/// Everything the report was computed from: drugs taken now and selected, supplements and own supplements taken now, and foods taken now [description].
+/// </summary>
+/// <param name="SectionCode">Section code identifier.</param>
+/// <param name="Drugs">Drugs taken now and selected.</param>
+/// <param name="Supplements">Supplements taken now and selected.</param>
+/// <param name="Foods">Foods taken now and selected.</param>
+public sealed record ReportInfoSectionReadModel(
+    string SectionCode,
+    InfoDrugsSectionReadModel Drugs,
+    InfoSupplementsSectionReadModel? Supplements,
+    InfoFoodsSectionReadModel? Foods);
+
+/// <summary>
 /// Public report root (CASE TWO) [description].
 /// </summary>
 /// <param name="SettingsSnapshot">Settings snapshot for the report.</param>
-/// <param name="SelectedDrugs">Selected drug summaries.</param>
+/// <param name="Info">Drugs the report was computed from.</param>
 /// <param name="SpecificDrugReports">Per-drug report blocks.</param>
 /// <param name="AllDrugsInteractionsSection">Optional global interactions section.</param>
 /// <param name="DrugDuplicationSection">Duplication warnings section.</param>
 public sealed record PublicDrugInteractionToolReportReadModel(
     PublicDrugInteractionToolSettingsSnapshotReadModel SettingsSnapshot,
-    IReadOnlyCollection<DrugTargetSummaryReadModel> SelectedDrugs,
+    ReportInfoSectionReadModel Info,
     IReadOnlyCollection<PublicSpecificDrugReportReadModel> SpecificDrugReports,
     AllDrugsInteractionsSectionReadModel? AllDrugsInteractionsSection,
     DrugDuplicationSectionReadModel DrugDuplicationSection);
@@ -926,14 +1242,14 @@ public sealed record PublicDrugInteractionToolReportReadModel(
 /// </summary>
 /// <param name="SettingsSnapshot">Settings snapshot for the report.</param>
 /// <param name="UserInfoSection">Optional user info section.</param>
-/// <param name="SelectedDrugs">Selected drug summaries.</param>
+/// <param name="Info">Drugs, supplements, own supplements, and foods the report was computed from.</param>
 /// <param name="SpecificDrugReports">Per-drug report blocks.</param>
 /// <param name="AllDrugsInteractionsSection">Optional global interactions section.</param>
 /// <param name="DrugDuplicationSection">Duplication warnings section.</param>
 public sealed record RegisteredDrugInteractionToolReportReadModel(
     RegisteredDrugInteractionToolSettingsSnapshotReadModel SettingsSnapshot,
     UserInfoSectionReadModel? UserInfoSection,
-    IReadOnlyCollection<DrugTargetSummaryReadModel> SelectedDrugs,
+    ReportInfoSectionReadModel Info,
     IReadOnlyCollection<RegisteredSpecificDrugReportReadModel> SpecificDrugReports,
     AllDrugsInteractionsSectionReadModel? AllDrugsInteractionsSection,
     DrugDuplicationSectionReadModel DrugDuplicationSection);

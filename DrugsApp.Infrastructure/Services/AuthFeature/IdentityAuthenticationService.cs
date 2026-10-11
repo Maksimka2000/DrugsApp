@@ -713,7 +713,9 @@ public sealed class IdentityAuthenticationService(
             return MapIdentityFailure(deleteResult);
         }
 
-        if (roles.Contains(AuthRoles.HealthcareProvider))
+        bool holdsCachedNonClientRole = roles.Contains(AuthRoles.HealthcareProvider)
+            || roles.Any(AuthRoles.StudyRoleNames.Contains);
+        if (holdsCachedNonClientRole)
         {
             await _userPermissionService.InvalidateAsync(userId, cancellationToken);
         }

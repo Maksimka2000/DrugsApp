@@ -27,7 +27,7 @@ public sealed record GetOwnSupplementResponse(OwnSupplementDetailsDto Item);
 /// Controller for retrieving an own supplement.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Own Supplements")]
 [Route("api/own-supplements")]
 public sealed class GetOwnSupplementController(IMediator _mediator) : ControllerBase

@@ -1,4 +1,5 @@
 using DrugsApp.Domain.AuthFeature.Interfaces;
+using DrugsApp.Features.StudyModeFeature.ApplicationServices;
 using ErrorOr;
 using MediatR;
 
@@ -12,14 +13,30 @@ namespace DrugsApp.Features.AdminUserManagementFeature.RemoveAdminUser;
 public sealed record RemoveAdminUserCommand(Guid AdminUserId, Guid CallerUserId)
     : IRequest<ErrorOr<Success>>;
 
-internal sealed class RemoveAdminUserHandler(IIdentityUserManagementService identityUserManagementService)
+/// <summary>
+/// Removes the admin account and, in the same transaction, every private study clinic it created (public
+/// clinics stay available to the other study mode admins).
+/// </summary>
+internal sealed class RemoveAdminUserHandler(
+    IIdentityUserManagementService identityUserManagementService,
+    IStudyAccountTeardownApplicationService studyAccountTeardownApplicationService)
     : IRequestHandler<RemoveAdminUserCommand, ErrorOr<Success>>
 {
-    public Task<ErrorOr<Success>> Handle(
+    public async Task<ErrorOr<Success>> Handle(
         RemoveAdminUserCommand command,
-        CancellationToken cancellationToken) =>
-        identityUserManagementService.RemoveAdminUserAsync(
+        CancellationToken cancellationToken)
+    {
+        ErrorOr<Success> removeResult = await identityUserManagementService.RemoveAdminUserAsync(
             command.AdminUserId,
             command.CallerUserId,
             cancellationToken);
+        if (removeResult.IsError)
+        {
+            return removeResult.Errors;
+        }
+
+        return await studyAccountTeardownApplicationService.DeletePrivateClinicsOfCreatorAsync(
+            command.AdminUserId,
+            cancellationToken);
+    }
 }

@@ -28,7 +28,7 @@ public sealed record GetRegularSupplementResponse(RegularSupplementDetailsDto It
 /// Controller for retrieving a regular supplement schedule.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Regular Supplements")]
 [Route("api/regular-supplements")]
 public sealed class GetRegularSupplementController(IMediator _mediator) : ControllerBase

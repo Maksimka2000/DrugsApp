@@ -28,7 +28,10 @@ public sealed class ExecutePublicDrugInteractionToolReportHandler(
         query.Request.ShowAllDrugsInteractions,
         query.Request.ShowOralGuidance,
         query.Request.ShowAllFoodAndSupplementInteractions,
-        cancellationToken);
+        cancellationToken,
+        selectedSupplementIds: query.Request.SelectedSupplementIds,
+        selectedFoodIds: query.Request.SelectedFoodIds,
+        showPossibleInteractions: query.Request.ShowPossibleInteractions);
 
     if (reportResult.IsError)
     {

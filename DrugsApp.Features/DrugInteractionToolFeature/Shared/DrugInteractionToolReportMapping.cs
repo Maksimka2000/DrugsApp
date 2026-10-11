@@ -2,6 +2,8 @@ using System.Globalization;
 using DrugsApp.Domain.ActiveSubstanceFeature.Entities;
 using DrugsApp.Domain.DrugFeature.Entities;
 using DrugsApp.Domain.RegularDrugsFeature.Entities;
+using DrugsApp.Domain.RegularFoodFeature.Entities;
+using DrugsApp.Domain.RegularSupplementsFeature.Entities;
 
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
 
@@ -98,12 +100,16 @@ internal static class DrugInteractionToolReportMapping
             Leaflet: form.Leaflet,
             EducationMaterials: form.EducationMaterials);
 
-    internal static DrugTargetSummaryReadModel MapDrugTargetSummary(Drug drug, DrugForm form) =>
+    internal static DrugTargetSummaryReadModel MapDrugTargetSummary(
+        Drug drug,
+        DrugForm form,
+        SelectedDrugSource? source = null) =>
         new(
             DrugId: drug.Id,
             DrugFormId: form.Id,
             DrugSummaryText: BuildDrugSummaryText(drug, form),
-            IsOral: form.IsOral);
+            IsOral: form.IsOral,
+            Source: source);
 
     internal static IReadOnlyList<DuplicationDrugSummaryReadModel> MapDuplicationDrugSummaries(
         Drug drug,
@@ -193,19 +199,40 @@ internal static class DrugInteractionToolReportMapping
         return MapRegularIntake(source, MapRegularIntakeSnapshot(regularDrug));
     }
 
-    internal static RegularDrugIntakeReadModel MapRegularIntakeSnapshot(ClientRegularDrug regularDrug)
+    internal static RegularDrugIntakeReadModel MapRegularIntakeSnapshot(ClientRegularDrug regularDrug) =>
+        BuildRegularIntakeSnapshot(
+            regularDrug.IntakeTimes.Select(entry => entry.IntakeTime),
+            regularDrug.StartDate,
+            regularDrug.EndDate);
+
+    internal static RegularDrugIntakeReadModel MapRegularIntakeSnapshot(ClientRegularSupplement regularSupplement) =>
+        BuildRegularIntakeSnapshot(
+            regularSupplement.IntakeTimes.Select(entry => entry.IntakeTime),
+            regularSupplement.StartDate,
+            regularSupplement.EndDate);
+
+    internal static RegularDrugIntakeReadModel MapRegularIntakeSnapshot(ClientRegularFood regularFood) =>
+        BuildRegularIntakeSnapshot(
+            regularFood.IntakeTimes.Select(entry => entry.IntakeTime),
+            regularFood.StartDate,
+            regularFood.EndDate);
+
+    private static RegularDrugIntakeReadModel BuildRegularIntakeSnapshot(
+        IEnumerable<TimeOnly> intakeTimes,
+        DateOnly? startDate,
+        DateOnly? endDate)
     {
-        List<string> times = regularDrug.IntakeTimes
-            .Select(entry => entry.IntakeTime.ToString("HH:mm", CultureInfo.InvariantCulture))
+        List<string> times = intakeTimes
+            .Select(intakeTime => intakeTime.ToString("HH:mm", CultureInfo.InvariantCulture))
             .OrderBy(time => time, StringComparer.Ordinal)
             .ToList();
 
-        bool isOngoing = !regularDrug.StartDate.HasValue && !regularDrug.EndDate.HasValue;
+        bool isOngoing = !startDate.HasValue && !endDate.HasValue;
 
         return new RegularDrugIntakeReadModel(
             IntakeTimes: times,
-            StartDate: FormatIsoDate(regularDrug.StartDate),
-            EndDate: FormatIsoDate(regularDrug.EndDate),
+            StartDate: FormatIsoDate(startDate),
+            EndDate: FormatIsoDate(endDate),
             IsOngoing: isOngoing);
     }
 
@@ -252,6 +279,18 @@ internal static class DrugInteractionToolReportMapping
         string takenNowSuffix = isTakenNow ? " (user taking it now)" : string.Empty;
         string stomachSegment = string.IsNullOrWhiteSpace(stomachText) ? string.Empty : $" + {stomachText}";
         return $"{activeSubstanceName} => {partyName}{takenNowSuffix}: {defaultText}{stomachSegment} {severity}";
+    }
+
+    internal static string BuildOwnSupplementDisplayLine(
+        string activeSubstanceName,
+        string supplementNameWithAliases,
+        string ownSupplementName,
+        string defaultText,
+        string? stomachText,
+        string severity)
+    {
+        string stomachSegment = string.IsNullOrWhiteSpace(stomachText) ? string.Empty : $" + {stomachText}";
+        return $"{activeSubstanceName} => {supplementNameWithAliases} in own supplement ({ownSupplementName}): {defaultText}{stomachSegment} {severity}";
     }
 
     internal static string BuildComparedDrugGroupTitle(

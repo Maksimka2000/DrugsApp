@@ -60,6 +60,8 @@ public sealed class PatientDevDataSeeder(
         {
             await dbContext.Database.ExecuteSqlRawAsync(MetadataTableSql, cancellationToken);
 
+            await EnsureSeedAdminsAsync(cancellationToken);
+
             string seedKey = _settings.SeedKey.Trim();
             await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
@@ -126,6 +128,35 @@ public sealed class PatientDevDataSeeder(
         }
 
         await EnsureLegacySettingsPatientAliasAsync(cancellationToken);
+    }
+
+    private async Task EnsureSeedAdminsAsync(CancellationToken cancellationToken)
+    {
+        foreach (DevSeedUserDefinitions.SeedAdminDefinition definition in DevSeedUserDefinitions.Admins)
+        {
+            ApplicationUser? user = await userManager.FindByIdAsync(definition.Id.ToString())
+                ?? await userManager.FindByEmailAsync(definition.Email);
+
+            if (user is null)
+            {
+                user = new ApplicationUser
+                {
+                    Id = definition.Id,
+                    Email = definition.Email,
+                    UserName = definition.Email,
+                    EmailConfirmed = true,
+                    FullName = definition.FullName,
+                    CreatedAtUtc = DateTime.UtcNow
+                };
+
+                IdentityResult createResult = await userManager.CreateAsync(user, definition.Password);
+                EnsureIdentitySucceeded(createResult, $"Failed to create seed admin '{definition.Email}'.");
+                await dbContext.SaveChangesAsync(cancellationToken);
+                user = (await userManager.FindByIdAsync(definition.Id.ToString()))!;
+            }
+
+            await EnsureRoleAsync(user.Id, definition.Role, cancellationToken);
+        }
     }
 
     private async Task EnsureLegacySettingsPatientAliasAsync(CancellationToken cancellationToken)

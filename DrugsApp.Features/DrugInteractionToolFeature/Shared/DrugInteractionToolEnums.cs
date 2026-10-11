@@ -3,19 +3,28 @@ using System.Text.Json.Serialization;
 namespace DrugsApp.Features.DrugInteractionToolFeature.Shared;
 
 /// <summary>
-/// Internal audience discriminator for shared report orchestration [description].
+/// Audience of a report; it only changes the wording of the "selected" headlines [description].
 /// </summary>
-internal enum ReportAudience
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ReportAudience
 {
     /// <summary>
     /// Anonymous public tool (CASE TWO).
     /// </summary>
+    [JsonStringEnumMemberName("public")]
     Public = 0,
 
     /// <summary>
     /// Authenticated client tool (CASE ONE).
     /// </summary>
-    Registered = 1
+    [JsonStringEnumMemberName("registered")]
+    Registered = 1,
+
+    /// <summary>
+    /// Healthcare provider report over a supervised patient; selected items are prescribed items.
+    /// </summary>
+    [JsonStringEnumMemberName("provider")]
+    Provider = 2
 }
 
 /// <summary>
@@ -85,7 +94,12 @@ public enum DuplicationKind
     /// <summary>
     /// A selected drug form is already on the user's live regular intake list.
     /// </summary>
-    DrugForm = 3
+    DrugForm = 3,
+
+    /// <summary>
+    /// A catalog supplement is taken regularly from more than one source (directly and/or inside own supplements).
+    /// </summary>
+    Supplement = 4
 }
 
 /// <summary>

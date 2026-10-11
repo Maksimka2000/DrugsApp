@@ -22,7 +22,7 @@ public sealed record ListOwnSupplementsQuery(Guid UserId) : IRequest<ErrorOr<Lis
 /// Controller for listing own supplements.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Own Supplements")]
 [Route("api/own-supplements")]
 public sealed class ListOwnSupplementsController(IMediator _mediator) : ControllerBase

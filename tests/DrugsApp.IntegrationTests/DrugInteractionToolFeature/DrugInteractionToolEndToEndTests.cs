@@ -54,8 +54,7 @@ public sealed class DrugInteractionToolEndToEndTests : IntegrationTestBase
             JsonElement report = JsonDocument.Parse(firstBody).RootElement.GetProperty("report");
             AssertReportIsConsistent(report, manualForms.Length, showAllDrugs, context);
 
-            report.GetProperty("selectedDrugs").EnumerateArray()
-                .Select(drug => drug.GetProperty("drugFormId").GetGuid())
+            ReportDrugFormIds(report)
                 .Should().BeEquivalentTo(manualForms, because: context);
 
             if (showAllDrugs)
@@ -112,7 +111,7 @@ public sealed class DrugInteractionToolEndToEndTests : IntegrationTestBase
             secondBody.Should().Be(firstBody, because: $"{context}: the same request must give the same bytes");
 
             JsonElement report = JsonDocument.Parse(firstBody).RootElement.GetProperty("report");
-            int expectedDrugCount = report.GetProperty("selectedDrugs").GetArrayLength();
+            int expectedDrugCount = ReportDrugFormIds(report).Count;
             AssertReportIsConsistent(report, expectedDrugCount, showAllDrugs, context);
 
             if (showAllDrugs)
@@ -121,8 +120,7 @@ public sealed class DrugInteractionToolEndToEndTests : IntegrationTestBase
                     .Should().BeGreaterThan(0, because: $"{context}: the scenario must contain a real drug-drug interaction");
             }
 
-            report.GetProperty("selectedDrugs").EnumerateArray()
-                .Select(drug => drug.GetProperty("drugFormId").GetGuid())
+            ReportDrugFormIds(report)
                 .Should().Contain(manualForms, because: $"{context}: manual forms are always reported");
 
             if (includeUserData)
@@ -200,7 +198,8 @@ public sealed class DrugInteractionToolEndToEndTests : IntegrationTestBase
             PublicRequest());
         emptyStatus.Should().Be(HttpStatusCode.OK, because: emptyBody);
         JsonDocument.Parse(emptyBody).RootElement.GetProperty("report")
-            .GetProperty("selectedDrugs").GetArrayLength().Should().Be(0);
+            .GetProperty("info").GetProperty("drugs").GetProperty("selected")
+            .GetProperty("recordCount").GetInt32().Should().Be(0);
     }
 
     [Fact]
@@ -300,15 +299,27 @@ public sealed class DrugInteractionToolEndToEndTests : IntegrationTestBase
         return (response.StatusCode, body);
     }
 
+    private static List<Guid> ReportDrugFormIds(JsonElement report)
+    {
+        JsonElement drugs = report.GetProperty("info").GetProperty("drugs");
+
+        return new[] { "selected", "takenNow" }
+            .Select(subsectionName => drugs.GetProperty(subsectionName))
+            .Where(subsection => subsection.ValueKind == JsonValueKind.Object)
+            .SelectMany(subsection => subsection.GetProperty("rows").EnumerateArray())
+            .Select(row => row.GetProperty("drugFormId").GetGuid())
+            .Distinct()
+            .ToList();
+    }
+
     private static void AssertReportIsConsistent(
         JsonElement report,
         int expectedDrugCount,
         bool showAllDrugs,
         string context)
     {
-        JsonElement selectedDrugs = report.GetProperty("selectedDrugs");
         JsonElement specificReports = report.GetProperty("specificDrugReports");
-        selectedDrugs.GetArrayLength().Should().Be(expectedDrugCount, because: context);
+        ReportDrugFormIds(report).Should().HaveCount(expectedDrugCount, because: context);
         specificReports.GetArrayLength().Should().Be(expectedDrugCount, because: context);
 
         foreach (JsonElement subsection in Descendants(report).Where(IsCountedSubsection))

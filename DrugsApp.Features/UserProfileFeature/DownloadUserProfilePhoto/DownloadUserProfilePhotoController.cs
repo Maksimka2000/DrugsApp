@@ -19,7 +19,7 @@ namespace DrugsApp.Features.UserProfileFeature.DownloadUserProfilePhoto;
 /// </summary>
 [ApiController]
 [Route("api/user-profile/photo")]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("User Profile")]
 public sealed class DownloadUserProfilePhotoController(IMediator _mediator) : ControllerBase
 {

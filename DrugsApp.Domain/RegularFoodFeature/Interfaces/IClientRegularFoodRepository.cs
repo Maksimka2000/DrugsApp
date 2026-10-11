@@ -30,6 +30,16 @@ public interface IClientRegularFoodRepository
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves every Active regular food row with its catalog food and intake times.
+    /// </summary>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the query.</param>
+    /// <returns>Active rows only; Scheduled and Expired rows are excluded.</returns>
+    Task<List<ClientRegularFood>> ListActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Retrieves the catalog food identifiers of every regular food whose status is Active.
     /// </summary>
     /// <param name="userId">Owner user identifier.</param>

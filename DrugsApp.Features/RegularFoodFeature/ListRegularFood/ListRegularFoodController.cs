@@ -47,7 +47,7 @@ public sealed record ListRegularFoodResponse(
 /// Controller for listing live regular food schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Regular Food")]
 [Route("api/regular-food")]
 public sealed class ListRegularFoodController(

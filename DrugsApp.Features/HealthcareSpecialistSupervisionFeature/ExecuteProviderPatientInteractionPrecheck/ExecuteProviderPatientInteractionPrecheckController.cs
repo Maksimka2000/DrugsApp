@@ -21,7 +21,7 @@ public sealed class ExecuteProviderPatientInteractionPrecheckController(
     public const string RouteName = "ExecuteProviderPatientInteractionPrecheck";
 
     [HttpPost("{patient_id:guid}/interaction-precheck", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.HealthcareProvider)]
+    [Authorize(Roles = AuthRoles.ProviderReadRoles)]
     [ProducesResponseType(typeof(ProviderPatientInteractionPrecheckResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

@@ -22,7 +22,7 @@ public sealed class GetProviderPatientDetailController(
     public const string RouteName = "GetProviderPatientDetail";
 
     [HttpGet("{patient_id:guid}", Name = RouteName)]
-    [Authorize(Roles = AuthRoles.HealthcareProvider)]
+    [Authorize(Roles = AuthRoles.ProviderReadRoles)]
     public async Task<ActionResult<ProviderPatientDetailResponse>> Get(
         [FromRoute] Guid patient_id,
         CancellationToken cancellationToken)

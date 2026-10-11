@@ -203,12 +203,18 @@ public sealed class RegisteredDrugInteractionToolReportRegularScopeTests : Integ
             .Select(user => user.Id)
             .SingleAsync();
 
-    private static IEnumerable<Guid> SelectedDrugFormIds(JsonElement report) =>
-        FindProperties(report, "selectedDrugs")
-            .Single()
-            .EnumerateArray()
-            .Select(selected => selected.GetProperty("drugFormId").GetGuid())
+    private static IEnumerable<Guid> SelectedDrugFormIds(JsonElement report)
+    {
+        JsonElement drugs = report.GetProperty("report").GetProperty("info").GetProperty("drugs");
+
+        return new[] { "selected", "takenNow" }
+            .Select(subsectionName => drugs.GetProperty(subsectionName))
+            .Where(subsection => subsection.ValueKind == JsonValueKind.Object)
+            .SelectMany(subsection => subsection.GetProperty("rows").EnumerateArray())
+            .Select(row => row.GetProperty("drugFormId").GetGuid())
+            .Distinct()
             .ToList();
+    }
 
     private async Task<JsonElement> GetReportAsync(Guid[] manualDrugFormIds)
     {

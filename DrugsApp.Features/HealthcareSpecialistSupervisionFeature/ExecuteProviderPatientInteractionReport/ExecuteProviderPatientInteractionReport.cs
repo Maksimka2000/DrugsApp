@@ -16,10 +16,20 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ExecuteProvid
 /// <param name="ShowAllDrugsInteractions">Whether drug-to-drug interactions are included.</param>
 /// <param name="ShowAllFoodAndSupplementInteractions">Whether food and supplement interactions are included.</param>
 /// <param name="ShowOralGuidance">Whether oral intake guidance is included.</param>
+/// <param name="ManualDrugFormIds">Drug forms selected for prescription (up to 20); analysed together with the patient's regular drugs.</param>
+/// <param name="SelectedSupplementIds">Catalog supplements selected for prescription (up to 20).</param>
+/// <param name="SelectedFoodIds">Catalog foods selected for prescription (up to 20).</param>
+/// <param name="ShowPossibleInteractions">
+/// Whether catalog foods and supplements that are neither taken nor selected are analysed ("possible" interactions); defaults to true.
+/// </param>
 public sealed record ProviderPatientInteractionReportRequest(
     bool ShowAllDrugsInteractions,
     bool ShowAllFoodAndSupplementInteractions,
-    bool ShowOralGuidance);
+    bool ShowOralGuidance,
+    IReadOnlyCollection<Guid>? ManualDrugFormIds = null,
+    IReadOnlyCollection<Guid>? SelectedSupplementIds = null,
+    IReadOnlyCollection<Guid>? SelectedFoodIds = null,
+    bool ShowPossibleInteractions = true);
 
 /// <summary>
 /// Response envelope for the provider safety report.
@@ -86,12 +96,16 @@ internal sealed class ExecuteProviderPatientInteractionReportHandler(
         ErrorOr<RegisteredDrugInteractionToolReportReadModel> reportResult =
             await reportApplicationService.ComputeRegisteredReportAsync(
                 connection.PatientUserId,
-                Array.Empty<Guid>(),
+                command.Request.ManualDrugFormIds ?? Array.Empty<Guid>(),
                 includeUserData: true,
                 command.Request.ShowAllDrugsInteractions,
                 command.Request.ShowOralGuidance,
                 command.Request.ShowAllFoodAndSupplementInteractions,
-                cancellationToken);
+                cancellationToken,
+                selectedSupplementIds: command.Request.SelectedSupplementIds,
+                selectedFoodIds: command.Request.SelectedFoodIds,
+                audience: ReportAudience.Provider,
+                showPossibleInteractions: command.Request.ShowPossibleInteractions);
 
         if (reportResult.IsError)
         {

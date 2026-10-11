@@ -14,8 +14,8 @@ namespace DrugsApp.Features.HealthcareSpecialistSupervisionFeature.ExecuteProvid
 /// Request payload for provider interaction pre-check against a supervised patient.
 /// </summary>
 /// <param name="ManualDrugFormIds">Proposed medication form ids from the recommendation basket.</param>
-/// <param name="AdditionalFoodIds">Proposed food catalog ids to include in taken-now analysis.</param>
-/// <param name="AdditionalSupplementIds">Proposed supplement catalog ids to include in taken-now analysis.</param>
+/// <param name="AdditionalFoodIds">Proposed food catalog ids; analysed as foods selected for prescription.</param>
+/// <param name="AdditionalSupplementIds">Proposed supplement catalog ids; analysed as supplements selected for prescription.</param>
 public sealed record ProviderPatientInteractionPrecheckRequest(
     IReadOnlyCollection<Guid>? ManualDrugFormIds,
     IReadOnlyCollection<Guid>? AdditionalFoodIds,
@@ -95,8 +95,9 @@ internal sealed class ExecuteProviderPatientInteractionPrecheckHandler(
                 showOralGuidance: true,
                 showAllFoodAndSupplementInteractions: true,
                 cancellationToken,
-                additionalTakenNowFoodIds: additionalFoodIds,
-                additionalTakenNowSupplementIds: additionalSupplementIds);
+                selectedSupplementIds: additionalSupplementIds,
+                selectedFoodIds: additionalFoodIds,
+                audience: ReportAudience.Provider);
 
         if (reportResult.IsError)
         {

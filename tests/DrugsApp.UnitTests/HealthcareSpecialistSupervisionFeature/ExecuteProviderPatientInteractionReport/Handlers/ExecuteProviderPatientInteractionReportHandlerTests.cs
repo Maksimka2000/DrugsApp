@@ -76,7 +76,9 @@ public sealed class ExecuteProviderPatientInteractionReportHandlerTests
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>(),
                 It.IsAny<IReadOnlyCollection<Guid>?>(),
-                It.IsAny<IReadOnlyCollection<Guid>?>()),
+                It.IsAny<IReadOnlyCollection<Guid>?>(),
+                It.IsAny<ReportAudience>(),
+                It.IsAny<bool>()),
             Times.Never);
 
     [Fact]
@@ -138,7 +140,9 @@ public sealed class ExecuteProviderPatientInteractionReportHandlerTests
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>(),
                 It.IsAny<IReadOnlyCollection<Guid>?>(),
-                It.IsAny<IReadOnlyCollection<Guid>?>()))
+                It.IsAny<IReadOnlyCollection<Guid>?>(),
+                It.IsAny<ReportAudience>(),
+                It.IsAny<bool>()))
             .ReturnsAsync(Error.Conflict(description: "report stub"));
 
         ErrorOr<ProviderPatientInteractionReportResponse> result = await Run();
@@ -155,7 +159,9 @@ public sealed class ExecuteProviderPatientInteractionReportHandlerTests
                 true,
                 It.IsAny<CancellationToken>(),
                 It.IsAny<IReadOnlyCollection<Guid>?>(),
-                It.IsAny<IReadOnlyCollection<Guid>?>()),
+                It.IsAny<IReadOnlyCollection<Guid>?>(),
+                ReportAudience.Provider,
+                true),
             Times.Once);
         _reportService.Verify(
             s => s.ComputeRegisteredReportAsync(
@@ -167,7 +173,9 @@ public sealed class ExecuteProviderPatientInteractionReportHandlerTests
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>(),
                 It.IsAny<IReadOnlyCollection<Guid>?>(),
-                It.IsAny<IReadOnlyCollection<Guid>?>()),
+                It.IsAny<IReadOnlyCollection<Guid>?>(),
+                It.IsAny<ReportAudience>(),
+                It.IsAny<bool>()),
             Times.Never);
     }
 }

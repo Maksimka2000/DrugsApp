@@ -6,6 +6,7 @@ using DrugsApp.Domain.AuthFeature.Interfaces;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Enums;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
+using DrugsApp.Features.UserProfileFeature.ApplicationServices;
 using DrugsApp.Features.UserProfileFeature.Shared;
 using ErrorOr;
 using MediatR;
@@ -41,7 +42,8 @@ public sealed record UpdateUserProfileCommand(
 internal sealed class UpdateUserProfileHandler(
     IUserProfileRepository _userProfileRepository,
     IClientReproductiveHealthProfileRepository _clientReproductiveHealthProfileRepository,
-    IPendingEmailChangeRepository _pendingEmailChangeRepository)
+    IPendingEmailChangeRepository _pendingEmailChangeRepository,
+    IUserProfileApplicationService _userProfileApplicationService)
     : IRequestHandler<UpdateUserProfileCommand, ErrorOr<UserProfileResponse>>
 {
     /// <summary>
@@ -81,20 +83,22 @@ internal sealed class UpdateUserProfileHandler(
                 });
         }
 
-        ErrorOr<Success> updateResult = profile.UpdatePersonalData(
-            command.Request.FirstName,
-            command.Request.LastName,
-            command.Request.DateOfBirth,
-            newGender);
+        ErrorOr<UserProfilePersonalDataUpdateResult> updateResult = await _userProfileApplicationService.UpdatePersonalDataAsync(
+            command.UserId,
+            new UserProfilePersonalData(
+                command.Request.FirstName,
+                command.Request.LastName,
+                command.Request.DateOfBirth,
+                newGender),
+            cancellationToken);
 
         if (updateResult.IsError)
         {
             return updateResult.Errors;
         }
 
-        if (genderChangedAwayFromFemale && hasReproductive && command.Request.ConfirmReproductiveHealthDeletion is true)
+        if (updateResult.Value.ReproductiveHealthProfileRemoved)
         {
-            await _clientReproductiveHealthProfileRepository.RemoveByUserIdAsync(command.UserId, cancellationToken);
             hasReproductive = false;
         }
 

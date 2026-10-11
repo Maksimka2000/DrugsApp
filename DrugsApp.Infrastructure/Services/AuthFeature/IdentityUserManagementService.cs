@@ -84,6 +84,62 @@ public sealed class IdentityUserManagementService(
     }
 
     /// <inheritdoc />
+    public async Task<ErrorOr<Guid>> CreateStudyAccountAsync(
+        string email,
+        string password,
+        string roleName,
+        CancellationToken cancellationToken)
+    {
+        if (!AuthRoles.StudyRoleNames.Contains(roleName))
+        {
+            return Error.Validation(
+                code: "Auth.InvalidStudyRole",
+                description: "Study accounts can only be created in a study role.",
+                metadata: new Dictionary<string, object> { ["field"] = "role" });
+        }
+
+        string normalizedEmail = email.Trim().ToLowerInvariant();
+
+        ApplicationUser? existingUser = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (existingUser is not null)
+        {
+            return Error.Conflict(
+                code: "Auth.EmailAlreadyExists",
+                description: "An account with this email already exists.",
+                metadata: new Dictionary<string, object> { ["field"] = "email" });
+        }
+
+        var user = new ApplicationUser
+        {
+            Email = normalizedEmail,
+            UserName = normalizedEmail,
+            EmailConfirmed = true,
+            CreatedAtUtc = DateTime.UtcNow,
+            LockoutEnabled = true,
+            LockoutEnd = null
+        };
+
+        IdentityResult createResult = await _userManager.CreateAsync(user, password);
+        if (!createResult.Succeeded)
+        {
+            return MapIdentityFailure(createResult);
+        }
+
+        await EnsureNewIdentityUserPersistedAsync(user, cancellationToken);
+
+        ErrorOr<Success> assignRoleResult = await AddUserToRoleDirectAsync(
+            user.Id,
+            roleName,
+            cancellationToken);
+        if (assignRoleResult.IsError)
+        {
+            return assignRoleResult.Errors;
+        }
+
+        return user.Id;
+    }
+
+    /// <inheritdoc />
     public async Task<ErrorOr<AdminUserMutationResult>> ReplaceAdminRoleAsync(
         Guid adminUserId,
         string adminRole,

@@ -15,7 +15,7 @@ namespace DrugsApp.Features.UserProfileFeature.GetUserProfile;
 
 [ApiController]
 [Route("api/user-profile")]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("User Profile")]
 public sealed class GetUserProfileController(IMediator _mediator) : ControllerBase
 {

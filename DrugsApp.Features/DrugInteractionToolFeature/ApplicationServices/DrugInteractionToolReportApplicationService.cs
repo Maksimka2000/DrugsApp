@@ -103,13 +103,19 @@ public sealed class DrugInteractionToolReportApplicationService(
     /// <param name="showOralGuidance">Whether to include oral guidance sections.</param>
     /// <param name="showAllFoodAndSupplementInteractions">Whether to include all food/supplement interactions.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <param name="selectedSupplementIds">Catalog supplements selected for the analysis.</param>
+    /// <param name="selectedFoodIds">Catalog foods selected for the analysis.</param>
+    /// <param name="showPossibleInteractions">Whether catalog foods and supplements that are not selected are analysed.</param>
     /// <returns>Report read model or error collection.</returns>
     public async Task<ErrorOr<PublicDrugInteractionToolReportReadModel>> ComputePublicReportAsync(
         IReadOnlyCollection<Guid> manualDrugFormIds,
         bool showAllDrugsInteractions,
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Guid>? selectedSupplementIds = null,
+        IReadOnlyCollection<Guid>? selectedFoodIds = null,
+        bool showPossibleInteractions = true)
     {
         ErrorOr<IReadOnlyList<DrugFormSelection>> selectionsResult = await LoadManualSelectionsAsync(
             manualDrugFormIds,
@@ -121,12 +127,25 @@ public sealed class DrugInteractionToolReportApplicationService(
             return selectionsResult.Errors;
         }
 
+        ErrorOr<SelectedCatalogItems> selectedItemsResult = await LoadSelectedCatalogItemsAsync(
+            selectedSupplementIds,
+            selectedFoodIds,
+            cancellationToken);
+
+        if (selectedItemsResult.IsError)
+        {
+            return selectedItemsResult.Errors;
+        }
+
         return await BuildPublicReportAsync(
             selectionsResult.Value,
             manualDrugFormIds.Count,
             showAllDrugsInteractions,
             showOralGuidance,
             showAllFoodAndSupplementInteractions,
+            selectedItemsResult.Value.Supplements,
+            selectedItemsResult.Value.Foods,
+            showPossibleInteractions,
             cancellationToken);
     }
 
@@ -140,8 +159,10 @@ public sealed class DrugInteractionToolReportApplicationService(
     /// <param name="showOralGuidance">Whether to include oral guidance sections.</param>
     /// <param name="showAllFoodAndSupplementInteractions">Whether to include all food/supplement interactions.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <param name="additionalTakenNowFoodIds"></param>
-    /// <param name="additionalTakenNowSupplementIds"></param>
+    /// <param name="selectedSupplementIds">Catalog supplements selected for the analysis (provider: for prescription).</param>
+    /// <param name="selectedFoodIds">Catalog foods selected for the analysis (provider: for prescription).</param>
+    /// <param name="audience">Report audience; only changes the wording of the selected headlines.</param>
+    /// <param name="showPossibleInteractions">Whether catalog foods and supplements that are neither taken nor selected are analysed.</param>
     /// <returns>Registered report read model or error collection.</returns>
     public async Task<ErrorOr<RegisteredDrugInteractionToolReportReadModel>> ComputeRegisteredReportAsync(
         Guid userId,
@@ -151,8 +172,10 @@ public sealed class DrugInteractionToolReportApplicationService(
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
         CancellationToken cancellationToken,
-        IReadOnlyCollection<Guid>? additionalTakenNowFoodIds = null,
-        IReadOnlyCollection<Guid>? additionalTakenNowSupplementIds = null)
+        IReadOnlyCollection<Guid>? selectedSupplementIds = null,
+        IReadOnlyCollection<Guid>? selectedFoodIds = null,
+        ReportAudience audience = ReportAudience.Registered,
+        bool showPossibleInteractions = true)
     {
         ErrorOr<IReadOnlyList<DrugFormSelection>> selectionsResult = await LoadManualSelectionsAsync(
             manualDrugFormIds,
@@ -164,11 +187,29 @@ public sealed class DrugInteractionToolReportApplicationService(
             return selectionsResult.Errors;
         }
 
+        ErrorOr<SelectedCatalogItems> selectedItemsResult = await LoadSelectedCatalogItemsAsync(
+            selectedSupplementIds,
+            selectedFoodIds,
+            cancellationToken);
+
+        if (selectedItemsResult.IsError)
+        {
+            return selectedItemsResult.Errors;
+        }
+
+        IReadOnlyList<Supplement> selectedSupplements = selectedItemsResult.Value.Supplements;
+        IReadOnlyList<Food> selectedFoods = selectedItemsResult.Value.Foods;
+        HashSet<Guid> selectedSupplementIdSet = selectedSupplements.Select(item => item.Id).ToHashSet();
+        HashSet<Guid> selectedFoodIdSet = selectedFoods.Select(item => item.Id).ToHashSet();
+
         var effectiveSelections = selectionsResult.Value.ToList();
 
         UserInfoSectionReadModel? userInfoSection = null;
         HashSet<Guid> takenNowFoodIds = new();
         HashSet<Guid> takenNowSupplementIds = new();
+        List<ClientRegularFood> regularFoods = new();
+        List<ClientRegularSupplement> regularSupplements = new();
+        Dictionary<Guid, IReadOnlyList<OwnSupplementSource>> ownSupplementSourcesBySupplementId = new();
         AllergyIndexes allergyIndexes = new(new(), new(), new());
 
         if (includeUserData)
@@ -181,28 +222,18 @@ public sealed class DrugInteractionToolReportApplicationService(
 
             effectiveSelections = MergeRegularDrugs(effectiveSelections, regularDrugs);
 
-            takenNowFoodIds = (await _clientRegularFoodRepository.ListActiveFoodIdsByUserIdAsync(
-                userId,
-                cancellationToken)).ToHashSet();
-            takenNowSupplementIds = (await _clientRegularSupplementRepository.ListActiveDatabaseSupplementIdsByUserIdAsync(
-                userId,
-                cancellationToken)).ToHashSet();
+            regularFoods = await _clientRegularFoodRepository.ListActiveByUserIdAsync(userId, cancellationToken);
+            takenNowFoodIds = regularFoods.Select(row => row.FoodId).ToHashSet();
 
-            if (additionalTakenNowFoodIds is { Count: > 0 })
-            {
-                foreach (Guid foodId in additionalTakenNowFoodIds)
-                {
-                    takenNowFoodIds.Add(foodId);
-                }
-            }
-
-            if (additionalTakenNowSupplementIds is { Count: > 0 })
-            {
-                foreach (Guid supplementId in additionalTakenNowSupplementIds)
-                {
-                    takenNowSupplementIds.Add(supplementId);
-                }
-            }
+            regularSupplements = await _clientRegularSupplementRepository.ListActiveByUserIdAsync(
+                userId,
+                cancellationToken);
+            takenNowSupplementIds = regularSupplements
+                .Where(row => row.Source == RegularSupplementSource.Database && row.SupplementId.HasValue)
+                .Select(row => row.SupplementId!.Value)
+                .ToHashSet();
+            ownSupplementSourcesBySupplementId =
+                OwnSupplementMembershipBuilder.BuildSourcesBySupplementId(regularSupplements);
 
             UserMedicalBundle bundle = await LoadUserMedicalBundleAsync(userId, cancellationToken);
             allergyIndexes = DrugAllergyProblemIndexBuilder.BuildAllergyIndexes(bundle.DrugAllergies, bundle.DrugProblems);
@@ -211,7 +242,11 @@ public sealed class DrugInteractionToolReportApplicationService(
                 regularDrugs,
                 plannedDrugs,
                 takenNowFoodIds,
-                takenNowSupplementIds);
+                takenNowSupplementIds,
+                ownSupplementSourcesBySupplementId,
+                selectedFoodIdSet,
+                selectedSupplementIdSet,
+                includeFoodAndSupplementAllergies: showAllFoodAndSupplementInteractions);
         }
 
         return await BuildRegisteredReportAsync(
@@ -225,8 +260,66 @@ public sealed class DrugInteractionToolReportApplicationService(
             userInfoSection,
             takenNowFoodIds,
             takenNowSupplementIds,
+            ownSupplementSourcesBySupplementId,
+            regularSupplements,
+            regularFoods,
+            selectedSupplements,
+            selectedFoods,
+            audience,
+            showPossibleInteractions,
             allergyIndexes,
             cancellationToken);
+    }
+
+    private sealed record SelectedCatalogItems(IReadOnlyList<Supplement> Supplements, IReadOnlyList<Food> Foods);
+
+    private async Task<ErrorOr<SelectedCatalogItems>> LoadSelectedCatalogItemsAsync(
+        IReadOnlyCollection<Guid>? supplementIds,
+        IReadOnlyCollection<Guid>? foodIds,
+        CancellationToken cancellationToken)
+    {
+        List<Guid> distinctSupplementIds = (supplementIds ?? []).Distinct().ToList();
+        List<Guid> distinctFoodIds = (foodIds ?? []).Distinct().ToList();
+
+        List<Supplement> loadedSupplements = distinctSupplementIds.Count == 0
+            ? new List<Supplement>()
+            : await _supplementRepository.GetByIdsAsync(distinctSupplementIds, cancellationToken);
+        List<Food> loadedFoods = distinctFoodIds.Count == 0
+            ? new List<Food>()
+            : await _foodRepository.GetByIdsAsync(distinctFoodIds, cancellationToken);
+
+        Dictionary<Guid, Supplement> supplementById = loadedSupplements.ToDictionary(item => item.Id);
+        Dictionary<Guid, Food> foodById = loadedFoods.ToDictionary(item => item.Id);
+
+        Guid? missingSupplementId = distinctSupplementIds.Cast<Guid?>()
+            .FirstOrDefault(id => !supplementById.ContainsKey(id!.Value));
+        if (missingSupplementId.HasValue)
+        {
+            return Error.Validation(
+                code: "DrugInteractionTool.SupplementNotFound",
+                description: "One or more selected supplements were not found.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["missingResourceIds"] = missingSupplementId.Value.ToString()
+                });
+        }
+
+        Guid? missingFoodId = distinctFoodIds.Cast<Guid?>()
+            .FirstOrDefault(id => !foodById.ContainsKey(id!.Value));
+        if (missingFoodId.HasValue)
+        {
+            return Error.Validation(
+                code: "DrugInteractionTool.FoodNotFound",
+                description: "One or more selected foods were not found.",
+                metadata: new Dictionary<string, object>
+                {
+                    ["missingResourceIds"] = missingFoodId.Value.ToString()
+                });
+        }
+
+        return new SelectedCatalogItems(
+            distinctSupplementIds.Select(id => supplementById[id]).ToList(),
+            distinctFoodIds.Select(id => foodById[id]).ToList());
     }
 
     private async Task<ErrorOr<IReadOnlyList<DrugFormSelection>>> LoadManualSelectionsAsync(
@@ -339,22 +432,35 @@ public sealed class DrugInteractionToolReportApplicationService(
         bool showAllDrugsInteractions,
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
+        IReadOnlyList<Supplement> selectedSupplements,
+        IReadOnlyList<Food> selectedFoods,
+        bool showPossibleInteractions,
         CancellationToken cancellationToken)
     {
         ReportCompositionContext context = BuildCompositionContext(selections);
 
+        HashSet<Guid> selectedSupplementIdSet = selectedSupplements.Select(item => item.Id).ToHashSet();
+        HashSet<Guid> selectedFoodIdSet = selectedFoods.Select(item => item.Id).ToHashSet();
+        bool includePossible = showAllFoodAndSupplementInteractions && showPossibleInteractions;
+
         BulkExpandedContext bulk = await BuildBulkExpandedContextAsync(
             context,
-            includeAllFood: showAllFoodAndSupplementInteractions,
-            takenNowFoodIds: null,
-            includeAllSupplements: showAllFoodAndSupplementInteractions,
-            takenNowSupplementIds: null,
+            includeAllFood: includePossible,
+            takenNowFoodIds: showAllFoodAndSupplementInteractions && selectedFoodIdSet.Count > 0 ? selectedFoodIdSet : null,
+            includeAllSupplements: includePossible,
+            takenNowSupplementIds: showAllFoodAndSupplementInteractions && selectedSupplementIdSet.Count > 0
+                ? selectedSupplementIdSet
+                : null,
             cancellationToken);
 
         Dictionary<CrossDrugPairKey, List<SubstancePairInteractionRowReadModel>> crossDrugPairs =
             BuildCrossDrugPairs(context, bulk);
 
-        DrugDuplicationSectionReadModel duplicationSection = await BuildDuplicationSectionAsync(context, cancellationToken);
+        DrugDuplicationSectionReadModel duplicationSection = await BuildDuplicationSectionAsync(
+            context,
+            cancellationToken,
+            selectedSupplements: selectedSupplements,
+            includeSupplementDuplication: showAllFoodAndSupplementInteractions);
         Dictionary<Guid, AlcoholInteractionRowReadModel> alcoholRows = await BuildAlcoholRowsAsync(context, cancellationToken);
 
         List<PublicSpecificDrugReportReadModel> specificReports = new();
@@ -374,33 +480,86 @@ public sealed class DrugInteractionToolReportApplicationService(
 
             if (showAllFoodAndSupplementInteractions)
             {
-                List<FoodInteractionRowReadModel> foodRows = SliceFoodRows(
-                    selection,
-                    context,
-                    bulk,
-                    takenNowFoodIds: null,
-                    includeAllCatalog: true);
+                ReportSubsectionReadModel<FoodInteractionRowReadModel>? allOtherFoods = null;
+                ReportSubsectionReadModel<FoodInteractionRowReadModel>? selectedFoodRows = null;
+
+                if (includePossible)
+                {
+                    List<FoodInteractionRowReadModel> foodRows = SliceFoodRows(
+                        selection,
+                        context,
+                        bulk,
+                        takenNowFoodIds: null,
+                        includeAllCatalog: true,
+                        scopeIds: selectedFoodIdSet.Count > 0 ? selectedFoodIdSet : null);
+
+                    allOtherFoods = DrugInteractionToolReportMapping.BuildSubsection(
+                        "specific_drug.foods.all_other",
+                        DrugInteractionToolHeadlines.FoodAllOtherPublic,
+                        foodRows);
+                }
+
+                if (selectedFoodIdSet.Count > 0)
+                {
+                    selectedFoodRows = DrugInteractionToolReportMapping.BuildSubsection(
+                        "specific_drug.foods.selected",
+                        DrugInteractionToolHeadlines.FoodSelected,
+                        SliceFoodRows(
+                            selection,
+                            context,
+                            bulk,
+                            takenNowFoodIds: null,
+                            includeAllCatalog: false,
+                            scopeIds: selectedFoodIdSet,
+                            source: DuplicationDrugSource.Selected));
+                }
 
                 foods = new PublicFoodInteractionSectionReadModel(
                     SectionCode: "specific_drug.foods",
-                    AllOther: DrugInteractionToolReportMapping.BuildSubsection(
-                        "specific_drug.foods.all_other",
-                        DrugInteractionToolHeadlines.FoodAllOtherPublic,
-                        foodRows));
+                    AllOther: allOtherFoods,
+                    Selected: selectedFoodRows);
+            }
 
-                List<SupplementInteractionRowReadModel> supplementRows = SliceSupplementRows(
-                    selection,
-                    context,
-                    bulk,
-                    takenNowSupplementIds: null,
-                    includeAllCatalog: true);
+            if (showAllFoodAndSupplementInteractions)
+            {
+                ReportSubsectionReadModel<SupplementInteractionRowReadModel>? allOtherSupplements = null;
+                ReportSubsectionReadModel<SupplementInteractionRowReadModel>? selectedSupplementRows = null;
+
+                if (includePossible)
+                {
+                    List<SupplementInteractionRowReadModel> supplementRows = SliceSupplementRows(
+                        selection,
+                        context,
+                        bulk,
+                        takenNowSupplementIds: null,
+                        includeAllCatalog: true,
+                        scopeIds: selectedSupplementIdSet.Count > 0 ? selectedSupplementIdSet : null);
+
+                    allOtherSupplements = DrugInteractionToolReportMapping.BuildSubsection(
+                        "specific_drug.supplements.all_other",
+                        DrugInteractionToolHeadlines.SupplementAllOtherPublic,
+                        supplementRows);
+                }
+
+                if (selectedSupplementIdSet.Count > 0)
+                {
+                    selectedSupplementRows = DrugInteractionToolReportMapping.BuildSubsection(
+                        "specific_drug.supplements.selected",
+                        DrugInteractionToolHeadlines.SupplementSelected,
+                        SliceSupplementRows(
+                            selection,
+                            context,
+                            bulk,
+                            takenNowSupplementIds: null,
+                            includeAllCatalog: false,
+                            scopeIds: selectedSupplementIdSet,
+                            source: DuplicationDrugSource.Selected));
+                }
 
                 supplements = new PublicSupplementInteractionSectionReadModel(
                     SectionCode: "specific_drug.supplements",
-                    AllOther: DrugInteractionToolReportMapping.BuildSubsection(
-                        "specific_drug.supplements.all_other",
-                        DrugInteractionToolHeadlines.SupplementAllOtherPublic,
-                        supplementRows));
+                    AllOther: allOtherSupplements,
+                    Selected: selectedSupplementRows);
             }
 
             specificReports.Add(new PublicSpecificDrugReportReadModel(
@@ -420,8 +579,18 @@ public sealed class DrugInteractionToolReportApplicationService(
                 ShowAllDrugsInteractions: showAllDrugsInteractions,
                 ShowOralGuidance: showOralGuidance,
                 ShowAllFoodAndSupplementInteractions: showAllFoodAndSupplementInteractions,
-                ManualDrugLimit: manualDrugCount),
-            SelectedDrugs: selections.Select(selection => context.TargetSummariesByFormId[selection.Form.Id]).ToList(),
+                ManualDrugLimit: manualDrugCount,
+                SelectedSupplementCount: selectedSupplements.Count,
+                SelectedFoodCount: selectedFoods.Count,
+                ShowPossibleInteractions: showPossibleInteractions),
+            Info: ReportInfoSectionBuilder.Build(
+                MapInfoDrugSelections(selections),
+                includeUserData: false,
+                regularSupplements: [],
+                regularFoods: [],
+                selectedSupplements: selectedSupplements,
+                selectedFoods: selectedFoods,
+                audience: ReportAudience.Public),
             SpecificDrugReports: specificReports,
             AllDrugsInteractionsSection: globalSection,
             DrugDuplicationSection: duplicationSection);
@@ -438,23 +607,54 @@ public sealed class DrugInteractionToolReportApplicationService(
         UserInfoSectionReadModel? userInfoSection,
         HashSet<Guid> takenNowFoodIds,
         HashSet<Guid> takenNowSupplementIds,
+        IReadOnlyDictionary<Guid, IReadOnlyList<OwnSupplementSource>> ownSupplementSourcesBySupplementId,
+        IReadOnlyCollection<ClientRegularSupplement> regularSupplements,
+        IReadOnlyCollection<ClientRegularFood> regularFoods,
+        IReadOnlyList<Supplement> selectedSupplements,
+        IReadOnlyList<Food> selectedFoods,
+        ReportAudience audience,
+        bool showPossibleInteractions,
         AllergyIndexes allergyIndexes,
         CancellationToken cancellationToken)
     {
         ReportCompositionContext context = BuildCompositionContext(selections);
+        bool includePossible = showAllFoodAndSupplementInteractions && showPossibleInteractions;
+
+        HashSet<Guid> selectedSupplementIdSet = selectedSupplements.Select(item => item.Id).ToHashSet();
+        HashSet<Guid> selectedFoodIdSet = selectedFoods.Select(item => item.Id).ToHashSet();
+
+        HashSet<Guid> takenNowAndOwnMemberSupplementIds = takenNowSupplementIds
+            .Concat(ownSupplementSourcesBySupplementId.Keys)
+            .ToHashSet();
+
+        // the bulk load is scoped to taken-now plus selected items, so selected items are analysed like taken-now ones
+        // with food and supplement interactions off, nothing about foods or supplements is analysed at all
+        HashSet<Guid> foodScopeIds = showAllFoodAndSupplementInteractions
+            ? (includeUserData ? takenNowFoodIds : new HashSet<Guid>()).Concat(selectedFoodIdSet).ToHashSet()
+            : new HashSet<Guid>();
+        HashSet<Guid> supplementScopeIds = showAllFoodAndSupplementInteractions
+            ? (includeUserData ? takenNowAndOwnMemberSupplementIds : new HashSet<Guid>())
+                .Concat(selectedSupplementIdSet)
+                .ToHashSet()
+            : new HashSet<Guid>();
 
         BulkExpandedContext bulk = await BuildBulkExpandedContextAsync(
             context,
-            includeAllFood: showAllFoodAndSupplementInteractions,
-            takenNowFoodIds: includeUserData ? takenNowFoodIds : null,
-            includeAllSupplements: showAllFoodAndSupplementInteractions,
-            takenNowSupplementIds: includeUserData ? takenNowSupplementIds : null,
+            includeAllFood: includePossible,
+            takenNowFoodIds: foodScopeIds.Count > 0 ? foodScopeIds : null,
+            includeAllSupplements: includePossible,
+            takenNowSupplementIds: supplementScopeIds.Count > 0 ? supplementScopeIds : null,
             cancellationToken);
 
         Dictionary<CrossDrugPairKey, List<SubstancePairInteractionRowReadModel>> crossDrugPairs =
             BuildCrossDrugPairs(context, bulk);
 
-        DrugDuplicationSectionReadModel duplicationSection = await BuildDuplicationSectionAsync(context, cancellationToken);
+        DrugDuplicationSectionReadModel duplicationSection = await BuildDuplicationSectionAsync(
+            context,
+            cancellationToken,
+            includeUserData ? regularSupplements : null,
+            selectedSupplements,
+            includeSupplementDuplication: showAllFoodAndSupplementInteractions);
         Dictionary<Guid, AlcoholInteractionRowReadModel> alcoholRows = await BuildAlcoholRowsAsync(context, cancellationToken);
 
         List<ClientMealTime> mealTimes = includeUserData
@@ -489,7 +689,10 @@ public sealed class DrugInteractionToolReportApplicationService(
                 showOralGuidance,
                 showAllFoodAndSupplementInteractions,
                 takenNowFoodIds,
-                mealTimes);
+                mealTimes,
+                selectedFoodIdSet,
+                audience,
+                includePossible);
 
             RegisteredSupplementInteractionSectionReadModel? supplements = SliceRegisteredSupplementSection(
                 selection,
@@ -497,7 +700,12 @@ public sealed class DrugInteractionToolReportApplicationService(
                 bulk,
                 includeUserData,
                 showAllFoodAndSupplementInteractions,
-                takenNowSupplementIds);
+                takenNowSupplementIds,
+                takenNowAndOwnMemberSupplementIds,
+                ownSupplementSourcesBySupplementId,
+                selectedSupplementIdSet,
+                audience,
+                includePossible);
 
             specificReports.Add(new RegisteredSpecificDrugReportReadModel(
                 Drug: drugDetail,
@@ -519,9 +727,20 @@ public sealed class DrugInteractionToolReportApplicationService(
                 ShowAllDrugsInteractions: showAllDrugsInteractions,
                 ShowOralGuidance: showOralGuidance,
                 ShowAllFoodAndSupplementInteractions: showAllFoodAndSupplementInteractions,
-                ManualDrugLimit: manualDrugCount),
+                ManualDrugLimit: manualDrugCount,
+                SelectedSupplementCount: selectedSupplements.Count,
+                SelectedFoodCount: selectedFoods.Count,
+                Audience: audience,
+                ShowPossibleInteractions: showPossibleInteractions),
             UserInfoSection: userInfoSection,
-            SelectedDrugs: selections.Select(selection => context.TargetSummariesByFormId[selection.Form.Id]).ToList(),
+            Info: ReportInfoSectionBuilder.Build(
+                MapInfoDrugSelections(selections),
+                includeUserData,
+                regularSupplements,
+                regularFoods,
+                selectedSupplements,
+                selectedFoods,
+                audience),
             SpecificDrugReports: specificReports,
             AllDrugsInteractionsSection: globalSection,
             DrugDuplicationSection: duplicationSection);
@@ -554,7 +773,8 @@ public sealed class DrugInteractionToolReportApplicationService(
         {
             targetSummariesByFormId[selection.Form.Id] = DrugInteractionToolReportMapping.MapDrugTargetSummary(
                 selection.Drug,
-                selection.Form);
+                selection.Form,
+                selection.Source);
             drugDetailsByFormId[selection.Form.Id] = DrugInteractionToolReportMapping.MapSpecificDrugDetail(
                 selection.Drug,
                 selection.Form,
@@ -752,7 +972,10 @@ public sealed class DrugInteractionToolReportApplicationService(
 
     private async Task<DrugDuplicationSectionReadModel> BuildDuplicationSectionAsync(
         ReportCompositionContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<ClientRegularSupplement>? regularSupplements = null,
+        IReadOnlyCollection<Supplement>? selectedSupplements = null,
+        bool includeSupplementDuplication = true)
     {
         List<DuplicationSelection> selections = context.Selections
             .Select(selection => new DuplicationSelection(selection.Drug, selection.Form, selection.Source))
@@ -764,7 +987,13 @@ public sealed class DrugInteractionToolReportApplicationService(
                 cancellationToken)
             : new List<ActiveSubstanceGroup>();
 
-        return DrugDuplicationBuilder.Build(selections, context.ActiveSubstanceNameById, groups);
+        return DrugDuplicationBuilder.Build(
+            selections,
+            context.ActiveSubstanceNameById,
+            groups,
+            regularSupplements,
+            selectedSupplements,
+            includeSupplementDuplication);
     }
 
     private async Task<Dictionary<Guid, AlcoholInteractionRowReadModel>> BuildAlcoholRowsAsync(
@@ -819,12 +1048,17 @@ public sealed class DrugInteractionToolReportApplicationService(
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
         HashSet<Guid> takenNowFoodIds,
-        IReadOnlyCollection<ClientMealTime> mealTimes)
+        IReadOnlyCollection<ClientMealTime> mealTimes,
+        HashSet<Guid> selectedFoodIds,
+        ReportAudience audience,
+        bool includePossible)
     {
-        bool showTakenNow = includeUserData;
-        bool showAllOther = showAllFoodAndSupplementInteractions;
+        bool showTakenNow = includeUserData && showAllFoodAndSupplementInteractions;
+        bool showAllOther = includePossible;
+        bool showSelected = showAllFoodAndSupplementInteractions && selectedFoodIds.Count > 0;
+        HashSet<Guid>? regularFoodIds = includeUserData ? takenNowFoodIds : null;
 
-        if (!showTakenNow && !showAllOther && !(includeUserData && showOralGuidance && selection.Form.IsOral))
+        if (!showTakenNow && !showAllOther && !showSelected && !(includeUserData && showOralGuidance && selection.Form.IsOral))
         {
             return null;
         }
@@ -835,6 +1069,7 @@ public sealed class DrugInteractionToolReportApplicationService(
 
         ReportSubsectionReadModel<FoodInteractionRowReadModel>? takenNow = null;
         ReportSubsectionReadModel<FoodInteractionRowReadModel>? allOther = null;
+        ReportSubsectionReadModel<FoodInteractionRowReadModel>? selected = null;
 
         if (showTakenNow)
         {
@@ -843,7 +1078,8 @@ public sealed class DrugInteractionToolReportApplicationService(
                 context,
                 bulk,
                 takenNowFoodIds,
-                includeAllCatalog: false);
+                includeAllCatalog: false,
+                source: DuplicationDrugSource.TakingNow);
 
             takenNow = DrugInteractionToolReportMapping.BuildSubsection(
                 "specific_drug.foods.taken_now",
@@ -851,14 +1087,38 @@ public sealed class DrugInteractionToolReportApplicationService(
                 takenRows);
         }
 
+        if (showSelected)
+        {
+            List<FoodInteractionRowReadModel> selectedRows = SliceFoodRows(
+                selection,
+                context,
+                bulk,
+                regularFoodIds,
+                includeAllCatalog: false,
+                scopeIds: selectedFoodIds,
+                source: DuplicationDrugSource.Selected);
+
+            selected = DrugInteractionToolReportMapping.BuildSubsection(
+                "specific_drug.foods.selected",
+                audience == ReportAudience.Provider
+                    ? DrugInteractionToolHeadlines.FoodSelectedPrescription
+                    : DrugInteractionToolHeadlines.FoodSelected,
+                selectedRows);
+        }
+
         if (showAllOther)
         {
+            HashSet<Guid>? excludedIds = showSelected
+                ? (regularFoodIds ?? new HashSet<Guid>()).Concat(selectedFoodIds).ToHashSet()
+                : null;
+
             List<FoodInteractionRowReadModel> otherRows = SliceFoodRows(
                 selection,
                 context,
                 bulk,
-                includeUserData ? takenNowFoodIds : null,
-                includeAllCatalog: true);
+                regularFoodIds,
+                includeAllCatalog: true,
+                scopeIds: excludedIds);
 
             allOther = DrugInteractionToolReportMapping.BuildSubsection(
                 "specific_drug.foods.all_other",
@@ -866,7 +1126,7 @@ public sealed class DrugInteractionToolReportApplicationService(
                 otherRows);
         }
 
-        if (oralGuidance is null && takenNow is null && allOther is null)
+        if (oralGuidance is null && takenNow is null && allOther is null && selected is null)
         {
             return null;
         }
@@ -875,7 +1135,8 @@ public sealed class DrugInteractionToolReportApplicationService(
             SectionCode: "specific_drug.foods",
             OralGuidance: oralGuidance,
             TakenNow: takenNow,
-            AllOther: allOther);
+            AllOther: allOther,
+            Selected: selected);
     }
 
     private static RegisteredSupplementInteractionSectionReadModel? SliceRegisteredSupplementSection(
@@ -884,18 +1145,31 @@ public sealed class DrugInteractionToolReportApplicationService(
         BulkExpandedContext bulk,
         bool includeUserData,
         bool showAllFoodAndSupplementInteractions,
-        HashSet<Guid> takenNowSupplementIds)
+        HashSet<Guid> takenNowSupplementIds,
+        HashSet<Guid> takenNowAndOwnMemberSupplementIds,
+        IReadOnlyDictionary<Guid, IReadOnlyList<OwnSupplementSource>> ownSupplementSourcesBySupplementId,
+        HashSet<Guid> selectedSupplementIds,
+        ReportAudience audience,
+        bool includePossible)
     {
-        bool showTakenNow = includeUserData;
-        bool showAllOther = showAllFoodAndSupplementInteractions;
+        if (!showAllFoodAndSupplementInteractions)
+        {
+            return null;
+        }
 
-        if (!showTakenNow && !showAllOther)
+        bool showTakenNow = includeUserData;
+        bool showAllOther = includePossible;
+        bool showSelected = selectedSupplementIds.Count > 0;
+
+        if (!showTakenNow && !showAllOther && !showSelected)
         {
             return null;
         }
 
         ReportSubsectionReadModel<SupplementInteractionRowReadModel>? takenNow = null;
         ReportSubsectionReadModel<SupplementInteractionRowReadModel>? allOther = null;
+        ReportSubsectionReadModel<SupplementInteractionRowReadModel>? selected = null;
+        ReportSubsectionReadModel<OwnSupplementInteractionRowReadModel>? ownSupplement = null;
 
         if (showTakenNow)
         {
@@ -904,22 +1178,59 @@ public sealed class DrugInteractionToolReportApplicationService(
                 context,
                 bulk,
                 takenNowSupplementIds,
-                includeAllCatalog: false);
+                includeAllCatalog: false,
+                source: DuplicationDrugSource.TakingNow);
 
             takenNow = DrugInteractionToolReportMapping.BuildSubsection(
                 "specific_drug.supplements.taken_now",
                 DrugInteractionToolHeadlines.SupplementTakenNow,
                 takenRows);
+
+            List<OwnSupplementInteractionRowReadModel> ownSupplementRows = SliceOwnSupplementRows(
+                selection,
+                context,
+                bulk,
+                ownSupplementSourcesBySupplementId);
+
+            ownSupplement = DrugInteractionToolReportMapping.BuildSubsection(
+                "specific_drug.supplements.own_supplement",
+                DrugInteractionToolHeadlines.SupplementOwnSupplement,
+                ownSupplementRows);
         }
 
-        if (showAllOther)
+        if (showSelected)
         {
-            List<SupplementInteractionRowReadModel> otherRows = SliceSupplementRows(
+            List<SupplementInteractionRowReadModel> selectedRows = SliceSupplementRows(
                 selection,
                 context,
                 bulk,
                 includeUserData ? takenNowSupplementIds : null,
-                includeAllCatalog: true);
+                includeAllCatalog: false,
+                scopeIds: selectedSupplementIds,
+                source: DuplicationDrugSource.Selected);
+
+            selected = DrugInteractionToolReportMapping.BuildSubsection(
+                "specific_drug.supplements.selected",
+                audience == ReportAudience.Provider
+                    ? DrugInteractionToolHeadlines.SupplementSelectedPrescription
+                    : DrugInteractionToolHeadlines.SupplementSelected,
+                selectedRows);
+        }
+
+        if (showAllOther)
+        {
+            HashSet<Guid>? regularIds = includeUserData ? takenNowAndOwnMemberSupplementIds : null;
+            HashSet<Guid>? excludedIds = showSelected
+                ? (regularIds ?? new HashSet<Guid>()).Concat(selectedSupplementIds).ToHashSet()
+                : null;
+
+            List<SupplementInteractionRowReadModel> otherRows = SliceSupplementRows(
+                selection,
+                context,
+                bulk,
+                regularIds,
+                includeAllCatalog: true,
+                scopeIds: excludedIds);
 
             allOther = DrugInteractionToolReportMapping.BuildSubsection(
                 "specific_drug.supplements.all_other",
@@ -930,7 +1241,9 @@ public sealed class DrugInteractionToolReportApplicationService(
         return new RegisteredSupplementInteractionSectionReadModel(
             SectionCode: "specific_drug.supplements",
             TakenNow: takenNow,
-            AllOther: allOther);
+            AllOther: allOther,
+            OwnSupplement: ownSupplement,
+            Selected: selected);
     }
 
     private static OralGuidanceSubsectionReadModel? BuildOralGuidanceSubsection(
@@ -986,13 +1299,18 @@ public sealed class DrugInteractionToolReportApplicationService(
         ReportCompositionContext context,
         BulkExpandedContext bulk,
         HashSet<Guid>? takenNowFoodIds,
-        bool includeAllCatalog)
+        bool includeAllCatalog,
+        HashSet<Guid>? scopeIds = null,
+        DuplicationDrugSource? source = null)
     {
         var substanceIds = selection.Drug.ActiveSubstances.Select(substance => substance.Id).ToHashSet();
         if (substanceIds.Count == 0)
         {
             return new List<FoodInteractionRowReadModel>();
         }
+
+        // scopeIds restricts (includeAllCatalog false) or excludes (includeAllCatalog true) rows; the taken-now set only flags rows
+        HashSet<Guid>? filterIds = scopeIds ?? takenNowFoodIds;
 
         var relevantRows = substanceIds.SelectMany(substanceId => bulk.FoodRowsBySubstanceId[substanceId]);
 
@@ -1033,12 +1351,15 @@ public sealed class DrugInteractionToolReportApplicationService(
             bool isTakenNow = takenNowFoodIds?.Contains(expanded.PartyIdB) == true
                 || takenNowFoodIds?.Contains(foodId) == true;
 
-            if (!includeAllCatalog && takenNowFoodIds is not null && !isTakenNow)
+            bool isInFilter = filterIds?.Contains(expanded.PartyIdB) == true
+                || filterIds?.Contains(foodId) == true;
+
+            if (!includeAllCatalog && filterIds is not null && !isInFilter)
             {
                 continue;
             }
 
-            if (includeAllCatalog && takenNowFoodIds is not null && isTakenNow && takenNowFoodIds.Count > 0)
+            if (includeAllCatalog && filterIds is not null && isInFilter && filterIds.Count > 0)
             {
                 continue;
             }
@@ -1065,7 +1386,8 @@ public sealed class DrugInteractionToolReportApplicationService(
                     isTakenNow,
                     defaultText,
                     stomachText,
-                    severity)));
+                    severity),
+                Source: source));
         }
 
         return rows
@@ -1081,13 +1403,18 @@ public sealed class DrugInteractionToolReportApplicationService(
         ReportCompositionContext context,
         BulkExpandedContext bulk,
         HashSet<Guid>? takenNowSupplementIds,
-        bool includeAllCatalog)
+        bool includeAllCatalog,
+        HashSet<Guid>? scopeIds = null,
+        DuplicationDrugSource? source = null)
     {
         var substanceIds = selection.Drug.ActiveSubstances.Select(substance => substance.Id).ToHashSet();
         if (substanceIds.Count == 0)
         {
             return new List<SupplementInteractionRowReadModel>();
         }
+
+        // scopeIds restricts (includeAllCatalog false) or excludes (includeAllCatalog true) rows; the taken-now set only flags rows
+        HashSet<Guid>? filterIds = scopeIds ?? takenNowSupplementIds;
 
         var relevantRows = substanceIds.SelectMany(substanceId => bulk.SupplementRowsBySubstanceId[substanceId]);
 
@@ -1129,12 +1456,15 @@ public sealed class DrugInteractionToolReportApplicationService(
             bool isTakenNow = takenNowSupplementIds?.Contains(expanded.PartyIdB) == true
                 || takenNowSupplementIds?.Contains(supplementId) == true;
 
-            if (!includeAllCatalog && takenNowSupplementIds is not null && !isTakenNow)
+            bool isInFilter = filterIds?.Contains(expanded.PartyIdB) == true
+                || filterIds?.Contains(supplementId) == true;
+
+            if (!includeAllCatalog && filterIds is not null && !isInFilter)
             {
                 continue;
             }
 
-            if (includeAllCatalog && takenNowSupplementIds is not null && isTakenNow && takenNowSupplementIds.Count > 0)
+            if (includeAllCatalog && filterIds is not null && isInFilter && filterIds.Count > 0)
             {
                 continue;
             }
@@ -1161,7 +1491,8 @@ public sealed class DrugInteractionToolReportApplicationService(
                     isTakenNow,
                     defaultText,
                     stomachText,
-                    severity)));
+                    severity),
+                Source: source));
         }
 
         return rows
@@ -1171,6 +1502,86 @@ public sealed class DrugInteractionToolReportApplicationService(
             .ThenBy(row => row.SupplementName, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
+
+    private static List<OwnSupplementInteractionRowReadModel> SliceOwnSupplementRows(
+        DrugFormSelection selection,
+        ReportCompositionContext context,
+        BulkExpandedContext bulk,
+        IReadOnlyDictionary<Guid, IReadOnlyList<OwnSupplementSource>> ownSupplementSourcesBySupplementId)
+    {
+        if (ownSupplementSourcesBySupplementId.Count == 0)
+        {
+            return new List<OwnSupplementInteractionRowReadModel>();
+        }
+
+        var substanceIds = selection.Drug.ActiveSubstances.Select(substance => substance.Id).ToHashSet();
+        var relevantRows = substanceIds.SelectMany(substanceId => bulk.SupplementRowsBySubstanceId[substanceId]);
+
+        List<OwnSupplementInteractionRowReadModel> rows = new();
+
+        foreach (InteractionExpanded expanded in relevantRows.OrderBy(row => row.PartyIdA).ThenBy(row => row.PartyIdB))
+        {
+            bool isOwnSupplementMember = ownSupplementSourcesBySupplementId.TryGetValue(
+                expanded.PartyIdB,
+                out IReadOnlyList<OwnSupplementSource>? ownSupplementSources);
+
+            if (!isOwnSupplementMember
+                || !bulk.InteractionById.TryGetValue(expanded.InteractionId, out Interaction? interaction)
+                || !bulk.SupplementById.TryGetValue(expanded.PartyIdB, out Supplement? memberSupplement))
+            {
+                continue;
+            }
+
+            string substanceName = context.ActiveSubstanceNameById[expanded.PartyIdA];
+            string supplementName = memberSupplement.Name ?? string.Empty;
+            IReadOnlyCollection<string> aliasNames = memberSupplement.Aliases.ToList();
+            string? stomachText = selection.Form.IsOral ? interaction.StomachText : null;
+            string defaultText = interaction.DefaultText ?? string.Empty;
+            string severity = interaction.InteractionSeverity.Name;
+
+            foreach (OwnSupplementSource ownSupplementSource in ownSupplementSources!)
+            {
+                rows.Add(new OwnSupplementInteractionRowReadModel(
+                    ActiveSubstanceId: expanded.PartyIdA,
+                    ActiveSubstanceName: substanceName,
+                    OwnSupplementId: ownSupplementSource.OwnSupplementId,
+                    OwnSupplementName: ownSupplementSource.OwnSupplementName,
+                    SupplementId: memberSupplement.Id,
+                    SupplementName: supplementName,
+                    AliasNames: aliasNames,
+                    InteractionId: interaction.Id,
+                    DefaultText: defaultText,
+                    StomachText: stomachText,
+                    Severity: severity,
+                    IsTakenNow: true,
+                    DisplayLine: DrugInteractionToolReportMapping.BuildOwnSupplementDisplayLine(
+                        substanceName,
+                        DrugInteractionToolReportMapping.BuildNameWithAliases(supplementName, aliasNames),
+                        ownSupplementSource.OwnSupplementName,
+                        defaultText,
+                        stomachText,
+                        severity),
+                    Source: DuplicationDrugSource.TakingNow));
+            }
+        }
+
+        return rows
+            .GroupBy(row => (row.ActiveSubstanceId, row.OwnSupplementId, row.SupplementId, row.InteractionId))
+            .Select(group => group.First())
+            .OrderBy(row => row.ActiveSubstanceName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(row => row.OwnSupplementName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(row => row.SupplementName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static List<InfoDrugSelection> MapInfoDrugSelections(IReadOnlyList<DrugFormSelection> selections) =>
+        selections
+            .Select(selection => new InfoDrugSelection(
+                selection.Drug,
+                selection.Form,
+                selection.Source,
+                selection.RegularIntake))
+            .ToList();
 
     private static List<DrugFormIntake> BuildPlannedDrugIntakes(
         IReadOnlyList<DrugFormSelection> manualSelections,
