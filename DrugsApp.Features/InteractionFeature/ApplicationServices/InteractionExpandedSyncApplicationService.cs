@@ -23,7 +23,8 @@ public sealed record SyncInteractionExpandedAfterGroupMembershipChangedRequest(
     InteractionType GroupPartyType,
     Guid GroupId,
     IReadOnlyCollection<Guid> AddedMemberIds,
-    IReadOnlyCollection<Guid> RemovedMemberIds);
+    IReadOnlyCollection<Guid> RemovedMemberIds,
+    IReadOnlyCollection<Guid> CurrentMemberIds);
 
 
 /// <summary>
@@ -82,8 +83,9 @@ internal sealed class InteractionExpandedSyncApplicationService(
 
         foreach ((Guid interactionId, IReadOnlyCollection<InteractionParty> parties) in partiesByInteraction)
         {
-            InteractionParty? groupParty = parties.FirstOrDefault(party => party.PartyType == request.GroupPartyType);
-            InteractionParty? otherParty = parties.FirstOrDefault(party => party.PartyType != request.GroupPartyType);
+            InteractionParty? groupParty = parties.FirstOrDefault(party =>
+                party.PartyType == request.GroupPartyType && GetPartyId(party) == request.GroupId);
+            InteractionParty? otherParty = parties.FirstOrDefault(party => party != groupParty);
 
             if (groupParty is null || otherParty is null)
             {
@@ -102,10 +104,20 @@ internal sealed class InteractionExpandedSyncApplicationService(
                 continue;
             }
 
-            List<InteractionAtomicPair> removedPairs = BuildPairs(groupAtomicType,
+            List<InteractionAtomicPair> removedPairs = InteractionAtomicPairs.BuildPairs(
+                groupAtomicType,
                 request.RemovedMemberIds,
                 otherAtomicType,
                 otherAtomicIds);
+
+            if (removedPairs.Count > 0 && groupAtomicType == otherAtomicType)
+            {
+                HashSet<InteractionAtomicPair> stillJustifiedPairs = InteractionAtomicPairs
+                    .BuildPairs(groupAtomicType, request.CurrentMemberIds, otherAtomicType, otherAtomicIds)
+                    .ToHashSet();
+
+                removedPairs.RemoveAll(stillJustifiedPairs.Contains);
+            }
 
             if (removedPairs.Count > 0)
             {
@@ -115,7 +127,8 @@ internal sealed class InteractionExpandedSyncApplicationService(
                     cancellationToken);
             }
 
-            List<InteractionAtomicPair> addedPairs = BuildPairs(groupAtomicType,
+            List<InteractionAtomicPair> addedPairs = InteractionAtomicPairs.BuildPairs(
+                groupAtomicType,
                 request.AddedMemberIds,
                 otherAtomicType,
                 otherAtomicIds);
@@ -185,45 +198,6 @@ internal sealed class InteractionExpandedSyncApplicationService(
     {
         SupplementGroup? group = await _supplementGroupRepository.GetByIdAsync(groupId, cancellationToken);
         return group?.Supplements.Select(member => member.Id).ToList() ?? new List<Guid>();
-    }
-
-    private static List<InteractionAtomicPair> BuildPairs(ShortInteractionType leftType,
-        IReadOnlyCollection<Guid> leftIds,
-        ShortInteractionType rightType,
-        IReadOnlyCollection<Guid> rightIds)
-    {
-        var pairs = new List<InteractionAtomicPair>();
-
-        foreach (Guid leftId in leftIds)
-        {
-            foreach (Guid rightId in rightIds)
-            {
-                if (leftType == rightType && leftId == rightId)
-                {
-                    continue;
-                }
-
-                InteractionAtomicPair pair = CanonicalizePair(leftType, leftId, rightType, rightId);
-                if (!pairs.Contains(pair))
-                {
-                    pairs.Add(pair);
-                }
-            }
-        }
-
-        return pairs;
-    }
-
-    private static InteractionAtomicPair CanonicalizePair(
-        ShortInteractionType typeA,
-        Guid idA,
-        ShortInteractionType typeB,
-        Guid idB)
-    {
-        bool keepOrder = typeA < typeB || typeA == typeB && idA.CompareTo(idB) <= 0;
-        return keepOrder
-            ? new InteractionAtomicPair(typeA, idA, typeB, idB)
-            : new InteractionAtomicPair(typeB, idB, typeA, idA);
     }
 
     private static bool IsGroupType(InteractionType partyType)

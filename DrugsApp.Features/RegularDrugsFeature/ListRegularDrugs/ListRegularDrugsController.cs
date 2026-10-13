@@ -47,7 +47,7 @@ public sealed record ListRegularDrugsResponse(
 /// Controller for listing live regular drug schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs")]
 public sealed class ListRegularDrugsController(

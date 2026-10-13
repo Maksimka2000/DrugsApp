@@ -43,6 +43,18 @@ public sealed class UserHealthConditionRepository : IUserHealthConditionReposito
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<UserHealthCondition>> ListAllByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<UserHealthCondition> query = _context.UserHealthConditions
+            .AsNoTracking()
+            .Include(x => x.HealthCondition)
+            .Where(x => x.UserId == userId);
+
+        return await ApplySort(query).ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountAsync(
         Guid userId,
         string? displayNameQuery,

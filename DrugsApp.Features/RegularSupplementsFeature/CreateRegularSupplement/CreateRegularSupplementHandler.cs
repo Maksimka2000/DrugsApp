@@ -7,6 +7,7 @@ using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Repositories;
 using DrugsApp.Features.RegularSupplementsFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -25,6 +26,20 @@ internal sealed class CreateRegularSupplementHandler(
         CreateRegularSupplementCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _clientRegularSupplementRepository.CountLiveByUserIdAsync(
+            command.UserId,
+            nameQuery: null,
+            startDate: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_REGULAR_SUPPLEMENTS,
+            "RegularSupplement");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         RegularSupplementSource? source = RegularSupplementMappings.MapSourceFromToken(command.Request.Source);
         if (source is null)
         {
@@ -38,13 +53,15 @@ internal sealed class CreateRegularSupplementHandler(
 
         Guid? supplementId = null;
         Guid? ownSupplementId = null;
+        Supplement? catalogSupplement = null;
+        ClientOwnSupplement? ownSupplementReference = null;
 
         if (source == RegularSupplementSource.Database)
         {
             supplementId = command.Request.SupplementId!.Value;
 
-            Supplement? supplement = await _supplementRepository.GetByIdAsync(supplementId.Value, cancellationToken);
-            if (supplement is null)
+            catalogSupplement = await _supplementRepository.GetByIdAsync(supplementId.Value, cancellationToken);
+            if (catalogSupplement is null)
             {
                 return Error.NotFound(
                     description: "Supplement not found.",
@@ -59,11 +76,11 @@ internal sealed class CreateRegularSupplementHandler(
         {
             ownSupplementId = command.Request.OwnSupplementId!.Value;
 
-            ClientOwnSupplement? ownSupplement = await _clientOwnSupplementRepository.GetByIdForUserWithMembersAsync(
+            ownSupplementReference = await _clientOwnSupplementRepository.GetTrackedByIdForUserWithMembersAsync(
                 command.UserId,
                 ownSupplementId.Value,
                 cancellationToken);
-            if (ownSupplement is null)
+            if (ownSupplementReference is null)
             {
                 return Error.NotFound(
                     description: "Own supplement not found.",
@@ -110,16 +127,11 @@ internal sealed class CreateRegularSupplementHandler(
 
         if (source == RegularSupplementSource.Database)
         {
-            Supplement supplement = (await _supplementRepository.GetByIdAsync(supplementId!.Value, cancellationToken))!;
-            created.Value.AttachCatalogReference(supplement);
+            created.Value.AttachCatalogReference(catalogSupplement!);
         }
         else
         {
-            ClientOwnSupplement ownSupplement = (await _clientOwnSupplementRepository.GetByIdForUserWithMembersAsync(
-                command.UserId,
-                ownSupplementId!.Value,
-                cancellationToken))!;
-            created.Value.AttachOwnSupplementReference(ownSupplement);
+            created.Value.AttachOwnSupplementReference(ownSupplementReference!);
         }
 
         await _clientRegularSupplementRepository.AddAsync(created.Value, cancellationToken);

@@ -6,6 +6,7 @@ using DrugsApp.Domain.AllergiesFeature.Repositories;
 using DrugsApp.Domain.SupplementFeature.Entities;
 using DrugsApp.Domain.SupplementFeature.Repositories;
 using DrugsApp.Features.AllergiesFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -20,6 +21,16 @@ internal sealed class CreateSupplementAllergyHandler(
         CreateSupplementAllergyCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _allergyRepository.CountAsync(command.UserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "SupplementAllergy");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         AllergyRecordSource? source = AllergySharedMappings.MapSourceFromToken(command.Request.Source);
         if (source is null)
         {

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using System;
 using System.Net;
 using System.Net.Mail;
@@ -31,6 +32,11 @@ using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
 using DrugsApp.Domain.RegularFoodFeature.Interfaces;
 using DrugsApp.Domain.PatientSupervisionFeature.Repositories;
 using DrugsApp.Domain.PatientSupervisionFeature.Interfaces;
+using DrugsApp.Domain.StudyModeFeature.Interfaces;
+using DrugsApp.Domain.StudyModeFeature.Repositories;
+using DrugsApp.Infrastructure.ExternalServices.DataProtection;
+using DrugsApp.Infrastructure.Repositories.StudyModeFeature;
+using Microsoft.AspNetCore.DataProtection;
 using DrugsApp.Infrastructure.Repositories.PatientSupervisionFeature;
 using DrugsApp.Infrastructure.Persistence;
 using DrugsApp.Infrastructure.ExternalServices.BlobStorage;
@@ -79,20 +85,44 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         // Register DbContext (NpgsqlDataSource enables jsonb deserialization for catalog aliases)
-        string postgresConnectionString = configuration.GetConnectionString("Postgres")
-            ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
+        // Connection strings are resolved from the final IConfiguration at first use so late overrides (e.g. test hosts) apply.
+        services.AddSingleton<NpgsqlDataSource>(serviceProvider =>
+        {
+            string postgresConnectionString = serviceProvider
+                .GetRequiredService<IConfiguration>()
+                .GetConnectionString("Postgres")
+                ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
 
-        services.AddSingleton<NpgsqlDataSource>(_ =>
-            new NpgsqlDataSourceBuilder(postgresConnectionString)
+            return new NpgsqlDataSourceBuilder(postgresConnectionString)
                 .EnableDynamicJson()
-                .Build());
+                .Build();
+        });
 
         services.AddDbContext<DrugsAppDbContext>((serviceProvider, options) =>
             options.UseNpgsql(serviceProvider.GetRequiredService<NpgsqlDataSource>()));
 
         // regis cache registration
-        string? redisConnection = configuration.GetConnectionString("Redis");
-        services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
+        services.AddStackExchangeRedisCache(_ => { });
+        services.AddOptions<RedisCacheOptions>()
+            .Configure<IConfiguration>((options, resolvedConfiguration) =>
+                options.Configuration = resolvedConfiguration.GetConnectionString("Redis"));
+
+        // 
+        services.AddIdentityCore<ApplicationUser>(options =>
+        {
+            options.User.RequireUniqueEmail = true;
+            options.SignIn.RequireConfirmedEmail = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+        })
+            .AddRoles<ApplicationRole>()
+            .AddDefaultTokenProviders();
+
+        services.AddScoped<IUserStore<ApplicationUser>, ApplicationUserStore>();
+        services.AddScoped<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
 
         // 
         services.AddIdentityCore<ApplicationUser>(options =>
@@ -134,6 +164,7 @@ public static class DependencyInjection
         services.AddScoped<ISupplementGroupRepository, SupplementGroupRepository>();
         services.AddScoped<IFaqEntryRepository, FaqEntryRepository>();
         services.AddScoped<ISystemTextRepository, SystemTextRepository>();
+        services.Decorate<ISystemTextRepository, CachedSystemTextRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
         services.AddScoped<IClientReproductiveHealthProfileRepository, ClientReproductiveHealthProfileRepository>();
@@ -164,6 +195,15 @@ public static class DependencyInjection
         services.AddScoped<IMedicalChangeProposalRepository, MedicalChangeProposalRepository>();
         services.AddScoped<ISupervisionReadRepository, SupervisionReadRepository>();
         services.AddScoped<IUserRoleReadService, UserRoleReadService>();
+
+        // Study Mode
+        services.AddScoped<IStudyClinicRepository, StudyClinicRepository>();
+        services.AddScoped<IStudyClinicReadRepository, StudyClinicReadRepository>();
+        services.AddScoped<IStudyRandomCatalogReadRepository, StudyRandomCatalogReadRepository>();
+        services.AddDataProtection()
+            .SetApplicationName("DrugsApp")
+            .PersistKeysToDbContext<DrugsAppDbContext>();
+        services.AddSingleton<IStudyCredentialProtector, StudyCredentialProtector>();
 
 
         // Register Email External services here

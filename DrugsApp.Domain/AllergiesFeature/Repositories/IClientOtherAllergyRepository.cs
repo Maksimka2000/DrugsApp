@@ -17,6 +17,8 @@ public interface IClientOtherAllergyRepository
         int take,
         CancellationToken cancellationToken);
 
+    Task<List<ClientOtherAllergy>> ListAllByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+
     Task<int> CountAsync(Guid userId, CancellationToken cancellationToken);
 
     Task<ClientOtherAllergy?> GetByIdForUserAsync(

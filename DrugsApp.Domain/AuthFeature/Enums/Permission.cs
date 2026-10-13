@@ -63,6 +63,11 @@ public enum Permission
     ManageWebsiteContent = 250,
 
     /// <summary>
+    /// Allows management of study mode virtual clinics, their provisioned study accounts and their medical data.
+    /// </summary>
+    ManageStudyMode = 260,
+
+    /// <summary>
     /// Allows administration of client users.
     /// </summary>
     ManageClientUsers = 300,

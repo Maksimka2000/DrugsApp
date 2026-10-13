@@ -19,6 +19,15 @@ public sealed class ClientMealTimeRepository : IClientMealTimeRepository
         _context = context;
     }
 
+    public async Task<int> CountByUserAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.ClientMealTimes
+            .AsNoTracking()
+            .CountAsync(x => x.UserId == userId, cancellationToken);
+    }
+
     public async Task<List<ClientMealTime>> ListByUserAsync(
         Guid userId,
         CancellationToken cancellationToken)

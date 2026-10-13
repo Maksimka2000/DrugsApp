@@ -16,11 +16,19 @@ public interface IDrugInteractionToolReportApplicationService
         bool showAllDrugsInteractions,
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Guid>? selectedSupplementIds = null,
+        IReadOnlyCollection<Guid>? selectedFoodIds = null,
+        bool showPossibleInteractions = true);
 
     /// <summary>
-    /// Computes the authenticated client tool report (CASE ONE).
+    /// Computes the authenticated client tool report (CASE ONE) or the provider report over a supervised patient.
     /// </summary>
+    /// <remarks>
+    /// <paramref name="selectedSupplementIds"/> and <paramref name="selectedFoodIds"/> are catalog items selected for
+    /// the analysis (for a provider: items selected for prescription); they are analysed like the selected drugs and
+    /// are never treated as taken regularly.
+    /// </remarks>
     Task<ErrorOr<RegisteredDrugInteractionToolReportReadModel>> ComputeRegisteredReportAsync(
         Guid userId,
         IReadOnlyCollection<Guid> manualDrugFormIds,
@@ -28,5 +36,9 @@ public interface IDrugInteractionToolReportApplicationService
         bool showAllDrugsInteractions,
         bool showOralGuidance,
         bool showAllFoodAndSupplementInteractions,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Guid>? selectedSupplementIds = null,
+        IReadOnlyCollection<Guid>? selectedFoodIds = null,
+        ReportAudience audience = ReportAudience.Registered,
+        bool showPossibleInteractions = true);
 }

@@ -24,9 +24,9 @@ public static class AddActiveSubstanceMapping
         {
             activeSubstance.UpsertAlcoholInteractionOverride(command.Request.AlcoholSpecialText);
         }
-        else if (command.Request.HasAlcoholInteraction == true)
+        else if (command.Request.HasAlcoholInteraction == false)
         {
-            activeSubstance.SetHasAlcoholInteraction(true);
+            activeSubstance.SetHasAlcoholInteraction(false);
         }
 
         if (command.Request.OralMedicationIntakeGuidelines is not null)

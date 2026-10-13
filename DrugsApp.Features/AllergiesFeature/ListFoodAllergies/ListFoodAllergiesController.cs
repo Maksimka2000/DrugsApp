@@ -23,7 +23,7 @@ public sealed record ListFoodAllergiesQuery(
     int Take) : IRequest<ErrorOr<ListFoodAllergiesResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class ListFoodAllergiesController(

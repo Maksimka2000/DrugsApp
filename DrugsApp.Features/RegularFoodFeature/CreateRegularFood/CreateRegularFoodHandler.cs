@@ -7,6 +7,7 @@ using DrugsApp.Domain.FoodFeature.Repositories;
 using DrugsApp.Domain.RegularFoodFeature.Entities;
 using DrugsApp.Domain.RegularFoodFeature.Interfaces;
 using DrugsApp.Features.RegularFoodFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -24,6 +25,20 @@ internal sealed class CreateRegularFoodHandler(
         CreateRegularFoodCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _clientRegularFoodRepository.CountLiveByUserIdAsync(
+            command.UserId,
+            foodNameQuery: null,
+            startDate: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_REGULAR_FOODS,
+            "RegularFood");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         Food? food = await _foodRepository.GetByIdAsync(command.Request.FoodId, cancellationToken);
         if (food is null)
         {

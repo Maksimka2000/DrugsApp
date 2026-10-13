@@ -38,9 +38,34 @@ public static class AuthRoles
     public const string Admin = "Admin";
 
     /// <summary>
+    /// Gets the admin-portal teacher role that designs virtual study clinics for classroom teaching.
+    /// </summary>
+    public const string Teacher = "Teacher";
+
+    /// <summary>
+    /// Gets the client-portal read-only role assigned to provisioned study doctor accounts.
+    /// </summary>
+    public const string StudyDoctor = "StudyDoctor";
+
+    /// <summary>
+    /// Gets the client-portal read-only role assigned to provisioned study patient accounts.
+    /// </summary>
+    public const string StudyPatient = "StudyPatient";
+
+    /// <summary>
     /// Comma-separated member role names for ASP.NET Core authorize attributes.
     /// </summary>
     public const string MemberRoles = "Client,HealthcareProvider";
+
+    /// <summary>
+    /// Comma-separated role names allowed on read-only member endpoints, including the read-only study roles.
+    /// </summary>
+    public const string MemberReadRoles = "Client,HealthcareProvider,StudyDoctor,StudyPatient";
+
+    /// <summary>
+    /// Comma-separated role names allowed on read-only healthcare-provider supervision endpoints.
+    /// </summary>
+    public const string ProviderReadRoles = "HealthcareProvider,StudyDoctor";
 
     /// <summary>
     /// Client-portal roles for members using the consumer application.
@@ -48,7 +73,18 @@ public static class AuthRoles
     public static IReadOnlyCollection<string> MemberRoleNames => new[]
     {
         Client,
-        HealthcareProvider
+        HealthcareProvider,
+        StudyDoctor,
+        StudyPatient
+    };
+
+    /// <summary>
+    /// Read-only client-portal roles provisioned exclusively through study mode.
+    /// </summary>
+    public static IReadOnlyCollection<string> StudyRoleNames => new[]
+    {
+        StudyDoctor,
+        StudyPatient
     };
 
     /// <summary>
@@ -59,7 +95,8 @@ public static class AuthRoles
         ContentAdmin,
         CatalogAdmin,
         ImportAdmin,
-        Admin
+        Admin,
+        Teacher
     };
 
     /// <summary>
@@ -72,6 +109,9 @@ public static class AuthRoles
         ContentAdmin,
         CatalogAdmin,
         ImportAdmin,
-        Admin
+        Admin,
+        Teacher,
+        StudyDoctor,
+        StudyPatient
     };
 }

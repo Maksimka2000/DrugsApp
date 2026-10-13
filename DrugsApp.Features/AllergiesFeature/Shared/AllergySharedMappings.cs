@@ -174,6 +174,7 @@ public static class AllergySharedMappings
             SupplementId: allergy.SupplementId,
             CustomSupplementName: allergy.CustomSupplementName,
             DisplayName: ResolveSupplementDisplayName(allergy),
+            Aliases: allergy.Supplement?.Aliases.ToList() ?? new List<string>(),
             Note: allergy.Note,
             CreatedAtUtc: allergy.CreatedAtUtc,
             UpdatedAtUtc: allergy.UpdatedAtUtc);
@@ -199,6 +200,7 @@ public static class AllergySharedMappings
             FoodId: allergy.FoodId,
             CustomFoodName: allergy.CustomFoodName,
             DisplayName: ResolveFoodDisplayName(allergy),
+            Aliases: allergy.Food?.Aliases.ToList() ?? new List<string>(),
             Note: allergy.Note,
             CreatedAtUtc: allergy.CreatedAtUtc,
             UpdatedAtUtc: allergy.UpdatedAtUtc);

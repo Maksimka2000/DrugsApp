@@ -26,6 +26,11 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <summary>
+    /// Gets whether a transaction opened by an outer command is currently active in this request scope.
+    /// </summary>
+    public bool HasActiveTransaction => _transaction is not null;
+
+    /// <summary>
     /// Persists staged changes to the database.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>

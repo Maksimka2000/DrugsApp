@@ -10,4 +10,6 @@ namespace DrugsApp.Domain.SystemTextFeature.Repositories;
 public interface ISystemTextRepository
 {
     Task<SystemText?> GetByKeyAsync(string key, CancellationToken cancellationToken);
+
+    Task InvalidateAsync(string key, CancellationToken cancellationToken);
 }

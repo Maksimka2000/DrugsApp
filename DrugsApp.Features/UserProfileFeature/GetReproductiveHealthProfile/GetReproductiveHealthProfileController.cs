@@ -15,7 +15,7 @@ namespace DrugsApp.Features.UserProfileFeature.GetReproductiveHealthProfile;
 
 [ApiController]
 [Route("api/user-profile/reproductive-health")]
-[Authorize(Roles = AuthRoles.Client)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("User Profile")]
 public sealed class GetReproductiveHealthProfileController(IMediator _mediator) : ControllerBase
 {

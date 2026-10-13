@@ -2,10 +2,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using DrugsApp.Domain.AuthFeature.Interfaces;
 using DrugsApp.Domain.Common;
+using DrugsApp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -62,6 +65,11 @@ public sealed class DrugsAppWebApplicationFactory : WebApplicationFactory<Progra
 
         builder.ConfigureTestServices(services =>
         {
+            // Every test host owns an NpgsqlDataSource, so EF caches one internal provider per host; the >20 warning is expected here.
+            services.ConfigureDbContext<DrugsAppDbContext>(options =>
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(

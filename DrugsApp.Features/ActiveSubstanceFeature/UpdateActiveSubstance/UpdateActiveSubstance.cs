@@ -97,7 +97,12 @@ internal sealed class UpdateActiveSubstanceHandler(IActiveSubstanceRepository _a
                 });
         }
 
-        if (command.Request.HasAlcoholInteraction == false)
+        if (!string.IsNullOrWhiteSpace(command.Request.AlcoholSpecialText)
+            && command.Request.ClearAlcoholSpecialText != true)
+        {
+            activeSubstance.UpsertAlcoholInteractionOverride(command.Request.AlcoholSpecialText);
+        }
+        else if (command.Request.HasAlcoholInteraction == false)
         {
             activeSubstance.SetHasAlcoholInteraction(false);
             activeSubstance.ClearAlcoholInteractionOverride();
@@ -105,10 +110,6 @@ internal sealed class UpdateActiveSubstanceHandler(IActiveSubstanceRepository _a
         else if (command.Request.ClearAlcoholSpecialText == true)
         {
             activeSubstance.ClearAlcoholInteractionOverride();
-        }
-        else if (!string.IsNullOrWhiteSpace(command.Request.AlcoholSpecialText))
-        {
-            activeSubstance.UpsertAlcoholInteractionOverride(command.Request.AlcoholSpecialText);
         }
         else if (command.Request.HasAlcoholInteraction == true)
         {

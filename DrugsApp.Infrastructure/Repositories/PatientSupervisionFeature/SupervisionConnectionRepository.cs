@@ -83,6 +83,22 @@ public sealed class SupervisionConnectionRepository(DrugsAppDbContext context) :
                 cancellationToken);
     }
 
+    public async Task<List<SupervisionConnection>> ListForPartiesAsync(
+        IReadOnlyCollection<Guid> providerUserIds,
+        IReadOnlyCollection<Guid> patientUserIds,
+        CancellationToken cancellationToken)
+    {
+        if (providerUserIds.Count == 0 || patientUserIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await context.SupervisionConnections
+            .Where(x => providerUserIds.Contains(x.HealthcareProfessionalUserId)
+                        && patientUserIds.Contains(x.PatientUserId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(SupervisionConnection connection, CancellationToken cancellationToken)
     {
         await context.SupervisionConnections.AddAsync(connection, cancellationToken);

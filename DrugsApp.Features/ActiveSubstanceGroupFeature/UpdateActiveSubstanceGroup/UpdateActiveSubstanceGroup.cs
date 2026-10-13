@@ -131,7 +131,8 @@ internal sealed class UpdateActiveSubstanceGroupHandler(
                             InteractionType.SubstanceGroup,
                             group.Id,
                             addedMembers,
-                            removedMembers),
+                            removedMembers,
+                            requestedMemberIds),
                         cancellationToken);
 
                 if (syncResult.IsError)

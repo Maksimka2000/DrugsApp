@@ -22,4 +22,5 @@ public sealed class SystemTextRepository : ISystemTextRepository
             .FirstOrDefaultAsync(systemText => systemText.Key == key, cancellationToken);
     }
 
+    public Task InvalidateAsync(string key, CancellationToken cancellationToken) => Task.CompletedTask;
 }

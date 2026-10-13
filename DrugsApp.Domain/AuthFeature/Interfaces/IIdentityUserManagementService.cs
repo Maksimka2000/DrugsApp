@@ -25,6 +25,20 @@ public interface IIdentityUserManagementService
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Creates a ready-to-use study account with a confirmed email in a study role, without sending any email.
+    /// </summary>
+    /// <param name="email">Generated login email.</param>
+    /// <param name="password">Generated plain password to hash.</param>
+    /// <param name="roleName">Study role to assign; must be one of <see cref="AuthRoles.StudyRoleNames"/>.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The new user identifier, or validation/conflict errors (<c>Auth.EmailAlreadyExists</c>).</returns>
+    Task<ErrorOr<Guid>> CreateStudyAccountAsync(
+        string email,
+        string password,
+        string roleName,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Replaces an admin user's role and returns the updated identity snapshot.
     /// </summary>
     /// <param name="adminUserId">Identifier of the admin to update.</param>

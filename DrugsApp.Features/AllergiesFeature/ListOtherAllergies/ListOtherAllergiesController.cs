@@ -19,7 +19,7 @@ public sealed record ListOtherAllergiesRequest(int Skip, int Take);
 public sealed record ListOtherAllergiesQuery(Guid UserId, int Skip, int Take) : IRequest<ErrorOr<ListOtherAllergiesResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Allergies")]
 [Route("api/allergies")]
 public sealed class ListOtherAllergiesController(

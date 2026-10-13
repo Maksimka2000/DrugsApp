@@ -46,6 +46,20 @@ public class TransactionBehavior<TRequest, TResponse>
             return await next();
         }
 
+        // Nested command dispatched from inside another command: join the ambient transaction instead of
+        // opening a second one, and flush on success so later checks in the same request see the new rows.
+        // Commit and rollback stay with the outermost command.
+        if (_unitOfWork.HasActiveTransaction)
+        {
+            TResponse nestedResponse = await next();
+            if (!IsErrorResponse(nestedResponse))
+            {
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
+            return nestedResponse;
+        }
+
         // Logger add if needed: Add logger with type (LogInformation)
 
         // Start transaction

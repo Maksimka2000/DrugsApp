@@ -43,6 +43,22 @@ public sealed class DrugProblemRepository : IDrugProblemRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<DrugProblem>> ListAllByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        return await ApplyCatalogIncludes(_context.DrugProblems.AsNoTracking())
+            .Where(drugProblem => drugProblem.UserId == userId)
+            .OrderBy(drugProblem =>
+                drugProblem.CustomDrugName != null
+                    ? drugProblem.CustomDrugName.ToLower()
+                    : drugProblem.DrugForm != null && drugProblem.DrugForm.Drug != null
+                        ? drugProblem.DrugForm.Drug.CommercialName.ToLower()
+                        : string.Empty)
+            .ThenBy(drugProblem => drugProblem.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await _context.DrugProblems

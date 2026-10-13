@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="interaction test\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="DrugsApp.UnitTests" />
   </ItemGroup>
 

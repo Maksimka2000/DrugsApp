@@ -39,7 +39,7 @@ public sealed record ListRegularSupplementsQuery(
 /// Controller for listing live regular supplement schedules.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Regular Supplements")]
 [Route("api/regular-supplements")]
 public sealed class ListRegularSupplementsController(

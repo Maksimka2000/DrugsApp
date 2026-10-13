@@ -26,6 +26,7 @@ using DrugsApp.Features.AllergiesFeature.CreateFoodAllergy;
 using DrugsApp.Features.AllergiesFeature.CreateOtherAllergy;
 using DrugsApp.Features.AllergiesFeature.CreateSupplementAllergy;
 using DrugsApp.Features.AllergiesFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using DrugsApp.Features.DrugProblemsFeature.CreateDrugProblem;
 using DrugsApp.Features.HealthConditionFeature.AddUserHealthCondition;
 using DrugsApp.Features.PatientSupervisionFeature.Shared;
@@ -148,6 +149,20 @@ public sealed class MedicalChangeProposalApplyService(
         RegularIntakeApplyCounts counts,
         CancellationToken cancellationToken)
     {
+        int existingCount = await clientRegularSupplementRepository.CountLiveByUserIdAsync(
+            patientUserId,
+            nameQuery: null,
+            startDate: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_REGULAR_SUPPLEMENTS,
+            "RegularSupplement");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         if (item.Source == MedicalChangeProposalSource.Custom)
         {
             return Error.Validation(
@@ -221,6 +236,20 @@ public sealed class MedicalChangeProposalApplyService(
         RegularIntakeApplyCounts counts,
         CancellationToken cancellationToken)
     {
+        int existingCount = await clientRegularFoodRepository.CountLiveByUserIdAsync(
+            patientUserId,
+            foodNameQuery: null,
+            startDate: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_REGULAR_FOODS,
+            "RegularFood");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         ErrorOr<CreateRegularFoodRequest> requestResult = await applyRequestResolver.ResolveRegularFoodRequestAsync(
             item,
             cancellationToken);
@@ -269,6 +298,16 @@ public sealed class MedicalChangeProposalApplyService(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
     {
+        int existingCount = await clientDrugAllergyRepository.CountAsync(patientUserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "DrugAllergy");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         ErrorOr<CreateDrugAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateDrugAllergyRequest>(
             item.ApplyPayload,
             "apply_payload");
@@ -349,6 +388,16 @@ public sealed class MedicalChangeProposalApplyService(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
     {
+        int existingCount = await clientSupplementAllergyRepository.CountAsync(patientUserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "SupplementAllergy");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         ErrorOr<CreateSupplementAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateSupplementAllergyRequest>(
             item.ApplyPayload,
             "apply_payload");
@@ -418,6 +467,16 @@ public sealed class MedicalChangeProposalApplyService(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
     {
+        int existingCount = await clientFoodAllergyRepository.CountAsync(patientUserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "FoodAllergy");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         ErrorOr<CreateFoodAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateFoodAllergyRequest>(
             item.ApplyPayload,
             "apply_payload");
@@ -487,6 +546,16 @@ public sealed class MedicalChangeProposalApplyService(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
     {
+        int existingCount = await clientOtherAllergyRepository.CountAsync(patientUserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "OtherAllergy");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         ErrorOr<CreateOtherAllergyRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateOtherAllergyRequest>(
             item.ApplyPayload,
             "apply_payload");
@@ -523,6 +592,19 @@ public sealed class MedicalChangeProposalApplyService(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
     {
+        int existingCount = await userHealthConditionRepository.CountAsync(
+            patientUserId,
+            displayNameQuery: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "UserHealthCondition");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         ErrorOr<AddUserHealthConditionRequest> requestResult = MedicalChangeProposalJson.Deserialize<AddUserHealthConditionRequest>(
             item.ApplyPayload,
             "apply_payload");
@@ -588,6 +670,16 @@ public sealed class MedicalChangeProposalApplyService(
         MedicalChangeProposalItem item,
         CancellationToken cancellationToken)
     {
+        int existingCount = await drugProblemRepository.CountByUserIdAsync(patientUserId, cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "DrugProblem");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         ErrorOr<CreateDrugProblemRequest> requestResult = MedicalChangeProposalJson.Deserialize<CreateDrugProblemRequest>(
             item.ApplyPayload,
             "apply_payload");

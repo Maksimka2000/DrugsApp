@@ -12,6 +12,8 @@ public sealed class SubmitProviderProposalRequestValidator : AbstractValidator<S
         "regular_supplement",
     };
 
+    private const int MaxIntakeTimesPerItem = 12;
+
     public SubmitProviderProposalRequestValidator()
     {
         RuleFor(x => x.DraftItems)
@@ -33,6 +35,22 @@ public sealed class SubmitProviderProposalRequestValidator : AbstractValidator<S
                 item.RuleFor(i => i.RelatedCatalogId)
                     .NotEmpty()
                     .When(i => RequiresRelatedCatalogId(i.CategoryCode, i.Source));
+
+                item.RuleFor(i => i.EndDate)
+                    .GreaterThanOrEqualTo(i => i.StartDate!.Value)
+                    .When(i => i.StartDate.HasValue && i.EndDate.HasValue)
+                    .WithMessage("end_date must be on or after start_date.");
+
+                item.When(
+                    i => i.IntakeTimes is { Count: > 0 },
+                    () =>
+                    {
+                        item.RuleFor(i => i.IntakeTimes!)
+                            .Must(times => times.Count <= MaxIntakeTimesPerItem)
+                            .WithMessage($"intake_times must not contain more than {MaxIntakeTimesPerItem} items.")
+                            .Must(times => times.Distinct().Count() == times.Count)
+                            .WithMessage("intake_times must be unique.");
+                    });
 
                 item.RuleFor(i => i.Source)
                     .NotEmpty()

@@ -30,6 +30,16 @@ public interface IClientRegularDrugRepository
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves every regular drug whose status is Active (excludes Scheduled and Expired) without paging.
+    /// </summary>
+    /// <param name="userId">Owner user identifier.</param>
+    /// <param name="cancellationToken">Propagation token to cancel the query.</param>
+    /// <returns>Read-only rows ordered like the live search with drug, substances, form and routes loaded.</returns>
+    Task<List<ClientRegularDrug>> ListActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Counts active regular drugs for a user respecting the same filters as the live search.
     /// </summary>
     /// <param name="userId">Owner user identifier.</param>

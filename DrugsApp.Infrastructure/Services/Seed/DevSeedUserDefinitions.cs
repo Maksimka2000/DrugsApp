@@ -31,6 +31,28 @@ internal static class DevSeedUserDefinitions
     internal static readonly Guid Provider2Id = Guid.Parse("b2010000-0000-4000-8000-000000000002");
     internal static readonly Guid Provider3Id = Guid.Parse("b2010000-0000-4000-8000-000000000003");
 
+    internal sealed record SeedAdminDefinition(
+        Guid Id,
+        string Email,
+        string Password,
+        string FullName,
+        string Role);
+
+    internal static readonly Guid Teacher1Id = Guid.Parse("b3010000-0000-4000-8000-000000000001");
+
+    /// <summary>
+    /// Admin-portal dev accounts (no user profile), ensured on every non-production start regardless of the seed key.
+    /// </summary>
+    internal static IReadOnlyList<SeedAdminDefinition> Admins { get; } =
+    [
+        new(
+            Teacher1Id,
+            "seed.teacher1@drugsapp.local",
+            "Teacher1Seed123!",
+            "Seed Teacher",
+            AuthRoles.Teacher)
+    ];
+
     internal static IReadOnlyList<SeedUserDefinition> All { get; } =
     [
         new(

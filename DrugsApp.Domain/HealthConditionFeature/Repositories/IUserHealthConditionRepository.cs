@@ -23,6 +23,8 @@ public interface IUserHealthConditionRepository
         string? displayNameQuery,
         CancellationToken cancellationToken);
 
+    Task<List<UserHealthCondition>> ListAllByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+
     Task<UserHealthCondition?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<bool> ExistsDuplicateForUserAsync(Guid userId, string normalizedCustomName, CancellationToken cancellationToken);

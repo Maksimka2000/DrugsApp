@@ -9,6 +9,11 @@ namespace DrugsApp.Domain.Common;
 public interface IUnitOfWork
 {
     /// <summary>
+    /// Gets whether a transaction opened by an outer command is currently active in this request scope.
+    /// </summary>
+    bool HasActiveTransaction { get; }
+
+    /// <summary>
     /// Persists staged changes to the data store.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>

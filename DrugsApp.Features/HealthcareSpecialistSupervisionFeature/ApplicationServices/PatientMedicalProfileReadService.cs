@@ -4,16 +4,21 @@ using DrugsApp.Domain.DrugProblemsFeature.Entities;
 using DrugsApp.Domain.DrugProblemsFeature.Repositories;
 using DrugsApp.Domain.HealthConditionFeature.Entities;
 using DrugsApp.Domain.HealthConditionFeature.Repositories;
+using DrugsApp.Domain.MealTimeManagementFeature.Entities;
+using DrugsApp.Domain.MealTimeManagementFeature.Repositories;
 using DrugsApp.Domain.RegularDrugsFeature.Entities;
 using DrugsApp.Domain.RegularDrugsFeature.Interfaces;
 using DrugsApp.Domain.RegularFoodFeature.Entities;
 using DrugsApp.Domain.RegularFoodFeature.Interfaces;
 using DrugsApp.Domain.RegularSupplementsFeature.Entities;
-using DrugsApp.Domain.RegularSupplementsFeature.Enums;
 using DrugsApp.Domain.RegularSupplementsFeature.Repositories;
 using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Domain.UserProfileFeature.Repositories;
+using DrugsApp.Features.AllergiesFeature.Shared;
+using DrugsApp.Features.DrugProblemsFeature.Shared;
+using DrugsApp.Features.HealthConditionFeature.Shared;
 using DrugsApp.Features.HealthcareSpecialistSupervisionFeature.Shared;
+using DrugsApp.Features.MealTimeManagementFeature.Shared;
 using DrugsApp.Features.RegularDrugsFeature.Shared;
 using DrugsApp.Features.RegularFoodFeature.Shared;
 using DrugsApp.Features.RegularSupplementsFeature.Shared;
@@ -34,9 +39,11 @@ public sealed class PatientMedicalProfileReadService(
     IClientFoodAllergyRepository clientFoodAllergyRepository,
     IClientOtherAllergyRepository clientOtherAllergyRepository,
     IUserHealthConditionRepository userHealthConditionRepository,
-    IDrugProblemRepository drugProblemRepository) : IPatientMedicalProfileReadService
+    IDrugProblemRepository drugProblemRepository,
+    IClientMealTimeRepository clientMealTimeRepository) : IPatientMedicalProfileReadService
 {
     private const int PageSize = 100;
+    private const int HistoryPageSize = 100;
 
     /// <summary>
     /// Loads a patient's medical profile including reproductive health, conditions, problems, allergies, and regular intake data.
@@ -98,27 +105,84 @@ public sealed class PatientMedicalProfileReadService(
                 token),
             cancellationToken);
 
-        var takenFoodIds = regularFoods.Select(row => row.FoodId).ToHashSet();
-        var takenSupplementIds = regularSupplements
-            .Where(row => row.Source == RegularSupplementSource.Database && row.SupplementId.HasValue)
-            .Select(row => row.SupplementId!.Value)
-            .ToHashSet();
+        ProviderIntakeHistoryDto<RegularDrugHistoryItemDto> regularDrugHistory = await LoadHistoryAsync(
+            async token =>
+            {
+                List<ClientRegularDrug> rows = await clientRegularDrugRepository.SearchHistoryByUserIdAsync(
+                    patientUserId,
+                    drugNameQuery: null,
+                    startDate: null,
+                    endDate: null,
+                    skip: 0,
+                    take: HistoryPageSize + 1,
+                    token);
+                return rows;
+            },
+            RegularDrugMappings.MapToHistoryItemDto,
+            cancellationToken);
+        ProviderIntakeHistoryDto<RegularFoodHistoryListItemDto> regularFoodHistory = await LoadHistoryAsync(
+            async token =>
+            {
+                List<ClientRegularFood> rows = await clientRegularFoodRepository.SearchHistoryByUserIdAsync(
+                    patientUserId,
+                    foodNameQuery: null,
+                    startDate: null,
+                    endDate: null,
+                    skip: 0,
+                    take: HistoryPageSize + 1,
+                    token);
+                return rows;
+            },
+            RegularFoodMappings.MapToHistoryItemDto,
+            cancellationToken);
+        ProviderIntakeHistoryDto<RegularSupplementHistoryItemDto> regularSupplementHistory = await LoadHistoryAsync(
+            async token =>
+            {
+                List<ClientRegularSupplement> rows = await clientRegularSupplementRepository.SearchHistoryByUserIdAsync(
+                    patientUserId,
+                    nameQuery: null,
+                    startDate: null,
+                    endDate: null,
+                    skip: 0,
+                    take: HistoryPageSize + 1,
+                    token);
+                return rows;
+            },
+            RegularSupplementMappings.MapToHistoryItemDto,
+            cancellationToken);
+        List<ClientMealTime> mealTimes = await clientMealTimeRepository.ListByUserAsync(
+            patientUserId,
+            cancellationToken);
 
         return new ProviderPatientMedicalDetailData(
             ReproductiveHealth: reproductiveHealth,
-            HealthConditions: PatientMedicalProfileSectionBuilders.BuildHealthConditionsGroup(healthConditions),
-            ProblematicDrugs: PatientMedicalProfileSectionBuilders.BuildProblematicDrugsGroup(drugProblems),
-            Allergies: PatientMedicalProfileSectionBuilders.BuildAllergiesGroup(
-                drugAllergies,
-                foodAllergies,
-                supplementAllergies,
-                otherAllergies,
-                allergySummary,
-                takenFoodIds,
-                takenSupplementIds),
+            AllergySummary: allergySummary?.MapToSummaryResponse(),
+            HealthConditions: healthConditions.Select(row => row.MapToDto()).ToList(),
+            DrugProblems: drugProblems.Select(row => row.MapToListItemDto()).ToList(),
+            DrugAllergies: drugAllergies.Select(row => row.MapToDto()).ToList(),
+            SupplementAllergies: supplementAllergies.Select(row => row.MapToDto()).ToList(),
+            FoodAllergies: foodAllergies.Select(row => row.MapToDto()).ToList(),
+            OtherAllergies: otherAllergies.Select(row => row.MapToDto()).ToList(),
             RegularDrugs: regularDrugs.Select(RegularDrugMappings.MapToListItemDto).ToList(),
             RegularFoods: regularFoods.Select(RegularFoodMappings.MapToListItemDto).ToList(),
-            RegularSupplements: regularSupplements.Select(RegularSupplementMappings.MapToListItemDto).ToList());
+            RegularSupplements: regularSupplements.Select(RegularSupplementMappings.MapToListItemDto).ToList(),
+            RegularDrugHistory: regularDrugHistory,
+            RegularFoodHistory: regularFoodHistory,
+            RegularSupplementHistory: regularSupplementHistory,
+            MealTimes: mealTimes.MapToListItemDtoList());
+    }
+
+    private static async Task<ProviderIntakeHistoryDto<TDto>> LoadHistoryAsync<TEntity, TDto>(
+        Func<CancellationToken, Task<List<TEntity>>> fetchLatest,
+        Func<TEntity, TDto> map,
+        CancellationToken cancellationToken)
+    {
+        List<TEntity> rows = await fetchLatest(cancellationToken);
+        bool hasMore = rows.Count > HistoryPageSize;
+
+        return new ProviderIntakeHistoryDto<TDto>(
+            rows.Take(HistoryPageSize).Select(map).ToList(),
+            hasMore);
     }
 
     private async Task<ProviderReproductiveHealthDetailDto> LoadReproductiveHealthAsync(

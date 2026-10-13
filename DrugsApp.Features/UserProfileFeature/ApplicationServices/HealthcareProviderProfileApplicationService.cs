@@ -83,4 +83,34 @@ internal sealed class HealthcareProviderProfileApplicationService(
 
         return new HealthcareProviderProfileUpsertResult(existing, false);
     }
+
+    /// <summary>
+    /// Creates and stages a provider profile already marked as onboarding-completed.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="request">Provider profile payload.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success or validation errors.</returns>
+    public async Task<ErrorOr<Success>> CreateCompletedAsync(
+        Guid userId,
+        HealthcareProviderProfileUpsertRequest request,
+        CancellationToken cancellationToken)
+    {
+        ErrorOr<HealthcareProviderProfile> created = HealthcareProviderProfile.Create(
+            userId,
+            request.ProfessionCode,
+            request.OtherProfessionLabel,
+            request.WorkplaceLabel,
+            request.ShortDescription);
+        if (created.IsError)
+        {
+            return created.Errors;
+        }
+
+        created.Value.MarkOnboardingCompleted(request.OnboardingCompletedAtUtc ?? DateTime.UtcNow);
+
+        await _healthcareProviderProfileRepository.AddAsync(created.Value, cancellationToken);
+
+        return Result.Success;
+    }
 }

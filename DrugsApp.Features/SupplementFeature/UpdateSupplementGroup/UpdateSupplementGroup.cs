@@ -92,7 +92,8 @@ public sealed class UpdateSupplementGroupHandler(
                             InteractionType.SupplementGroup,
                             group.Id,
                             addedMembers,
-                            removedMembers),
+                            removedMembers,
+                            requestedMemberIds),
                         cancellationToken);
 
                 if (syncResult.IsError)

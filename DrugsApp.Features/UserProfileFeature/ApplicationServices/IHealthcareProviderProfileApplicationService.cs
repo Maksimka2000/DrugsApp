@@ -23,6 +23,19 @@ public interface IHealthcareProviderProfileApplicationService
         Guid userId,
         HealthcareProviderProfileUpsertRequest request,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Creates a provider profile already marked as onboarding-completed without reading the user profile, which
+    /// may only be staged in the current unit of work (study account provisioning).
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="request">Provider profile payload; a null completion timestamp defaults to the current UTC time.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Success or validation errors.</returns>
+    Task<ErrorOr<Success>> CreateCompletedAsync(
+        Guid userId,
+        HealthcareProviderProfileUpsertRequest request,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>

@@ -22,13 +22,15 @@ using DrugsApp.Domain.UserProfileFeature.Entities;
 using DrugsApp.Domain.RegularDrugsFeature.Entities;
 using DrugsApp.Domain.RegularSupplementsFeature.Entities;
 using DrugsApp.Domain.RegularFoodFeature.Entities;
+using DrugsApp.Domain.StudyModeFeature.Entities;
 using DrugsApp.Infrastructure.Persistence.Identity;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace DrugsApp.Infrastructure.Persistence;
 
 public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> options)
-    : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
+    : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options), IDataProtectionKeyContext
 {
     public DbSet<Test> Tests { get; set; } = null!;
     public DbSet<VetDrug> VetDrugs { get; set; } = null!;
@@ -84,6 +86,9 @@ public sealed class DrugsAppDbContext(DbContextOptions<DrugsAppDbContext> option
     public DbSet<MedicalChangeProposal> MedicalChangeProposals { get; set; } = null!;
     public DbSet<MedicalChangeProposalItem> MedicalChangeProposalItems { get; set; } = null!;
     public DbSet<MedicalChangeProposalItemIntakeTime> MedicalChangeProposalItemIntakeTimes { get; set; } = null!;
+    public DbSet<StudyClinic> StudyClinics { get; set; } = null!;
+    public DbSet<StudyClinicMember> StudyClinicMembers { get; set; } = null!;
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

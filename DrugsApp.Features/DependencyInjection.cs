@@ -21,6 +21,9 @@ using DrugsApp.Domain.AccountFeature.Interfaces;
 using DrugsApp.Features.AccountFeature.ApplicationServices;
 using DrugsApp.Features.DrugInteractionToolFeature.ApplicationServices;
 using DrugsApp.Features.DrugToolFeature.ApplicationServices;
+using DrugsApp.Domain.StudyModeFeature.DomainServices;
+using DrugsApp.Features.StudyModeFeature.ApplicationServices;
+using DrugsApp.Features.StudyModeFeature.Shared;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -76,6 +79,14 @@ public static class DependencyInjection
         services.AddScoped<IClientAccountAdminDeletionService, ClientAccountAdminDeletionService>();
         services.AddScoped<IDrugInteractionToolReportApplicationService, DrugInteractionToolReportApplicationService>();
         services.AddScoped<IDrugToolDetailApplicationService, DrugToolDetailApplicationService>();
+        services.AddScoped<IUserProfileApplicationService, UserProfileApplicationService>();
+        services.AddScoped<ISupervisionConnectionSyncApplicationService, SupervisionConnectionSyncApplicationService>();
+        services.AddScoped<IStudyAccountProvisioningApplicationService, StudyAccountProvisioningApplicationService>();
+        services.AddScoped<IStudyAccountTeardownApplicationService, StudyAccountTeardownApplicationService>();
+        services.AddScoped<IStudyRandomMedicalDataApplicationService, StudyRandomMedicalDataApplicationService>();
+        services.AddSingleton<IStudyCredentialGenerator, StudyCredentialGenerator>();
+        services.AddScoped<StudyPatientScopeFilter>();
+        services.AddScoped<StudyClinicAccessFilter>();
         return services;
     }
 }

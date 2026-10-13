@@ -19,7 +19,7 @@ internal sealed class UpsertAllergySummaryHandler(IClientAllergySummaryRepositor
         UpsertAllergySummaryCommand command,
         CancellationToken cancellationToken)
     {
-        ClientAllergySummary? summary = await _summaryRepository.GetByUserIdAsync(command.UserId, cancellationToken);
+        ClientAllergySummary? summary = await _summaryRepository.GetTrackedByUserIdAsync(command.UserId, cancellationToken);
         bool isNew = summary is null;
 
         if (isNew)

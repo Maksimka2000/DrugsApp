@@ -22,12 +22,20 @@ namespace DrugsApp.Features.DrugInteractionToolFeature.ExecuteRegisteredDrugInte
 /// <param name="ShowAllDrugsInteractions">Flag to include all drug interactions.</param>
 /// <param name="ShowOralGuidance">Flag to include oral guidance.</param>
 /// <param name="ShowAllFoodAndSupplementInteractions">Flag to include all food and supplement interactions.</param>
+/// <param name="SelectedSupplementIds">Catalog supplements selected for the analysis (up to 20).</param>
+/// <param name="SelectedFoodIds">Catalog foods selected for the analysis (up to 20).</param>
+/// <param name="ShowPossibleInteractions">
+/// Whether catalog foods and supplements that are neither taken nor selected are analysed ("possible" interactions); defaults to true.
+/// </param>
 public sealed record ExecuteRegisteredDrugInteractionToolReportRequest(
   IReadOnlyCollection<Guid>? ManualDrugFormIds,
   bool IncludeUserData,
   bool ShowAllDrugsInteractions,
   bool ShowOralGuidance,
-  bool ShowAllFoodAndSupplementInteractions);
+  bool ShowAllFoodAndSupplementInteractions,
+  IReadOnlyCollection<Guid>? SelectedSupplementIds = null,
+  IReadOnlyCollection<Guid>? SelectedFoodIds = null,
+  bool ShowPossibleInteractions = true);
 
 /// <summary>
 /// Response envelope for the registered drug interaction tool report.
@@ -37,17 +45,17 @@ public sealed record ExecuteRegisteredDrugInteractionToolReportResponse(
   RegisteredDrugInteractionToolReportReadModel Report);
 
 /// <summary>
-/// MediatR command for the registered drug interaction tool report.
+/// MediatR query for the registered drug interaction tool report.
 /// </summary>
 /// <param name="UserId">Authenticated user identifier.</param>
 /// <param name="Request">Request payload for execution.</param>
-public sealed record ExecuteRegisteredDrugInteractionToolReportCommand(
+public sealed record ExecuteRegisteredDrugInteractionToolReportQuery(
   Guid UserId,
   ExecuteRegisteredDrugInteractionToolReportRequest Request)
   : IRequest<ErrorOr<ExecuteRegisteredDrugInteractionToolReportResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Drug Interaction Tool")]
 [Route("api/tools/drug-interactions/registered")]
 public sealed class ExecuteRegisteredDrugInteractionToolReportController(
@@ -81,9 +89,9 @@ public sealed class ExecuteRegisteredDrugInteractionToolReportController(
       return Unauthorized();
     }
 
-    ExecuteRegisteredDrugInteractionToolReportCommand command = request.MapToCommand(userId);
+    ExecuteRegisteredDrugInteractionToolReportQuery query = request.MapToQuery(userId);
     ErrorOr<ExecuteRegisteredDrugInteractionToolReportResponse> result =
-      await mediator.Send(command, cancellationToken);
+      await mediator.Send(query, cancellationToken);
 
     return result.Match(
       response => Ok(response),

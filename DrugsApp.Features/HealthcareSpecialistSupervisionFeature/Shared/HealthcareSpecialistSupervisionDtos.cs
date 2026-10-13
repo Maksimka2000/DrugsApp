@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
-using DrugsApp.Features.DrugInteractionToolFeature.Shared;
+using DrugsApp.Features.AllergiesFeature.Shared;
+using DrugsApp.Features.DrugProblemsFeature.Shared;
+using DrugsApp.Features.HealthConditionFeature.Shared;
+using DrugsApp.Features.MealTimeManagementFeature.Shared;
 using DrugsApp.Features.RegularDrugsFeature.Shared;
 using DrugsApp.Features.RegularFoodFeature.Shared;
 using DrugsApp.Features.RegularSupplementsFeature.Shared;
@@ -65,12 +68,20 @@ public sealed record ProviderPatientProfileDto(
 /// <param name="AccessBlockedMessage">Optional access blocked message.</param>
 /// <param name="PatientProfile">Patient profile data.</param>
 /// <param name="ReproductiveHealth">Reproductive health details.</param>
-/// <param name="HealthConditions">Health conditions group.</param>
-/// <param name="ProblematicDrugs">Problematic drugs group.</param>
-/// <param name="Allergies">Allergies group.</param>
-/// <param name="RegularDrugs">Regular drugs list.</param>
-/// <param name="RegularFoods">Regular foods list.</param>
-/// <param name="RegularSupplements">Regular supplements list.</param>
+/// <param name="AllergySummary">Allergy summary answers (reaction, pollen, insects, latex).</param>
+/// <param name="HealthConditions">Health conditions in the member list shape.</param>
+/// <param name="DrugProblems">Drug problems in the member list shape.</param>
+/// <param name="DrugAllergies">Drug allergies in the member list shape.</param>
+/// <param name="SupplementAllergies">Supplement allergies in the member list shape.</param>
+/// <param name="FoodAllergies">Food allergies in the member list shape.</param>
+/// <param name="OtherAllergies">Other allergies in the member list shape.</param>
+/// <param name="RegularDrugs">Live regular drugs list.</param>
+/// <param name="RegularFoods">Live regular foods list.</param>
+/// <param name="RegularSupplements">Live regular supplements list.</param>
+/// <param name="RegularDrugHistory">Latest archived regular drugs.</param>
+/// <param name="RegularFoodHistory">Latest archived regular foods.</param>
+/// <param name="RegularSupplementHistory">Latest archived regular supplements.</param>
+/// <param name="MealTimes">Patient meal times.</param>
 public sealed record ProviderPatientDetailResponse(
     Guid ConnectionId,
     Guid PatientUserId,
@@ -78,12 +89,28 @@ public sealed record ProviderPatientDetailResponse(
     string? AccessBlockedMessage,
     ProviderPatientProfileDto? PatientProfile,
     ProviderReproductiveHealthDetailDto? ReproductiveHealth,
-    HealthConditionsGroupReadModel? HealthConditions,
-    ProblematicDrugsGroupReadModel? ProblematicDrugs,
-    AllergiesGroupReadModel? Allergies,
+    AllergySummaryResponse? AllergySummary,
+    IReadOnlyCollection<UserHealthConditionDto>? HealthConditions,
+    IReadOnlyCollection<DrugProblemListItemDto>? DrugProblems,
+    IReadOnlyCollection<ClientDrugAllergyDto>? DrugAllergies,
+    IReadOnlyCollection<ClientSupplementAllergyDto>? SupplementAllergies,
+    IReadOnlyCollection<ClientFoodAllergyDto>? FoodAllergies,
+    IReadOnlyCollection<ClientOtherAllergyDto>? OtherAllergies,
     IReadOnlyCollection<RegularDrugListItemDto>? RegularDrugs,
     IReadOnlyCollection<RegularFoodListItemDto>? RegularFoods,
-    IReadOnlyCollection<RegularSupplementListItemDto>? RegularSupplements);
+    IReadOnlyCollection<RegularSupplementListItemDto>? RegularSupplements,
+    ProviderIntakeHistoryDto<RegularDrugHistoryItemDto>? RegularDrugHistory,
+    ProviderIntakeHistoryDto<RegularFoodHistoryListItemDto>? RegularFoodHistory,
+    ProviderIntakeHistoryDto<RegularSupplementHistoryItemDto>? RegularSupplementHistory,
+    IReadOnlyCollection<MealTimeListItemDto>? MealTimes);
+
+/// <summary>Latest archived intake rows of one kind for a provider view.</summary>
+/// <typeparam name="T">History item type.</typeparam>
+/// <param name="Items">Archived rows, newest first.</param>
+/// <param name="HasMore">Whether older archived rows exist beyond the returned page.</param>
+public sealed record ProviderIntakeHistoryDto<T>(
+    IReadOnlyCollection<T> Items,
+    bool HasMore);
 
 /// <summary>Response after creating a provider request.</summary>
 /// <param name="RequestId">Request identifier.</param>

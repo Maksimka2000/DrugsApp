@@ -2086,6 +2086,127 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("RoutesOfAdministration", (string)null);
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.StudyModeFeature.Entities.StudyClinic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("normalized_name");
+
+                    b.Property<string>("ScenarioDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("scenario_description");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("Public")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc")
+                        .IsDescending()
+                        .HasDatabaseName("ix_study_clinics_created_at_utc");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("ux_study_clinics_normalized_name");
+
+                    b.HasIndex("CreatedByUserId", "Visibility")
+                        .HasDatabaseName("ix_study_clinics_created_by_visibility");
+
+                    b.ToTable("study_clinics", (string)null);
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.StudyModeFeature.Entities.StudyClinicMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("LoginEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("login_email");
+
+                    b.Property<string>("MemberKind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("member_kind");
+
+                    b.Property<double>("PositionX")
+                        .HasColumnType("double precision")
+                        .HasColumnName("position_x");
+
+                    b.Property<double>("PositionY")
+                        .HasColumnType("double precision")
+                        .HasColumnName("position_y");
+
+                    b.Property<string>("ProtectedPassword")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("protected_password");
+
+                    b.Property<Guid>("StudyClinicId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("study_clinic_id");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoginEmail")
+                        .IsUnique()
+                        .HasDatabaseName("ux_study_clinic_members_login_email");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_study_clinic_members_user_id");
+
+                    b.HasIndex("StudyClinicId", "MemberKind")
+                        .HasDatabaseName("ix_study_clinic_members_clinic_kind");
+
+                    b.ToTable("study_clinic_members", (string)null);
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.SupplementFeature.Entities.Supplement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2926,6 +3047,25 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.ToTable("FoodGroupFoods", (string)null);
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
@@ -3371,6 +3511,21 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
                     b.Navigation("RegularSupplement");
                 });
 
+            modelBuilder.Entity("DrugsApp.Domain.StudyModeFeature.Entities.StudyClinicMember", b =>
+                {
+                    b.HasOne("DrugsApp.Domain.StudyModeFeature.Entities.StudyClinic", null)
+                        .WithMany("Members")
+                        .HasForeignKey("StudyClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrugsApp.Infrastructure.Persistence.Identity.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("DrugsApp.Domain.StudyModeFeature.Entities.StudyClinicMember", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DrugsApp.Domain.SupportFeature.Entities.FaqEntryTranslation", b =>
                 {
                     b.HasOne("DrugsApp.Domain.SupportFeature.Entities.FaqEntry", "FaqEntry")
@@ -3533,6 +3688,11 @@ namespace DrugsApp.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("DrugsApp.Domain.RegularSupplementsFeature.Entities.ClientRegularSupplement", b =>
                 {
                     b.Navigation("IntakeTimes");
+                });
+
+            modelBuilder.Entity("DrugsApp.Domain.StudyModeFeature.Entities.StudyClinic", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("DrugsApp.Domain.SupportFeature.Entities.FaqEntry", b =>

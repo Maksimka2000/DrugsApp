@@ -58,6 +58,7 @@ public sealed record ClientSupplementAllergyDto(
     Guid? SupplementId,
     string? CustomSupplementName,
     string DisplayName,
+    IReadOnlyCollection<string> Aliases,
     string? Note,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc);
@@ -71,6 +72,7 @@ public sealed record ClientFoodAllergyDto(
     Guid? FoodId,
     string? CustomFoodName,
     string DisplayName,
+    IReadOnlyCollection<string> Aliases,
     string? Note,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc);

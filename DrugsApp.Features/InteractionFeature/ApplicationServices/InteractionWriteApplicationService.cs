@@ -113,50 +113,10 @@ internal sealed class InteractionWriteApplicationService(IInteractionRepository 
     /// </summary>
     /// <param name="input">Input containing the interaction data.</param>
     /// <returns>List of expanded pairs.</returns>
-    private static List<InteractionAtomicPair> BuildExpandedPairs(CreateInteractionWorkflowInput input)
-    {
-        var pairs = new List<InteractionAtomicPair>();
-
-        foreach (Guid leftId in input.LeftAtomicIds)
-        {
-            foreach (Guid rightId in input.RightAtomicIds)
-            {
-                if (input.LeftAtomicType == input.RightAtomicType && leftId == rightId)
-                {
-                    continue;
-                }
-
-                InteractionAtomicPair pair = CanonicalizePair(
-                    input.LeftAtomicType,
-                    leftId,
-                    input.RightAtomicType,
-                    rightId);
-
-                pairs.Add(pair);
-            }
-        }
-
-        return pairs.Distinct().ToList();
-    }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="typeA"></param>
-    /// <param name="idA"></param>
-    /// <param name="typeB"></param>
-    /// <param name="idB"></param>
-    /// <returns></returns>
-    private static InteractionAtomicPair CanonicalizePair(
-        ShortInteractionType typeA,
-        Guid idA,
-        ShortInteractionType typeB,
-        Guid idB)
-    {
-        bool keepOrder = typeA < typeB || typeA == typeB && idA.CompareTo(idB) <= 0;
-
-        return keepOrder
-            ? new InteractionAtomicPair(typeA, idA, typeB, idB)
-            : new InteractionAtomicPair(typeB, idB, typeA, idA);
-    }
+    private static List<InteractionAtomicPair> BuildExpandedPairs(CreateInteractionWorkflowInput input) =>
+        InteractionAtomicPairs.BuildPairs(
+            input.LeftAtomicType,
+            input.LeftAtomicIds,
+            input.RightAtomicType,
+            input.RightAtomicIds);
 }

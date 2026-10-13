@@ -6,12 +6,12 @@ namespace DrugsApp.Features.DrugInteractionToolFeature.ExecuteRegisteredDrugInte
 public static class ExecuteRegisteredDrugInteractionToolReportMapping
 {
   /// <summary>
-  /// Builds the command for executing a registered drug interaction tool report.
+  /// Builds the query for executing a registered drug interaction tool report.
   /// </summary>
   /// <param name="request">Incoming request payload with manual selections and flags.</param>
   /// <param name="userId">Authenticated user identifier.</param>
-  /// <returns>Command containing user context and request.</returns>
-  public static ExecuteRegisteredDrugInteractionToolReportCommand MapToCommand(
+  /// <returns>Query containing user context and request.</returns>
+  public static ExecuteRegisteredDrugInteractionToolReportQuery MapToQuery(
     this ExecuteRegisteredDrugInteractionToolReportRequest request,
     Guid userId) =>
     new(UserId: userId, Request: request);

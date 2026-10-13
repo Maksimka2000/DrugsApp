@@ -17,6 +17,12 @@ public sealed class ClientAllergySummaryRepository(DrugsAppDbContext _context) :
             .FirstOrDefaultAsync(summary => summary.UserId == userId, cancellationToken);
     }
 
+    public async Task<ClientAllergySummary?> GetTrackedByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await _context.ClientAllergySummaries
+            .FirstOrDefaultAsync(summary => summary.UserId == userId, cancellationToken);
+    }
+
     public async Task AddAsync(ClientAllergySummary summary, CancellationToken cancellationToken)
     {
         await _context.ClientAllergySummaries.AddAsync(summary, cancellationToken);

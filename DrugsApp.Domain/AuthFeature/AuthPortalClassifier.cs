@@ -15,10 +15,13 @@ public static class AuthPortalClassifier
         roles.Any(role => AuthRoles.AdminRoleNames.Contains(role));
 
     /// <summary>
-    /// Returns true when the user is a client-portal account without admin roles.
+    /// Returns true when the user is a client-portal account, including read-only study accounts, without admin roles.
     /// </summary>
     public static bool IsClientPortalUser(IEnumerable<string> roles) =>
-        (roles.Contains(AuthRoles.Client) || roles.Contains(AuthRoles.HealthcareProvider))
+        (roles.Contains(AuthRoles.Client)
+            || roles.Contains(AuthRoles.HealthcareProvider)
+            || roles.Contains(AuthRoles.StudyDoctor)
+            || roles.Contains(AuthRoles.StudyPatient))
         && !HasAnyAdminRole(roles);
 
     /// <summary>

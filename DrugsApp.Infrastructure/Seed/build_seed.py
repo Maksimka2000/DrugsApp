@@ -42,6 +42,22 @@ MEDICAL_PROPOSAL_ITEM = "ab031000-0000-4000-8000"
 MEDICAL_PROPOSAL_ITEM_INTAKE = "ab032000-0000-4000-8000"
 DRUG_CATALOG = "a0000000-0000-4000-8000"
 DRUG_FORM_CATALOG = "a1000000-0000-4000-8000"
+PERF_SUBSTANCE_CATALOG = "f2010000-0000-4000-8000"
+PERF_DRUG_CATALOG = "a0500000-0000-4000-8000"
+PERF_DRUG_FORM_CATALOG = "a1500000-0000-4000-8000"
+INT_PERF_I = "a3510000-0000-4000-8000"
+INT_PERF_P = "a3610000-0000-4000-8000"
+INT_PERF_E = "a3710000-0000-4000-8000"
+PERF_TEST_SUBSTANCE_COUNT = 4
+PERF_TEST_DRUG_COUNT = 20
+PERF_TEST_INTERACTION_PAIRS = [
+    (1, 2),
+    (2, 3),
+    (3, 4),
+    (1, 4),
+    (1, 3),
+    (2, 4),
+]
 FOOD_CATALOG = "b0000000-0000-4000-8000"
 SUPPLEMENT_CATALOG = "c0000000-0000-4000-8000"
 HEALTH_CONDITION_CATALOG = "d0000000-0000-4000-8000"
@@ -404,6 +420,111 @@ def add_interactions(
             f"VALUES ('{pe}'::uuid, '{iid}'::uuid, '{ta}', '{ida}'::uuid, '{tb}', '{idb}'::uuid, {NOW}) "
             f'ON CONFLICT ("Id") DO NOTHING;'
         )
+        w("")
+
+
+def perf_test_catalog() -> None:
+    """Drug interaction tool performance fixtures: 20 standard drugs, 4 test substances, sparse interactions."""
+    w("-- Drug interaction tool performance fixtures (DrugTest01..20, activeSubstanceTest1..4)")
+    substance_rows = [
+        f"    ('{catalog_uuid(PERF_SUBSTANCE_CATALOG, i)}'::uuid, 'activeSubstanceTest{i}', FALSE, {NOW})"
+        for i in range(1, PERF_TEST_SUBSTANCE_COUNT + 1)
+    ]
+    w(
+        'INSERT INTO "ActiveSubstances" ("Id", "ActiveSubstanceName", "HasAlcoholInteraction", "CreatedAtUtc")\nVALUES\n'
+        + ",\n".join(substance_rows)
+        + '\nON CONFLICT ("Id") DO UPDATE SET "ActiveSubstanceName"=EXCLUDED."ActiveSubstanceName", '
+        '"HasAlcoholInteraction"=EXCLUDED."HasAlcoholInteraction";'
+    )
+    drug_rows = [
+        (
+            f"    ('{catalog_uuid(PERF_DRUG_CATALOG, i)}'::uuid, 'DrugTest{i:02d}', "
+            f"'Human medicinal product', 1, 'Standard', {NOW})"
+        )
+        for i in range(1, PERF_TEST_DRUG_COUNT + 1)
+    ]
+    w(
+        'INSERT INTO "Drugs" ("Id", "CommercialName", "TypeOfProduct", "DrugFormCounter", "TypeOfDrug", "CreatedAtUtc")\nVALUES\n'
+        + ",\n".join(drug_rows)
+        + '\nON CONFLICT ("Id") DO UPDATE SET "CommercialName"=EXCLUDED."CommercialName", "TypeOfProduct"=EXCLUDED."TypeOfProduct", '
+        '"DrugFormCounter"=EXCLUDED."DrugFormCounter", "TypeOfDrug"=EXCLUDED."TypeOfDrug";'
+    )
+    link_rows: list[str] = []
+    for drug_i in range(1, PERF_TEST_DRUG_COUNT + 1):
+        substance_count = ((drug_i - 1) % PERF_TEST_SUBSTANCE_COUNT) + 1
+        for substance_i in range(1, substance_count + 1):
+            link_rows.append(
+                f"    ('{catalog_uuid(PERF_DRUG_CATALOG, drug_i)}'::uuid, "
+                f"'{catalog_uuid(PERF_SUBSTANCE_CATALOG, substance_i)}'::uuid)"
+            )
+    w(
+        'INSERT INTO "DrugActiveSubstances" ("DrugId", "ActiveSubstanceId")\nVALUES\n'
+        + ",\n".join(link_rows)
+        + "\nON CONFLICT DO NOTHING;"
+    )
+    form_rows = [
+        (
+            f"    ('{catalog_uuid(PERF_DRUG_FORM_CATALOG, i)}'::uuid, "
+            f"'{catalog_uuid(PERF_DRUG_CATALOG, i)}'::uuid, {920000000 + i}, '100 mg', TRUE, 'Z99ZZ{i:02d}', {NOW})"
+        )
+        for i in range(1, PERF_TEST_DRUG_COUNT + 1)
+    ]
+    w(
+        'INSERT INTO "DrugForms" ("Id", "DrugId", "ProductIdentifier", "Dosage", "IsOral", "AtcCode", "CreatedAtUtc")\nVALUES\n'
+        + ",\n".join(form_rows)
+        + '\nON CONFLICT ("Id") DO UPDATE SET "DrugId"=EXCLUDED."DrugId", "ProductIdentifier"=EXCLUDED."ProductIdentifier", '
+        '"Dosage"=EXCLUDED."Dosage", "IsOral"=EXCLUDED."IsOral", "AtcCode"=EXCLUDED."AtcCode";'
+    )
+    pharma_rows = [
+        f"    ('{catalog_uuid(PERF_DRUG_FORM_CATALOG, i)}'::uuid, 'f2100000-0000-4000-8000-000000000001'::uuid)"
+        for i in range(1, PERF_TEST_DRUG_COUNT + 1)
+    ]
+    w(
+        'INSERT INTO "DrugFormPharmaceuticalForms" ("DrugFormId", "PharmaceuticalFormId")\nVALUES\n'
+        + ",\n".join(pharma_rows)
+        + "\nON CONFLICT DO NOTHING;"
+    )
+    route_rows = [
+        f"    ('{catalog_uuid(PERF_DRUG_FORM_CATALOG, i)}'::uuid, 'f2200000-0000-4000-8000-000000000001'::uuid)"
+        for i in range(1, PERF_TEST_DRUG_COUNT + 1)
+    ]
+    w(
+        'INSERT INTO "DrugFormRoutesOfAdministration" ("DrugFormId", "RouteOfAdministrationId")\nVALUES\n'
+        + ",\n".join(route_rows)
+        + "\nON CONFLICT DO NOTHING;"
+    )
+    w("-- Performance test substance interactions (activeSubstanceTest1..4)")
+    for i, (left_num, right_num) in enumerate(PERF_TEST_INTERACTION_PAIRS, 1):
+        iid = uid(INT_PERF_I, i)
+        sev = SEV[(i - 1) % 4]
+        left_id = catalog_uuid(PERF_SUBSTANCE_CATALOG, left_num)
+        right_id = catalog_uuid(PERF_SUBSTANCE_CATALOG, right_num)
+        ta, ida, tb, idb = canonical_pair("Substance", left_id, right_id)
+        txt = sql_str(
+            f"Performance test interaction: activeSubstanceTest{left_num} with activeSubstanceTest{right_num}."
+        )
+        w(
+            f'INSERT INTO "Interactions" ("Id", "InteractionSeverityId", "DefaultText", "StomachText", "CreatedAtUtc") '
+            f"VALUES ('{iid}'::uuid, '{sev}'::uuid, '{txt}', NULL, {NOW}) "
+            f'ON CONFLICT ("Id") DO UPDATE SET "DefaultText"=EXCLUDED."DefaultText";'
+        )
+        pa, pb = uid(INT_PERF_P, i * 2 - 1), uid(INT_PERF_P, i * 2)
+        pe = uid(INT_PERF_E, i)
+        for pid, party_type, entity_id in (
+            (pa, "Substance", left_id),
+            (pb, "Substance", right_id),
+        ):
+            fk = PARTY_FK_COLUMN[party_type]
+            w(
+                f'INSERT INTO "InteractionParties" ("Id", "InteractionId", "PartyType", "{fk}", "CreatedAtUtc") '
+                f"VALUES ('{pid}'::uuid, '{iid}'::uuid, '{party_type}', '{entity_id}'::uuid, {NOW}) "
+                f'ON CONFLICT ("Id") DO NOTHING;'
+            )
+        w(
+            f'INSERT INTO "InteractionExpanded" ("Id", "InteractionId", "PartyTypeA", "PartyIdA", "PartyTypeB", "PartyIdB", "CreatedAtUtc") '
+            f"VALUES ('{pe}'::uuid, '{iid}'::uuid, '{ta}', '{ida}'::uuid, '{tb}', '{idb}'::uuid, {NOW}) "
+            f'ON CONFLICT ("Id") DO NOTHING;'
+        )
     w("")
 
 
@@ -734,6 +855,7 @@ def catalog() -> None:
         + '\nON CONFLICT ("Id") DO UPDATE SET "HealthConditionName"=EXCLUDED."HealthConditionName", '
         '"NormalizedHealthConditionName"=EXCLUDED."NormalizedHealthConditionName", "Description"=EXCLUDED."Description";'
     )
+    perf_test_catalog()
 
 
 def extras() -> None:

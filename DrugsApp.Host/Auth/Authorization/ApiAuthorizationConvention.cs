@@ -62,6 +62,12 @@ namespace DrugsApp.Host.Auth.Authorization;
 // ManagePatientSupervision (HealthcareProvider, Admin):
 // - HealthcareSpecialistSupervisionFeature (controller role policies)
 //
+// ManageStudyMode (Teacher, Admin):
+// - StudyModeFeature (every study clinic, study account and study patient medical-data proxy endpoint)
+//
+// Read-only study roles (StudyDoctor, StudyPatient) are admitted on allow-listed member read endpoints
+// through explicit [Authorize(Roles = AuthRoles.MemberReadRoles)] / [Authorize(Roles = AuthRoles.ProviderReadRoles)].
+//
 // Member-only supervision endpoints use explicit [Authorize(Roles = "...")] on controllers
 // and are intentionally not mapped here. Current routes:
 //
@@ -268,6 +274,12 @@ public sealed class ApiAuthorizationConvention : IApplicationModelConvention
         if (controllerNamespace.StartsWith("DrugsApp.Features.InteractionFeature.", StringComparison.Ordinal))
         {
             RequirePermission(controller, Permission.ManageInteractions);
+            return;
+        }
+
+        if (controllerNamespace.StartsWith("DrugsApp.Features.StudyModeFeature.", StringComparison.Ordinal))
+        {
+            RequirePermission(controller, Permission.ManageStudyMode);
             return;
         }
 

@@ -49,7 +49,7 @@ public sealed record ListRegularDrugHistoryResponse(
 /// Controller for listing regular drug history rows.
 /// </summary>
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Regular Drugs")]
 [Route("api/regular-drugs/history")]
 public sealed class ListRegularDrugHistoryController(

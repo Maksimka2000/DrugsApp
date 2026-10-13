@@ -22,7 +22,7 @@ public sealed record GetDrugToolDetailQuery(
     Guid UserId) : IRequest<ErrorOr<GetDrugToolDetailResponse>>;
 
 [ApiController]
-[Authorize(Roles = AuthRoles.MemberRoles)]
+[Authorize(Roles = AuthRoles.MemberReadRoles)]
 [Tags("Drug Tool")]
 [Route("api/tools/drugs")]
 public sealed class GetDrugToolDetailController(

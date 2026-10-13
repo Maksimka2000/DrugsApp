@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DrugsApp.Domain.HealthConditionFeature.Entities;
 using DrugsApp.Domain.HealthConditionFeature.Repositories;
 using DrugsApp.Features.HealthConditionFeature.Shared;
+using DrugsApp.Features.Common.Limits;
 using ErrorOr;
 using MediatR;
 
@@ -27,6 +28,19 @@ public sealed class AddUserHealthConditionHandler(
         AddUserHealthConditionCommand command,
         CancellationToken cancellationToken)
     {
+        int existingCount = await _userHealthConditionRepository.CountAsync(
+            command.UserId,
+            displayNameQuery: null,
+            cancellationToken);
+        ErrorOr<Success> limitCheck = UserRecordLimits.EnsureBelowLimit(
+            existingCount,
+            UserRecordLimits.MAX_PROFILE_RECORDS_PER_TYPE,
+            "UserHealthCondition");
+        if (limitCheck.IsError)
+        {
+            return limitCheck.Errors;
+        }
+
         if (command.Request.HealthConditionId is Guid healthConditionId)
         {
             return await CreateDatabaseAsync(command.UserId, healthConditionId, command.Request.Note, cancellationToken);

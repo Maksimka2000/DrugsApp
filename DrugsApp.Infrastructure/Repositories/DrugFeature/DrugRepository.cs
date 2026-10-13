@@ -126,6 +126,9 @@ public sealed class DrugRepository : IDrugRepository
     private static IQueryable<Drug> ApplyIncludes(IQueryable<Drug> query) =>
         query
             .Include(d => d.ActiveSubstances)
+                .ThenInclude(s => s.AlcoholInteractionOverride)
+            .Include(d => d.ActiveSubstances)
+                .ThenInclude(s => s.OralMedicationIntakeGuidelines)
             .Include(d => d.DrugForms)
                 .ThenInclude(df => df.RoutesOfAdministration)
             .Include(d => d.DrugForms)
@@ -263,7 +266,17 @@ public sealed class DrugRepository : IDrugRepository
             return new List<Drug>();
         }
 
-        return await ApplyIncludes(_context.Drugs.AsNoTracking())
+        return await _context.Drugs
+            .AsNoTracking()
+            .Include(drug => drug.ActiveSubstances)
+                .ThenInclude(substance => substance.AlcoholInteractionOverride)
+            .Include(drug => drug.ActiveSubstances)
+                .ThenInclude(substance => substance.OralMedicationIntakeGuidelines)
+            .Include(drug => drug.DrugForms.Where(form => drugFormIds.Contains(form.Id)))
+                .ThenInclude(form => form.RoutesOfAdministration)
+            .Include(drug => drug.DrugForms.Where(form => drugFormIds.Contains(form.Id)))
+                .ThenInclude(form => form.PharmaceuticalForms)
+            .AsSplitQuery()
             .Where(drug => drug.DrugForms.Any(form => drugFormIds.Contains(form.Id)))
             .OrderBy(drug => drug.CommercialName)
             .ThenBy(drug => drug.Id)

@@ -32,6 +32,18 @@ public sealed class ClientFoodAllergyRepository(DrugsAppDbContext _context) : IC
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<ClientFoodAllergy>> ListAllByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<ClientFoodAllergy> query = _context.ClientFoodAllergies
+            .AsNoTracking()
+            .Include(x => x.Food)
+            .Where(x => x.UserId == userId);
+
+        return await ApplySort(query).ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await _context.ClientFoodAllergies
