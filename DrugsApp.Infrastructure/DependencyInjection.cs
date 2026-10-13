@@ -124,23 +124,6 @@ public static class DependencyInjection
         services.AddScoped<IUserStore<ApplicationUser>, ApplicationUserStore>();
         services.AddScoped<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
 
-        // 
-        services.AddIdentityCore<ApplicationUser>(options =>
-        {
-            options.User.RequireUniqueEmail = true;
-            options.SignIn.RequireConfirmedEmail = true;
-            options.Password.RequiredLength = 8;
-            options.Password.RequireDigit = true;
-            options.Password.RequireLowercase = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireNonAlphanumeric = false;
-        })
-            .AddRoles<ApplicationRole>()
-            .AddDefaultTokenProviders();
-
-        services.AddScoped<IUserStore<ApplicationUser>, ApplicationUserStore>();
-        services.AddScoped<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
-
         // Register UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
