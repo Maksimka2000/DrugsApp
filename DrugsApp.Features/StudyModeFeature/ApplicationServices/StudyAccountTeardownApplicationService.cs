@@ -15,7 +15,7 @@ internal sealed class StudyAccountTeardownApplicationService(
     : IStudyAccountTeardownApplicationService
 {
     /// <summary>
-    /// Tears down every member account of the tracked clinic, iterating over a snapshot of member ids.
+    /// Tears down every member account of the tracked clinic, iterating over a snapshot of member ids. This is done in a separate method to avoid modifying the clinic's member collection while iterating over it.
     /// </summary>
     /// <param name="clinic">
     /// Tracked clinic aggregate loaded with its members.
